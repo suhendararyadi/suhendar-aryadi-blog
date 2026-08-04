@@ -45,7 +45,7 @@ INSERT INTO customers VALUES (1, 'Budi Santoso', 'Jakarta', 'Indonesia');
 INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (3, 'John Doe', 'Surabaya', 'Indonesia');`,
     expected_sql: 'SELECT * FROM customers;',
-    initial_code: '-- Tulis query SQL Anda di bawah ini:\nSELECT * FROM customers;',
+    initial_code: '-- Tulis query SQL Anda di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -74,7 +74,7 @@ INSERT INTO customers VALUES (3, 'John Smith', 'Kuala Lumpur', 'Malaysia');
 INSERT INTO customers VALUES (4, 'Dewi Lestari', 'Surabaya', 'Indonesia');
 INSERT INTO customers VALUES (5, 'Mei Ling', 'Singapore', 'Singapore');`,
     expected_sql: 'SELECT DISTINCT country FROM customers;',
-    initial_code: '-- Tampilkan nilai unik dari kolom country:\nSELECT DISTINCT country FROM customers;',
+    initial_code: '-- Tulis query SELECT DISTINCT di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -111,7 +111,7 @@ INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (3, 'John Doe', 'Surabaya', 'Indonesia');
 INSERT INTO customers VALUES (4, 'Dewi Lestari', 'Bandung', 'Indonesia');`,
     expected_sql: "SELECT * FROM customers WHERE city = 'Bandung';",
-    initial_code: "-- Tulis query SQL dengan klausul WHERE di bawah ini:\nSELECT * FROM customers WHERE city = 'Bandung';",
+    initial_code: '-- Tulis query SELECT dengan klausul WHERE di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -142,7 +142,7 @@ INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (3, 'Andi Wijaya', 'Jakarta', 'Indonesia');
 INSERT INTO customers VALUES (4, 'John Doe', 'Singapore', 'Singapore');`,
     expected_sql: "SELECT * FROM customers WHERE country = 'Indonesia' AND city = 'Jakarta';",
-    initial_code: "-- Filter pelanggan Indonesia di Jakarta:\nSELECT * FROM customers WHERE country = 'Indonesia' AND city = 'Jakarta';",
+    initial_code: '-- Tulis query dengan operator AND di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -171,7 +171,7 @@ INSERT INTO customers VALUES (2, 'Ahmad Dahlan', 'Yogyakarta', 'Indonesia');
 INSERT INTO customers VALUES (3, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (4, 'Citra Dewi', 'Surabaya', 'Indonesia');`,
     expected_sql: 'SELECT * FROM customers ORDER BY name ASC;',
-    initial_code: '-- Tulis query SQL dengan ORDER BY di bawah ini:\nSELECT * FROM customers ORDER BY name ASC;',
+    initial_code: '-- Tulis query dengan ORDER BY di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -205,7 +205,7 @@ INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (3, 'John Doe', 'Surabaya', 'Indonesia');
 INSERT INTO customers VALUES (4, 'Dewi Lestari', 'Bandung', 'Indonesia');`,
     expected_sql: "INSERT INTO customers (id, name, city, country) VALUES (5, 'Eko Prasetyo', 'Semarang', 'Indonesia'); SELECT * FROM customers;",
-    initial_code: "-- Tambahkan data baru lalu tampilkan dengan SELECT * FROM customers;\nINSERT INTO customers (id, name, city, country) VALUES (5, 'Eko Prasetyo', 'Semarang', 'Indonesia');\nSELECT * FROM customers;",
+    initial_code: '-- Tambahkan data baru dengan INSERT INTO lalu tampilkan dengan SELECT * FROM customers;\n',
     evaluator_type: 'data_match',
   },
   {
@@ -233,7 +233,7 @@ INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', NULL);
 INSERT INTO customers VALUES (3, 'Andi Wijaya', 'Surabaya', NULL);
 INSERT INTO customers VALUES (4, 'Rina Permata', 'Medan', '08987654321');`,
     expected_sql: 'SELECT * FROM customers WHERE phone IS NULL;',
-    initial_code: '-- Tampilkan pelanggan dengan nomor telepon NULL:\nSELECT * FROM customers WHERE phone IS NULL;',
+    initial_code: '-- Tulis query dengan IS NULL di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -263,7 +263,7 @@ INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (3, 'John Doe', 'Surabaya', 'Indonesia');
 INSERT INTO customers VALUES (4, 'Dewi Lestari', 'Bandung', 'Indonesia');`,
     expected_sql: "UPDATE customers SET city = 'Bali' WHERE id = 3; SELECT * FROM customers;",
-    initial_code: "-- Tulis perintah UPDATE dan SELECT * FROM customers;\nUPDATE customers SET city = 'Bali' WHERE id = 3;\nSELECT * FROM customers;",
+    initial_code: '-- Tulis perintah UPDATE dan SELECT * FROM customers di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -289,7 +289,7 @@ INSERT INTO customers VALUES (1, 'Budi Santoso', 'Jakarta', 'Indonesia');
 INSERT INTO customers VALUES (2, 'Siti Rahma', 'Bandung', 'Indonesia');
 INSERT INTO customers VALUES (3, 'John Doe', 'Surabaya', 'Indonesia');`,
     expected_sql: 'DELETE FROM customers WHERE id = 2; SELECT * FROM customers;',
-    initial_code: '-- Hapus pelanggan id=2 dan tampilkan hasil:\nDELETE FROM customers WHERE id = 2;\nSELECT * FROM customers;',
+    initial_code: '-- Tulis perintah DELETE dan SELECT * FROM customers di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -316,7 +316,7 @@ LIMIT number;
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Budi'), (2, 'Siti'), (3, 'Andi'), (4, 'Dewi'), (5, 'Eko');`,
     expected_sql: 'SELECT * FROM customers ORDER BY id ASC LIMIT 3;',
-    initial_code: '-- Tampilkan 3 data pertama:\nSELECT * FROM customers ORDER BY id ASC LIMIT 3;',
+    initial_code: '-- Tulis query dengan klausul LIMIT di bawah ini:\n',
     evaluator_type: 'data_match',
   },
 
@@ -342,7 +342,7 @@ SELECT MAX(column_name) FROM table_name WHERE condition;
     seed_sql: `CREATE TABLE products (id INT, name TEXT, price INT);
 INSERT INTO products VALUES (1, 'Laptop', 12000000), (2, 'Mouse', 150000), (3, 'Keyboard', 450000), (4, 'Monitor', 2500000);`,
     expected_sql: 'SELECT MIN(price), MAX(price) FROM products;',
-    initial_code: '-- Tampilkan MIN(price) dan MAX(price):\nSELECT MIN(price), MAX(price) FROM products;',
+    initial_code: '-- Tulis query MIN(price) dan MAX(price) di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -364,7 +364,7 @@ SELECT COUNT(column_name) FROM table_name WHERE condition;
     seed_sql: `CREATE TABLE products (id INT, name TEXT, price INT);
 INSERT INTO products VALUES (1, 'Laptop', 12000000), (2, 'Mouse', 150000), (3, 'Keyboard', 450000), (4, 'Monitor', 2500000);`,
     expected_sql: 'SELECT COUNT(*) FROM products WHERE price > 200000;',
-    initial_code: '-- Hitung jumlah produk harga > 200000:\nSELECT COUNT(*) FROM products WHERE price > 200000;',
+    initial_code: '-- Tulis query COUNT(*) di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -386,7 +386,7 @@ SELECT SUM(column_name) FROM table_name WHERE condition;
     seed_sql: `CREATE TABLE inventory (id INT, item_name TEXT, quantity INT);
 INSERT INTO inventory VALUES (1, 'Buku Tulis', 50), (2, 'Pensil', 120), (3, 'Penggaris', 30), (4, 'Spidol', 45);`,
     expected_sql: 'SELECT SUM(quantity) FROM inventory;',
-    initial_code: '-- Tulis query SUM(quantity) di bawah ini:\nSELECT SUM(quantity) FROM inventory;',
+    initial_code: '-- Tulis query SUM(quantity) di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -408,7 +408,7 @@ SELECT AVG(column_name) FROM table_name WHERE condition;
     seed_sql: `CREATE TABLE reviews (id INT, product_id INT, rating REAL);
 INSERT INTO reviews VALUES (1, 101, 4.5), (2, 101, 5.0), (3, 102, 3.5), (4, 102, 4.0), (5, 103, 5.0);`,
     expected_sql: 'SELECT AVG(rating) FROM reviews;',
-    initial_code: '-- Hitung rata-rata rating:\nSELECT AVG(rating) FROM reviews;',
+    initial_code: '-- Tulis query AVG(rating) di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -434,7 +434,7 @@ SELECT * FROM table_name WHERE column_name LIKE pattern;
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Ahmad Dahlan', 'Yogyakarta'), (2, 'Budi Santoso', 'Jakarta'), (3, 'Andi Wijaya', 'Surabaya'), (4, 'Citra Dewi', 'Bandung');`,
     expected_sql: "SELECT * FROM customers WHERE name LIKE 'A%';",
-    initial_code: "-- Tampilkan pelanggan dengan nama diawali 'A':\nSELECT * FROM customers WHERE name LIKE 'A%';",
+    initial_code: '-- Tulis query dengan operator LIKE di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -455,7 +455,7 @@ Contoh:
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Budi Santoso', 'Jakarta'), (2, 'Siti Rahma', 'Bandung'), (3, 'Surya Utama', 'Medan'), (4, 'Andi Prasetya', 'Surabaya');`,
     expected_sql: "SELECT * FROM customers WHERE name LIKE '_u%';",
-    initial_code: "-- Filter nama dengan huruf kedua 'u':\nSELECT * FROM customers WHERE name LIKE '_u%';",
+    initial_code: '-- Tulis query dengan wildcard di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -479,7 +479,7 @@ WHERE column_name IN (value1, value2, ...);
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Budi', 'Jakarta'), (2, 'Siti', 'Bandung'), (3, 'Eko', 'Semarang'), (4, 'Andi', 'Surabaya'), (5, 'Rina', 'Medan');`,
     expected_sql: "SELECT * FROM customers WHERE city IN ('Jakarta', 'Bandung', 'Surabaya');",
-    initial_code: "-- Tulis query dengan operator IN:\nSELECT * FROM customers WHERE city IN ('Jakarta', 'Bandung', 'Surabaya');",
+    initial_code: '-- Tulis query dengan operator IN di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -503,7 +503,7 @@ WHERE column_name BETWEEN value1 AND value2;
     seed_sql: `CREATE TABLE products (id INT, name TEXT, price INT);
 INSERT INTO products VALUES (1, 'Mouse', 150000), (2, 'Keyboard', 450000), (3, 'Webcam', 600000), (4, 'USB Cable', 50000), (5, 'Headset', 300000);`,
     expected_sql: 'SELECT * FROM products WHERE price BETWEEN 100000 AND 500000;',
-    initial_code: '-- Filter produk dengan harga BETWEEN 100000 AND 500000:\nSELECT * FROM products WHERE price BETWEEN 100000 AND 500000;',
+    initial_code: '-- Tulis query dengan BETWEEN di bawah ini:\n',
     evaluator_type: 'data_match',
   },
 
@@ -528,7 +528,7 @@ SELECT column_name FROM table_name AS alias_name;
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Budi Santoso', 'Jakarta'), (2, 'Siti Rahma', 'Bandung');`,
     expected_sql: 'SELECT name AS nama_pelanggan, city AS kota_asal FROM customers;',
-    initial_code: '-- Tampilkan alias nama_pelanggan dan kota_asal:\nSELECT name AS nama_pelanggan, city AS kota_asal FROM customers;',
+    initial_code: '-- Tulis query dengan alias AS di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -555,7 +555,7 @@ CREATE TABLE orders (id INT, customer_id INT, amount INT);
 INSERT INTO customers VALUES (1, 'Budi'), (2, 'Siti'), (3, 'Andi');
 INSERT INTO orders VALUES (101, 1, 500000), (102, 2, 750000), (103, 1, 250000);`,
     expected_sql: 'SELECT orders.id, customers.name, orders.amount FROM orders INNER JOIN customers ON orders.customer_id = customers.id;',
-    initial_code: '-- Tulis query INNER JOIN di bawah ini:\nSELECT orders.id, customers.name, orders.amount FROM orders INNER JOIN customers ON orders.customer_id = customers.id;',
+    initial_code: '-- Tulis query INNER JOIN di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -582,7 +582,7 @@ CREATE TABLE orders (id INT, customer_id INT, amount INT);
 INSERT INTO customers VALUES (1, 'Budi'), (2, 'Siti'), (3, 'Andi');
 INSERT INTO orders VALUES (101, 1, 500000);`,
     expected_sql: 'SELECT customers.name, orders.amount FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;',
-    initial_code: '-- Tulis query LEFT JOIN:\nSELECT customers.name, orders.amount FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;',
+    initial_code: '-- Tulis query LEFT JOIN di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -611,7 +611,7 @@ CREATE TABLE orders (id INT, customer_id INT, amount INT);
 INSERT INTO customers VALUES (1, 'Budi');
 INSERT INTO orders VALUES (101, 1, 500000), (102, 2, 300000);`,
     expected_sql: 'SELECT orders.id, customers.name FROM orders LEFT JOIN customers ON orders.customer_id = customers.id;',
-    initial_code: '-- Tampilkan orders dan nama customers:\nSELECT orders.id, customers.name FROM orders LEFT JOIN customers ON orders.customer_id = customers.id;',
+    initial_code: '-- Tulis query penggabungan tabel di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -639,7 +639,7 @@ CREATE TABLE orders (id INT, customer_id INT, amount INT);
 INSERT INTO customers VALUES (1, 'Budi'), (2, 'Siti');
 INSERT INTO orders VALUES (101, 1, 500000), (102, 3, 400000);`,
     expected_sql: 'SELECT customers.name, orders.amount FROM customers LEFT JOIN orders ON customers.id = orders.customer_id UNION SELECT customers.name, orders.amount FROM orders LEFT JOIN customers ON orders.customer_id = customers.id;',
-    initial_code: '-- Tulis gabungan FULL JOIN dengan UNION:\nSELECT customers.name, orders.amount FROM customers LEFT JOIN orders ON customers.id = orders.customer_id UNION SELECT customers.name, orders.amount FROM orders LEFT JOIN customers ON orders.customer_id = customers.id;',
+    initial_code: '-- Tulis query gabungan dengan UNION di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -668,7 +668,7 @@ CREATE TABLE suppliers (id INT, city TEXT);
 INSERT INTO customers VALUES (1, 'Jakarta'), (2, 'Bandung');
 INSERT INTO suppliers VALUES (1, 'Jakarta'), (2, 'Surabaya');`,
     expected_sql: 'SELECT city FROM customers UNION SELECT city FROM suppliers;',
-    initial_code: '-- Tampilkan kota unik gabungan dengan UNION:\nSELECT city FROM customers UNION SELECT city FROM suppliers;',
+    initial_code: '-- Tulis query UNION di bawah ini:\n',
     evaluator_type: 'data_match',
   },
 
@@ -696,7 +696,7 @@ GROUP BY column_name(s);
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, country TEXT);
 INSERT INTO customers VALUES (1, 'Budi', 'Indonesia'), (2, 'Siti', 'Indonesia'), (3, 'John', 'Malaysia'), (4, 'Dewi', 'Indonesia'), (5, 'Mei', 'Singapore');`,
     expected_sql: 'SELECT country, COUNT(*) FROM customers GROUP BY country;',
-    initial_code: '-- Kelompokkan pelanggan berdasarkan negara:\nSELECT country, COUNT(*) FROM customers GROUP BY country;',
+    initial_code: '-- Tulis query GROUP BY di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -721,7 +721,7 @@ HAVING COUNT(*) > value;
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, country TEXT);
 INSERT INTO customers VALUES (1, 'Budi', 'Indonesia'), (2, 'Siti', 'Indonesia'), (3, 'John', 'Malaysia'), (4, 'Dewi', 'Indonesia');`,
     expected_sql: 'SELECT country, COUNT(*) FROM customers GROUP BY country HAVING COUNT(*) > 1;',
-    initial_code: '-- Filter grup menggunakan HAVING:\nSELECT country, COUNT(*) FROM customers GROUP BY country HAVING COUNT(*) > 1;',
+    initial_code: '-- Tulis query dengan klausul HAVING di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -748,7 +748,7 @@ CREATE TABLE products (id INT, supplier_id INT, name TEXT);
 INSERT INTO suppliers VALUES (1, 'PT Maju Jaya'), (2, 'CV Abadi'), (3, 'UD Makmur');
 INSERT INTO products VALUES (101, 1, 'Laptop'), (102, 1, 'Mouse');`,
     expected_sql: 'SELECT name FROM suppliers WHERE EXISTS (SELECT * FROM products WHERE products.supplier_id = suppliers.id);',
-    initial_code: '-- Tulis query EXISTS di bawah ini:\nSELECT name FROM suppliers WHERE EXISTS (SELECT * FROM products WHERE products.supplier_id = suppliers.id);',
+    initial_code: '-- Tulis query dengan EXISTS di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -767,7 +767,7 @@ Contoh mencari nilai produk yang harganya lebih besar dari rata-rata atau ada di
     seed_sql: `CREATE TABLE products (id INT, name TEXT, price INT);
 INSERT INTO products VALUES (1, 'Mouse', 100000), (2, 'Keyboard', 300000), (3, 'Monitor', 2000000), (4, 'Headset', 400000);`,
     expected_sql: 'SELECT name, price FROM products WHERE price > (SELECT AVG(price) FROM products);',
-    initial_code: '-- Filter produk dengan harga di atas rata-rata:\nSELECT name, price FROM products WHERE price > (SELECT AVG(price) FROM products);',
+    initial_code: '-- Tulis query Subquery di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -793,7 +793,7 @@ WHERE condition;
 CREATE TABLE archived_customers (name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Budi', 'Jakarta'), (2, 'Siti', 'Bandung'), (3, 'Andi', 'Jakarta');`,
     expected_sql: "INSERT INTO archived_customers (name, city) SELECT name, city FROM customers WHERE city = 'Jakarta'; SELECT * FROM archived_customers;",
-    initial_code: "-- Salin data Jakarta ke archived_customers dan tampilkan:\nINSERT INTO archived_customers (name, city) SELECT name, city FROM customers WHERE city = 'Jakarta';\nSELECT * FROM archived_customers;",
+    initial_code: '-- Tulis perintah INSERT INTO SELECT dan SELECT * FROM archived_customers di bawah ini:\n',
     evaluator_type: 'data_match',
   },
   {
@@ -821,7 +821,7 @@ FROM table_name;
     seed_sql: `CREATE TABLE students (id INT, name TEXT, score INT);
 INSERT INTO students VALUES (1, 'Budi', 85), (2, 'Siti', 65), (3, 'Andi', 70);`,
     expected_sql: "SELECT name, score, CASE WHEN score >= 70 THEN 'Lulus' ELSE 'Remidi' END AS status FROM students;",
-    initial_code: "-- Tulis query CASE WHEN:\nSELECT name, score, CASE WHEN score >= 70 THEN 'Lulus' ELSE 'Remidi' END AS status FROM students;",
+    initial_code: '-- Tulis query ekspresi CASE WHEN di bawah ini:\n',
     evaluator_type: 'data_match',
   },
 
@@ -848,7 +848,7 @@ CREATE TABLE table_name (
     instructions_markdown: 'Buat tabel baru bernama **`employees`** dengan kolom-kolom berikut:\n- `id` bertipe `INT`\n- `name` bertipe `TEXT`\n- `position` bertipe `TEXT`\n- `salary` bertipe `INT`',
     seed_sql: '',
     expected_sql: 'CREATE TABLE employees (id INT, name TEXT, position TEXT, salary INT);',
-    initial_code: '-- Tulis perintah CREATE TABLE employees di bawah ini:\nCREATE TABLE employees (\n  id INT,\n  name TEXT,\n  position TEXT,\n  salary INT\n);',
+    initial_code: '-- Tulis perintah CREATE TABLE employees di bawah ini:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -869,7 +869,7 @@ ALTER TABLE table_name ADD column_name datatype;
     instructions_markdown: 'Tambahkan kolom baru bernama **`email`** bertipe `TEXT` ke dalam tabel `users` yang sudah ada.',
     seed_sql: 'CREATE TABLE users (id INT, username TEXT);',
     expected_sql: 'ALTER TABLE users ADD COLUMN email TEXT;',
-    initial_code: '-- Tambahkan kolom email ke tabel users:\nALTER TABLE users ADD COLUMN email TEXT;',
+    initial_code: '-- Tulis perintah ALTER TABLE di bawah ini:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -890,7 +890,7 @@ DROP TABLE table_name;
     instructions_markdown: 'Hapus tabel sementara bernama **`temp_logs`** dari database.',
     seed_sql: "CREATE TABLE temp_logs (id INT, log_message TEXT); INSERT INTO temp_logs VALUES (1, 'test');",
     expected_sql: 'DROP TABLE temp_logs;',
-    initial_code: '-- Hapus tabel temp_logs:\nDROP TABLE temp_logs;',
+    initial_code: '-- Tulis perintah DROP TABLE di bawah ini:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -914,7 +914,7 @@ CREATE TABLE table_name (
     instructions_markdown: 'Buat tabel **`categories`** dengan kolom `id INT NOT NULL` dan `category_name TEXT NOT NULL`.',
     seed_sql: '',
     expected_sql: 'CREATE TABLE categories (id INT NOT NULL, category_name TEXT NOT NULL);',
-    initial_code: '-- Buat tabel categories dengan constraint NOT NULL:\nCREATE TABLE categories (\n  id INT NOT NULL,\n  category_name TEXT NOT NULL\n);',
+    initial_code: '-- Buat tabel categories dengan constraint NOT NULL:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -938,7 +938,7 @@ CREATE TABLE table_name (
     instructions_markdown: 'Buat tabel **`members`** dengan kolom `id INT` dan kolom `email TEXT UNIQUE`.',
     seed_sql: '',
     expected_sql: 'CREATE TABLE members (id INT, email TEXT UNIQUE);',
-    initial_code: '-- Buat tabel members dengan constraint UNIQUE pada email:\nCREATE TABLE members (\n  id INT,\n  email TEXT UNIQUE\n);',
+    initial_code: '-- Buat tabel members dengan constraint UNIQUE:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -962,7 +962,7 @@ CREATE TABLE table_name (
     instructions_markdown: 'Buat tabel **`student_accounts`** dengan kolom `student_id INT PRIMARY KEY` dan `username TEXT`.',
     seed_sql: '',
     expected_sql: 'CREATE TABLE student_accounts (student_id INT PRIMARY KEY, username TEXT);',
-    initial_code: '-- Buat tabel student_accounts dengan PRIMARY KEY:\nCREATE TABLE student_accounts (\n  student_id INT PRIMARY KEY,\n  username TEXT\n);',
+    initial_code: '-- Buat tabel student_accounts dengan PRIMARY KEY:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -988,7 +988,7 @@ CREATE TABLE orders (
     instructions_markdown: 'Buat tabel **`orders`** dengan kolom `id INT PRIMARY KEY`, `user_id INT REFERENCES users(id)`, dan `total_price INT`.',
     seed_sql: 'CREATE TABLE users (id INT PRIMARY KEY, name TEXT);',
     expected_sql: 'CREATE TABLE orders (id INT PRIMARY KEY, user_id INT REFERENCES users(id), total_price INT);',
-    initial_code: '-- Buat tabel orders dengan FOREIGN KEY ke users(id):\nCREATE TABLE orders (\n  id INT PRIMARY KEY,\n  user_id INT REFERENCES users(id),\n  total_price INT\n);',
+    initial_code: '-- Buat tabel orders dengan FOREIGN KEY ke users(id):\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -1012,7 +1012,7 @@ CREATE TABLE table_name (
     instructions_markdown: "Buat tabel **`tasks`** dengan kolom `id INT`, `title TEXT`, dan `status TEXT DEFAULT 'pending'`.",
     seed_sql: '',
     expected_sql: "CREATE TABLE tasks (id INT, title TEXT, status TEXT DEFAULT 'pending');",
-    initial_code: "-- Buat tabel tasks dengan nilai DEFAULT 'pending':\nCREATE TABLE tasks (\n  id INT,\n  title TEXT,\n  status TEXT DEFAULT 'pending'\n);",
+    initial_code: '-- Buat tabel tasks dengan nilai DEFAULT:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -1036,7 +1036,7 @@ WHERE condition;
     instructions_markdown: "Buat VIEW bernama **`active_customers`** yang mengambil seluruh kolom dari tabel `customers` di mana `status = 'active'`.",
     seed_sql: "CREATE TABLE customers (id INT, name TEXT, status TEXT); INSERT INTO customers VALUES (1, 'Budi', 'active'), (2, 'Siti', 'inactive');",
     expected_sql: "CREATE VIEW active_customers AS SELECT * FROM customers WHERE status = 'active';",
-    initial_code: "-- Buat VIEW active_customers:\nCREATE VIEW active_customers AS SELECT * FROM customers WHERE status = 'active';",
+    initial_code: '-- Tulis perintah CREATE VIEW di bawah ini:\n',
     evaluator_type: 'schema_match',
   },
   {
@@ -1056,6 +1056,7 @@ Jika query dibentuk dengan string concatenation:
 
 Jika attacker memasukkan input: \`' OR '1'='1\`, query menjadi:
 \`SELECT * FROM users WHERE username = '' OR '1'='1' AND password = '' OR '1'='1'\`
+
 Sehingga kondisi selalu bernilai **TRUE** dan meretas autentikasi!
 
 ### Pencegahan:
@@ -1063,7 +1064,7 @@ Selalu gunakan **Parameterized Queries** (Prepared Statements) di backend aplika
     instructions_markdown: "Jalankan simulasi serangan SQL Injection pada tabel `users` dengan menuliskan query yang mengambil seluruh pengguna terlepas dari password menggunakan kondisi **`WHERE username = 'admin' OR '1'='1'`**.",
     seed_sql: "CREATE TABLE users (id INT, username TEXT, password TEXT); INSERT INTO users VALUES (1, 'admin', 'supersecret123'), (2, 'budi', 'userpass456');",
     expected_sql: "SELECT * FROM users WHERE username = 'admin' OR '1'='1';",
-    initial_code: "-- Tulis query simulasi SQL Injection:\nSELECT * FROM users WHERE username = 'admin' OR '1'='1';",
+    initial_code: '-- Tulis query simulasi SQL Injection di bawah ini:\n',
     evaluator_type: 'data_match',
   },
 ];
