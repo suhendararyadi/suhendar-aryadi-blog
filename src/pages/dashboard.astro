@@ -23,7 +23,7 @@ try {
 
   const progressRes = await query(
     `SELECT up.id, up.lesson_id, up.status, up.submitted_code, up.completed_at,
-            sl.slug, sl.title, sl.category, sl.order_index
+            sl.slug, sl.title, sl.category, sl.path_id, sl.order_index
      FROM user_progress up
      JOIN sql_lessons sl ON up.lesson_id = sl.id
      WHERE up.user_id = $1 AND up.status = 'completed'
@@ -38,19 +38,138 @@ try {
 const completedCount = completedModules.length;
 const completionPercentage = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
 
-let levelBadge = 'Siswa Pemula';
-if (completionPercentage === 100) {
-  levelBadge = 'Master SQL 🏆';
-} else if (completionPercentage >= 60) {
-  levelBadge = 'Siswa Lanjutan 🥈';
-} else if (completionPercentage >= 20) {
-  levelBadge = 'Siswa Menengah 🥉';
+// 4-Tier Rank Badge System:
+// - 🟢 SQL Novice (1 - 10 Modul)
+// - 🟡 SQL Intermediate (11 - 24 Modul)
+// - 🔵 SQL Advanced (25 - 39 Modul)
+// - 🏆 Master SQL Engineer (40 Modul Selesai)
+let rankInfo = {
+  title: 'SQL Novice',
+  icon: '🟢',
+  badgeClass: 'badge-novice'
+};
+
+if (completedCount >= 40) {
+  rankInfo = {
+    title: 'Master SQL Engineer',
+    icon: '🏆',
+    badgeClass: 'badge-master'
+  };
+} else if (completedCount >= 25) {
+  rankInfo = {
+    title: 'SQL Advanced',
+    icon: '🔵',
+    badgeClass: 'badge-advanced'
+  };
+} else if (completedCount >= 11) {
+  rankInfo = {
+    title: 'SQL Intermediate',
+    icon: '🟡',
+    badgeClass: 'badge-intermediate'
+  };
+} else {
+  rankInfo = {
+    title: 'SQL Novice',
+    icon: '🟢',
+    badgeClass: 'badge-novice'
+  };
 }
+
+// 5 Learning Paths Definition & Analytics
+interface PathDefinition {
+  id: 'basics' | 'aggregates' | 'joins' | 'grouping' | 'ddl_security';
+  title: string;
+  shortTitle: string;
+  icon: string;
+  total: number;
+  badgeClass: string;
+  gradient: string;
+  description: string;
+}
+
+const LEARNING_PATHS: PathDefinition[] = [
+  {
+    id: 'basics',
+    title: 'Path 1: SQL Basics',
+    shortTitle: 'SQL Basics',
+    icon: '🟢',
+    total: 10,
+    badgeClass: 'badge-emerald',
+    gradient: 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
+    description: 'SELECT, WHERE, ORDER BY, INSERT, UPDATE, DELETE'
+  },
+  {
+    id: 'aggregates',
+    title: 'Path 2: SQL Aggregates & Functions',
+    shortTitle: 'Aggregates',
+    icon: '🟡',
+    total: 8,
+    badgeClass: 'badge-amber',
+    gradient: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
+    description: 'Fungsi Agregasi (COUNT, SUM, AVG, MIN, MAX), String & Date'
+  },
+  {
+    id: 'joins',
+    title: 'Path 3: SQL Joins & Relasi Tabel',
+    shortTitle: 'Joins',
+    icon: '🔵',
+    total: 6,
+    badgeClass: 'badge-sky',
+    gradient: 'linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%)',
+    description: 'INNER, LEFT, RIGHT, FULL OUTER & Self Join'
+  },
+  {
+    id: 'grouping',
+    title: 'Path 4: SQL Grouping & Subqueries',
+    shortTitle: 'Grouping',
+    icon: '🟣',
+    total: 6,
+    badgeClass: 'badge-purple',
+    gradient: 'linear-gradient(90deg, #a855f7 0%, #7e22ce 100%)',
+    description: 'GROUP BY, HAVING, Subqueries, EXISTS, UNION'
+  },
+  {
+    id: 'ddl_security',
+    title: 'Path 5: SQL DDL, Constraints & Security',
+    shortTitle: 'DDL & Security',
+    icon: '🟧',
+    total: 10,
+    badgeClass: 'badge-orange',
+    gradient: 'linear-gradient(90deg, #f97316 0%, #ea580c 100%)',
+    description: 'CREATE, ALTER, DROP, Constraints, Transactions, Views'
+  }
+];
+
+const pathCompletedCounts: Record<string, number> = {
+  basics: 0,
+  aggregates: 0,
+  joins: 0,
+  grouping: 0,
+  ddl_security: 0
+};
+
+completedModules.forEach((item) => {
+  const lesson = seedLessons.find((l) => l.id === item.lesson_id);
+  const pathId = item.path_id || lesson?.path_id || 'basics';
+  if (pathCompletedCounts[pathId] !== undefined) {
+    pathCompletedCounts[pathId]++;
+  }
+});
+
+const pathAnalytics = LEARNING_PATHS.map((path) => {
+  const completed = pathCompletedCounts[path.id] || 0;
+  const percentage = path.total > 0 ? Math.round((completed / path.total) * 100) : 0;
+  return {
+    ...path,
+    completed,
+    percentage
+  };
+});
 ---
 
 <MainLayout 
   title={`Dashboard Siswa - ${user.name} | Suhendar Aryadi`}
-  description="Dashboard progres belajar siswa RPL. Lihat modul SQL yang telah diselesaikan dan statistik pencapaian."
+  description="Dashboard progres belajar siswa RPL. Lihat statistik progres 5 Learning Path SQL dan peringkat kelulusan."
 >
   <div class="container dashboard-container">
     <div class="dashboard-card glass-card">
@@ -61,7 +180,9 @@ if (completionPercentage === 100) {
         <div class="user-details">
           <div class="badge-group">
             <span class="badge badge-cyan">{user.role.toUpperCase()}</span>
-            <span class="badge">{levelBadge}</span>
+            <span class={`badge ${rankInfo.badgeClass}`}>
+              {rankInfo.icon} {rankInfo.title}
+            </span>
           </div>
           <h1 class="user-name">{user.name}</h1>
           <p class="user-email">✉️ {user.email}</p>
@@ -106,9 +227,9 @@ if (completionPercentage === 100) {
         </div>
 
         <div class="stat-card glass-card">
-          <div class="stat-icon">🏅</div>
+          <div class="stat-icon">{rankInfo.icon}</div>
           <div class="stat-content">
-            <span class="stat-num">{levelBadge}</span>
+            <span class="stat-num rank-title-num">{rankInfo.title}</span>
             <span class="stat-label">Peringkat Kelulusan</span>
           </div>
         </div>
@@ -116,13 +237,56 @@ if (completionPercentage === 100) {
 
       <div class="progress-bar-section">
         <div class="progress-bar-label">
-          <span>Target Kurikulum SQL</span>
-          <span><strong>{completionPercentage}%</strong> Terlampaui</span>
+          <span>Target Kurikulum SQL (40 Modul)</span>
+          <span><strong>{completedCount} / {totalLessonsCount} Modul</strong> ({completionPercentage}%)</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style={`width: ${completionPercentage}%`}></div>
         </div>
       </div>
+
+      <div class="paths-analytics-section">
+        <div class="paths-section-header">
+          <h3>🎯 Progres per Learning Path (5 Alur Belajar)</h3>
+          <p>Breakdown pencapaian modul dari tingkat Dasar hingga Keamanan Database</p>
+        </div>
+
+        <div class="paths-grid">
+          {pathAnalytics.map((path) => (
+            <div class="path-card glass-card">
+              <div class="path-header">
+                <div class="path-title-wrap">
+                  <span class="path-icon">{path.icon}</span>
+                  <div>
+                    <h4 class="path-title">{path.title}</h4>
+                    <span class="path-desc">{path.description}</span>
+                  </div>
+                </div>
+                <div class="path-badge-wrap">
+                  <span class={`badge ${path.badgeClass}`}>
+                    {path.completed} / {path.total} Modul
+                  </span>
+                </div>
+              </div>
+
+              <div class="path-progress-bar-container">
+                <div class="path-progress-track">
+                  <div 
+                    class="path-progress-fill" 
+                    style={`width: ${path.percentage}%; background: ${path.gradient};`}
+                  ></div>
+                </div>
+                <div class="path-progress-info">
+                  <span class="path-pct-text">{path.percentage}% Selesai</span>
+                  <span class="path-count-text">{path.completed} dari {path.total} modul</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="divider"></div>
 
       <div class="modules-section">
         <h3>📜 Riwayat Modul yang Telah Diselesaikan</h3>
@@ -236,6 +400,7 @@ if (completionPercentage === 100) {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 0.35rem;
+    flex-wrap: wrap;
   }
 
   .user-name {
@@ -315,9 +480,73 @@ if (completionPercentage === 100) {
     line-height: 1.2;
   }
 
+  .rank-title-num {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
   .stat-label {
     font-size: 0.825rem;
     color: var(--text-secondary);
+  }
+
+  /* Rank Badge Styles */
+  .badge-novice {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-intermediate {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-advanced {
+    background-color: rgba(14, 165, 233, 0.12);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.3);
+  }
+
+  .badge-master {
+    background-color: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+  }
+
+  /* Learning Path Badge Colors */
+  .badge-emerald {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .badge-amber {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .badge-sky {
+    background-color: rgba(14, 165, 233, 0.12);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.25);
+  }
+
+  .badge-purple {
+    background-color: rgba(168, 85, 247, 0.12);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .badge-orange {
+    background-color: rgba(249, 115, 22, 0.12);
+    color: #f97316;
+    border-color: rgba(249, 115, 22, 0.25);
   }
 
   .progress-bar-section {
@@ -325,7 +554,7 @@ if (completionPercentage === 100) {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
 
   .progress-bar-label {
@@ -348,6 +577,110 @@ if (completionPercentage === 100) {
     background: var(--accent-gradient);
     border-radius: var(--radius-full);
     transition: width 0.5s ease-in-out;
+  }
+
+  /* Path Analytics Section */
+  .paths-analytics-section {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .paths-section-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .paths-section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .paths-section-header p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+  }
+
+  .paths-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .path-card {
+    padding: 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .path-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .path-title-wrap {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .path-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .path-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .path-desc {
+    font-size: 0.775rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.15rem;
+  }
+
+  .path-progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .path-progress-track {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .path-progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-in-out;
+  }
+
+  .path-progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.775rem;
+  }
+
+  .path-pct-text {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .path-count-text {
+    color: var(--text-secondary);
   }
 
   .modules-section h3 {
@@ -443,3 +776,4 @@ if (completionPercentage === 100) {
     }
   }
 </style>
+
