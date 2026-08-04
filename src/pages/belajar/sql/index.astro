@@ -33,11 +33,99 @@ if (user) {
 const completedCount = completedLessonIds.size;
 const totalCount = lessons.length;
 const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+interface LearningPathDef {
+  id: 'basics' | 'aggregates' | 'joins' | 'grouping' | 'ddl_security';
+  title: string;
+  shortTitle: string;
+  badgeText: string;
+  badgeClass: string;
+  icon: string;
+  description: string;
+  modulesRange: string;
+}
+
+const LEARNING_PATHS: LearningPathDef[] = [
+  {
+    id: 'basics',
+    title: 'Path 1: SQL Basics',
+    shortTitle: 'Basics',
+    badgeText: 'Level 1',
+    badgeClass: 'badge-emerald',
+    icon: '🟢',
+    description: 'Kuasai dasar-dasar SQL: sintaksis SELECT, filter WHERE, pengurutan ORDER BY, hingga manipulasi data INSERT, UPDATE, dan DELETE.',
+    modulesRange: 'Modul 1 – 10'
+  },
+  {
+    id: 'aggregates',
+    title: 'Path 2: SQL Aggregates & Functions',
+    shortTitle: 'Aggregates',
+    badgeText: 'Level 2',
+    badgeClass: 'badge-amber',
+    icon: '🟡',
+    description: 'Pelajari fungsi agregasi data (COUNT, SUM, AVG, MIN, MAX), kalkulasi aritmatika, filter teks LIKE, serta fungsi String dan Date.',
+    modulesRange: 'Modul 11 – 18'
+  },
+  {
+    id: 'joins',
+    title: 'Path 3: SQL Joins & Relasi Tabel',
+    shortTitle: 'Joins',
+    badgeText: 'Level 3',
+    badgeClass: 'badge-sky',
+    icon: '🔵',
+    description: 'Gabungkan informasi dari berbagai tabel relasional dengan INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN, dan Self Join.',
+    modulesRange: 'Modul 19 – 24'
+  },
+  {
+    id: 'grouping',
+    title: 'Path 4: SQL Grouping & Subqueries',
+    shortTitle: 'Grouping',
+    badgeText: 'Level 4',
+    badgeClass: 'badge-purple',
+    icon: '🟣',
+    description: 'Analisis kelompok data dengan GROUP BY & HAVING, query bersarang (Subqueries), kueri kondisi EXISTS, operator ANY/ALL, dan UNION.',
+    modulesRange: 'Modul 25 – 30'
+  },
+  {
+    id: 'ddl_security',
+    title: 'Path 5: SQL DDL, Constraints & Security',
+    shortTitle: 'DDL & Security',
+    badgeText: 'Level 5',
+    badgeClass: 'badge-orange',
+    icon: '🟧',
+    description: 'Definisikan skema database (CREATE, ALTER, DROP), kelola batasan data (Constraints), Transaksi, Views, dan Proteksi Keamanan SQL.',
+    modulesRange: 'Modul 31 – 40'
+  }
+];
+
+function getPathId(lesson: SQLLesson): 'basics' | 'aggregates' | 'joins' | 'grouping' | 'ddl_security' {
+  if (lesson.path_id) return lesson.path_id;
+  const idx = lesson.order_index;
+  if (idx <= 10) return 'basics';
+  if (idx <= 18) return 'aggregates';
+  if (idx <= 24) return 'joins';
+  if (idx <= 30) return 'grouping';
+  return 'ddl_security';
+}
+
+const pathGroups = LEARNING_PATHS.map((path) => {
+  const pathLessons = lessons.filter((l) => getPathId(l) === path.id);
+  const total = pathLessons.length;
+  const completed = pathLessons.filter((l) => completedLessonIds.has(l.id)).length;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  return {
+    ...path,
+    lessons: pathLessons,
+    total,
+    completed,
+    percentage
+  };
+});
 ---
 
 <MainLayout 
   title="Katalog Pembelajaran SQL Interaktif | Suhendar Aryadi"
-  description="Kurikulum pembelajaran SQL interaktif bergaya FreeCodeCamp. Pelajari SELECT, WHERE, ORDER BY, INSERT INTO, dan UPDATE dengan editor SQL & evaluasi otomatis."
+  description="Kurikulum pembelajaran SQL interaktif 40 Modul bergaya W3Schools. Pelajari SELECT, JOINs, Subqueries, DDL, Constraints & Keamanan."
 >
   <div class="container">
     <div class="catalog-hero glass-card">
@@ -48,12 +136,12 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
             <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
             <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
           </svg>
-          Interactive SQL Learning Platform
+          Kurikulum SQL Interaktif 40 Modul
         </span>
-        <h1 class="hero-title">Belajar SQL Interaktif <span class="text-gradient">Praktis di Browser</span></h1>
+        <h1 class="hero-title">Katalog Pembelajaran <span class="text-gradient">SQL Masterclass</span></h1>
         <p class="hero-description">
-          Kuasai sintaksis database SQL dasar hingga pemrosesan data menggunakan simulasi mesin database SQLite WASM. 
-          Tulis query, jalankan secara real-time, dan dapatkan umpan balik evaluasi otomatis.
+          Kuasai sintaksis database SQL dari tingkat dasar hingga profesional melalui 5 Learning Path terstruktur.
+          Tulis query pada editor SQLite WASM, eksekusi real-time, dan dapatkan umpan balik evaluasi otomatis.
         </p>
 
         {user ? (
@@ -62,7 +150,7 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
               <div class="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
               <div>
                 <div class="user-name">Selamat datang kembali, <strong>{user.name}</strong></div>
-                <div class="user-progress-text">Progres Anda: <strong>{completedCount} dari {totalCount}</strong> modul selesai ({completionPercentage}%)</div>
+                <div class="user-progress-text">Progres Keseluruhan: <strong>{completedCount} dari {totalCount} Modul Selesai</strong> ({completionPercentage}%)</div>
               </div>
             </div>
             <div class="progress-bar-container">
@@ -80,7 +168,7 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
               <span class="prompt-icon">💡</span>
               <div>
                 <strong>Simpan Progres Belajar Anda</strong>
-                <p>Login atau daftar akun siswa untuk menyimpan riwayat jawaban dan mendapatkan sertifikat latihan SQL.</p>
+                <p>Login atau daftar akun siswa untuk menyimpan riwayat jawaban dan memantau pencapaian 5 Learning Path.</p>
               </div>
             </div>
             <div class="auth-prompt-buttons">
@@ -92,56 +180,126 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
       </div>
     </div>
 
-    <section class="curriculum-section">
-      <div class="section-header">
-        <div>
-          <h2>📚 Modul Latihan SQL Fundamentals</h2>
-          <p class="section-desc">Kurikulum standar industri berbasis materi W3Schools SQL</p>
-        </div>
-        <span class="badge">{lessons.length} Modul Tersedia</span>
+    <!-- Interactive Filter Bar -->
+    <div class="filter-bar glass-card">
+      <div class="filter-header">
+        <span class="filter-title">🔍 Filter Learning Path:</span>
       </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">
+          <span>✨ Semua</span>
+          <span class="tab-count">{totalCount} Modul</span>
+        </button>
+        {pathGroups.map((path) => (
+          <button class="filter-tab" data-filter={path.id}>
+            <span>{path.icon} {path.shortTitle}</span>
+            <span class="tab-count">{path.completed}/{path.total}</span>
+          </button>
+        ))}
+      </div>
+    </div>
 
-      <div class="lessons-grid">
-        {lessons.map((lesson) => {
-          const isCompleted = completedLessonIds.has(lesson.id);
-          return (
-            <div class:list={['lesson-card', 'glass-card', 'glass-card-interactive', { completed: isCompleted }]}>
-              <div class="card-top">
-                <span class="badge badge-cyan">{lesson.category}</span>
-                <span class="module-number">Modul #{lesson.order_index}</span>
+    <!-- 5 Learning Path Sections -->
+    <div class="paths-container">
+      {pathGroups.map((path) => (
+        <section class="path-section" data-path={path.id}>
+          <div class:list={['path-header-card', 'glass-card', path.id]}>
+            <div class="path-header-top">
+              <div class="path-title-group">
+                <span class="path-icon">{path.icon}</span>
+                <div>
+                  <div class="path-badge-wrap">
+                    <span class:list={['badge', path.badgeClass]}>{path.badgeText}</span>
+                    <span class="module-range-badge">{path.modulesRange}</span>
+                  </div>
+                  <h2 class="path-title">{path.title}</h2>
+                </div>
               </div>
-              <h3 class="lesson-title">{lesson.title}</h3>
-              <p class="lesson-desc">
-                {lesson.instructions_markdown.replace(/\*\*/g, '').slice(0, 110)}...
-              </p>
-              <div class="card-footer">
-                {isCompleted ? (
-                  <span class="completion-badge">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    Selesai
-                  </span>
-                ) : (
-                  <span class="status-pending">Belum Dikerjakan</span>
-                )}
-                <a href={`/belajar/sql/${lesson.slug}`} class="btn btn-primary btn-sm cta-btn">
-                  {isCompleted ? 'Ulangi Modul' : 'Mulai Latihan'} ➔
-                </a>
+              <div class="path-progress-box">
+                <div class="path-progress-label">
+                  Progres Path: <strong>{path.completed} / {path.total} Selesai</strong> ({path.percentage}%)
+                </div>
+                <div class="path-progress-bar">
+                  <div class:list={['path-progress-fill', path.id]} style={`width: ${path.percentage}%`}></div>
+                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
-    </section>
+            <p class="path-description">{path.description}</p>
+          </div>
+
+          <div class="lessons-grid">
+            {path.lessons.map((lesson) => {
+              const isCompleted = completedLessonIds.has(lesson.id);
+              const evaluatorType = lesson.evaluator_type || 'data_match';
+              return (
+                <div class:list={['lesson-card', 'glass-card', 'glass-card-interactive', { completed: isCompleted }]}>
+                  <div class="card-top">
+                    <span class="module-number">Modul #{lesson.order_index}</span>
+                    {evaluatorType === 'schema_match' ? (
+                      <span class="badge badge-purple" title="Evaluasi struktur tabel / skema DDL">📐 Schema Match</span>
+                    ) : (
+                      <span class="badge badge-cyan" title="Evaluasi baris data SELECT">📊 Data Match</span>
+                    )}
+                  </div>
+                  <h3 class="lesson-title">{lesson.title}</h3>
+                  <p class="lesson-desc">
+                    {lesson.instructions_markdown.replace(/\*\*/g, '').slice(0, 110)}...
+                  </p>
+                  <div class="card-footer">
+                    {isCompleted ? (
+                      <span class="completion-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        ✅ Selesai
+                      </span>
+                    ) : (
+                      <span class="status-pending">⏳ Belum Dikerjakan</span>
+                    )}
+                    <a href={`/belajar/sql/${lesson.slug}`} class="btn btn-primary btn-sm cta-btn">
+                      {isCompleted ? 'Ulangi Modul' : 'Mulai Latihan'} ➔
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
   </div>
 </MainLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const filterTabs = document.querySelectorAll<HTMLButtonElement>('.filter-tab');
+    const pathSections = document.querySelectorAll<HTMLElement>('.path-section');
+
+    filterTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const filter = tab.getAttribute('data-filter');
+
+        filterTabs.forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        pathSections.forEach((section) => {
+          const sectionPath = section.getAttribute('data-path');
+          if (filter === 'all' || sectionPath === filter) {
+            section.style.display = 'block';
+          } else {
+            section.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
 
 <style>
   .catalog-hero {
     padding: 2.5rem;
     margin-top: 1rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%), var(--glass-bg);
   }
 
@@ -262,29 +420,212 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
     font-size: 0.875rem;
   }
 
-  .curriculum-section {
+  /* Filter Bar */
+  .filter-bar {
+    padding: 1rem 1.5rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-header {
+    white-space: nowrap;
+  }
+
+  .filter-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .filter-tab {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-color, #6366f1);
+    background: rgba(99, 102, 241, 0.08);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-gradient, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .tab-count {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    background: rgba(0, 0, 0, 0.15);
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+  }
+
+  .filter-tab.active .tab-count {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Path Section & Header Card */
+  .paths-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
     margin-bottom: 3rem;
   }
 
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 1.5rem;
+  .path-section {
+    transition: opacity 0.3s ease;
   }
 
-  .section-header h2 {
-    font-size: 1.5rem;
+  .path-header-card {
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--border-color);
+  }
+
+  .path-header-card.basics { border-left-color: #10b981; }
+  .path-header-card.aggregates { border-left-color: #f59e0b; }
+  .path-header-card.joins { border-left-color: #0284c7; }
+  .path-header-card.grouping { border-left-color: #8b5cf6; }
+  .path-header-card.ddl_security { border-left-color: #f97316; }
+
+  .path-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+
+  .path-title-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+  }
+
+  .path-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    margin-top: 0.2rem;
+  }
+
+  .path-badge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .module-range-badge {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .path-title {
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-primary);
   }
 
-  .section-desc {
-    color: var(--text-secondary);
-    font-size: 0.925rem;
-    margin-top: 0.25rem;
+  .path-progress-box {
+    min-width: 240px;
+    max-width: 320px;
+    flex: 1;
   }
 
+  .path-progress-label {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    text-align: right;
+  }
+
+  .path-progress-bar {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .path-progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.4s ease;
+  }
+
+  .path-progress-fill.basics { background: linear-gradient(90deg, #10b981, #34d399); }
+  .path-progress-fill.aggregates { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .path-progress-fill.joins { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+  .path-progress-fill.grouping { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+  .path-progress-fill.ddl_security { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+  .path-description {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Badges */
+  .badge-emerald {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-amber {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-sky {
+    background: rgba(2, 132, 199, 0.12);
+    color: #38bdf8;
+    border: 1px solid rgba(2, 132, 199, 0.3);
+  }
+
+  .badge-purple {
+    background: rgba(139, 92, 246, 0.12);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+  }
+
+  .badge-orange {
+    background: rgba(249, 115, 22, 0.12);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+  }
+
+  /* Lessons Grid */
   .lessons-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -318,7 +659,7 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
   }
 
   .lesson-title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.75rem;
@@ -375,6 +716,19 @@ const completionPercentage = totalCount > 0 ? Math.round((completedCount / total
 
     .auth-prompt-buttons {
       justify-content: flex-end;
+    }
+
+    .path-header-top {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .path-progress-box {
+      max-width: 100%;
+    }
+
+    .path-progress-label {
+      text-align: left;
     }
   }
 </style>
