@@ -28,7 +28,7 @@ export async function createSession(userId: number): Promise<string> {
   return sessionId;
 }
 
-export async function getSessionUser(sessionId: string): Promise<User | null> {
+export async function getSessionUser(sessionId?: string): Promise<User | null> {
   if (!sessionId) return null;
   const res = await query(
     `SELECT users.id, users.name, users.email, users.role, users.created_at
@@ -43,7 +43,7 @@ export async function getSessionUser(sessionId: string): Promise<User | null> {
   return res.rows[0] as User;
 }
 
-export async function destroySession(sessionId: string): Promise<void> {
+export async function destroySession(sessionId?: string): Promise<void> {
   if (!sessionId) return;
   await query('DELETE FROM sessions WHERE id = $1', [sessionId]);
 }

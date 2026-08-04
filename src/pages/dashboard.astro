@@ -1,0 +1,445 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { getSessionUser } from '../lib/auth';
+import { seedLessons } from '../lib/seedLessons';
+import { query } from '../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect('/auth/login');
+}
+
+let completedModules: any[] = [];
+let totalLessonsCount = seedLessons.length;
+
+try {
+  const lessonsRes = await query('SELECT COUNT(*) as count FROM sql_lessons');
+  if (lessonsRes.rows && lessonsRes.rows[0]?.count) {
+    const parsed = parseInt(lessonsRes.rows[0].count, 10);
+    if (parsed > 0) totalLessonsCount = parsed;
+  }
+
+  const progressRes = await query(
+    `SELECT up.id, up.lesson_id, up.status, up.submitted_code, up.completed_at,
+            sl.slug, sl.title, sl.category, sl.order_index
+     FROM user_progress up
+     JOIN sql_lessons sl ON up.lesson_id = sl.id
+     WHERE up.user_id = $1 AND up.status = 'completed'
+     ORDER BY up.completed_at DESC`,
+    [user.id]
+  );
+  completedModules = progressRes.rows;
+} catch (err) {
+  console.warn('Could not fetch dashboard progress from database:', err);
+}
+
+const completedCount = completedModules.length;
+const completionPercentage = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
+
+let levelBadge = 'Siswa Pemula';
+if (completionPercentage === 100) {
+  levelBadge = 'Master SQL 🏆';
+} else if (completionPercentage >= 60) {
+  levelBadge = 'Siswa Lanjutan 🥈';
+} else if (completionPercentage >= 20) {
+  levelBadge = 'Siswa Menengah 🥉';
+}
+---
+
+<MainLayout 
+  title={`Dashboard Siswa - ${user.name} | Suhendar Aryadi`}
+  description="Dashboard progres belajar siswa RPL. Lihat modul SQL yang telah diselesaikan dan statistik pencapaian."
+>
+  <div class="container dashboard-container">
+    <div class="dashboard-card glass-card">
+      <div class="user-header">
+        <div class="user-avatar-lg">
+          {user.name.charAt(0).toUpperCase()}
+        </div>
+        <div class="user-details">
+          <div class="badge-group">
+            <span class="badge badge-cyan">{user.role.toUpperCase()}</span>
+            <span class="badge">{levelBadge}</span>
+          </div>
+          <h1 class="user-name">{user.name}</h1>
+          <p class="user-email">✉️ {user.email}</p>
+        </div>
+
+        <div class="header-actions">
+          <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Keluar / Logout
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title-group">
+        <h2>📊 Ringkasan Statistik Progres SQL</h2>
+        <a href="/belajar/sql" class="btn btn-primary btn-sm">
+          📚 Lanjutkan Belajar SQL ➔
+        </a>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card glass-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <span class="stat-num">{completedCount} / {totalLessonsCount}</span>
+            <span class="stat-label">Modul Selesai</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass-card">
+          <div class="stat-icon">📈</div>
+          <div class="stat-content">
+            <span class="stat-num">{completionPercentage}%</span>
+            <span class="stat-label">Tingkat Penyelesaian</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass-card">
+          <div class="stat-icon">🏅</div>
+          <div class="stat-content">
+            <span class="stat-num">{levelBadge}</span>
+            <span class="stat-label">Peringkat Kelulusan</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-bar-section">
+        <div class="progress-bar-label">
+          <span>Target Kurikulum SQL</span>
+          <span><strong>{completionPercentage}%</strong> Terlampaui</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style={`width: ${completionPercentage}%`}></div>
+        </div>
+      </div>
+
+      <div class="modules-section">
+        <h3>📜 Riwayat Modul yang Telah Diselesaikan</h3>
+        {completedModules.length > 0 ? (
+          <div class="table-wrapper">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Modul</th>
+                  <th>Kategori</th>
+                  <th>Tanggal Selesai</th>
+                  <th>Kode SQL Disubmit</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {completedModules.map((item) => (
+                  <tr>
+                    <td>
+                      <strong>#{item.order_index} {item.title}</strong>
+                    </td>
+                    <td>
+                      <span class="badge badge-cyan">{item.category}</span>
+                    </td>
+                    <td class="date-col">
+                      {item.completed_at ? new Date(item.completed_at).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : 'Terbaru'}
+                    </td>
+                    <td>
+                      <code class="code-preview">{item.submitted_code}</code>
+                    </td>
+                    <td>
+                      <a href={`/belajar/sql/${item.slug}`} class="btn btn-outline btn-xs">
+                        Buka Workspace ➔
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div class="empty-state glass-card">
+            <div class="empty-icon">💡</div>
+            <h4>Belum Ada Modul yang Diselesaikan</h4>
+            <p>Anda belum menyelesaikan modul SQL. Mulai latihan sekarang dan selesaikan tantangan pertama Anda!</p>
+            <a href="/belajar/sql" class="btn btn-primary btn-sm" style="margin-top: 1rem;">
+              Mulai Belajar Sekarang ➔
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/auth/login';
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  });
+</script>
+
+<style>
+  .dashboard-container {
+    margin-top: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .dashboard-card {
+    padding: 2.5rem;
+  }
+
+  .user-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    flex-wrap: wrap;
+  }
+
+  .user-avatar-lg {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: var(--radius-full);
+    background: var(--accent-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .user-details {
+    flex: 1;
+  }
+
+  .badge-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .user-name {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .user-email {
+    color: var(--text-secondary);
+    font-size: 0.925rem;
+    margin-top: 0.2rem;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+  }
+
+  .btn-sm {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-xs {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.775rem;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 2rem 0;
+  }
+
+  .section-title-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title-group h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-secondary);
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    line-height: 1.2;
+  }
+
+  .stat-label {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+  }
+
+  .progress-bar-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+  }
+
+  .progress-track {
+    height: 10px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-in-out;
+  }
+
+  .modules-section h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .history-table th, .history-table td {
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+
+  .history-table th {
+    background: var(--bg-secondary);
+    color: var(--accent-primary);
+    font-weight: 600;
+  }
+
+  .history-table tr:nth-child(even) {
+    background: var(--border-subtle);
+  }
+
+  .date-col {
+    color: var(--text-secondary);
+    font-size: 0.825rem;
+    white-space: nowrap;
+  }
+
+  .code-preview {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-cyan);
+    background: var(--bg-secondary);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem;
+    background: var(--bg-secondary);
+  }
+
+  .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state h4 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-card {
+      padding: 1.5rem;
+    }
+
+    .user-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+</style>

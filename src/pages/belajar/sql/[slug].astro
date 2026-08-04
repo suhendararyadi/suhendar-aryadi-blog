@@ -1,0 +1,713 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { seedLessons, type SQLLesson } from '../../../lib/seedLessons';
+import { query } from '../../../lib/db';
+
+const { slug } = Astro.params;
+
+let lesson: SQLLesson | undefined;
+try {
+  const dbRes = await query('SELECT * FROM sql_lessons WHERE slug = $1', [slug]);
+  if (dbRes.rows && dbRes.rows.length > 0) {
+    lesson = dbRes.rows[0] as SQLLesson;
+  }
+} catch (err) {
+  console.warn('Fallback to seedLessons for slug lookup:', err);
+}
+
+if (!lesson) {
+  lesson = seedLessons.find((l) => l.slug === slug);
+}
+
+if (!lesson) {
+  return Astro.redirect('/belajar/sql');
+}
+
+let allLessons: SQLLesson[] = seedLessons;
+try {
+  const dbAll = await query('SELECT * FROM sql_lessons ORDER BY order_index ASC');
+  if (dbAll.rows && dbAll.rows.length > 0) {
+    allLessons = dbAll.rows as SQLLesson[];
+  }
+} catch (err) {
+  // fallback to seedLessons
+}
+
+const currentIdx = allLessons.findIndex((l) => l.id === lesson!.id || l.slug === lesson!.slug);
+const nextLesson = currentIdx !== -1 && currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null;
+const prevLesson = currentIdx > 0 ? allLessons[currentIdx - 1] : null;
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+// Simple markdown formatter helper for Astro template
+function formatMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
+    .replace(/```sql\n([\s\S]*?)\n```/gim, '<pre><code class="language-sql">$1</code></pre>')
+    .replace(/```\n([\s\S]*?)\n```/gim, '<pre><code>$1</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br/>');
+}
+
+const formattedTheory = formatMarkdown(lesson.theory_markdown);
+const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
+---
+
+<MainLayout 
+  title={`${lesson.title} | Workspace Belajar SQL Interaktif`}
+  description={`Latihan coding SQL interaktif: ${lesson.title}. Selesaikan tantangan dan uji pemahaman query database.`}
+>
+  <div class="workspace-page">
+    <div class="workspace-nav">
+      <div class="nav-left">
+        <a href="/belajar/sql" class="back-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Katalog Modul
+        </a>
+        <span class="nav-separator">/</span>
+        <span class="nav-current">{lesson.title}</span>
+      </div>
+
+      <div class="nav-right">
+        {user && (
+          <a href="/dashboard" class="btn btn-outline btn-xs" title="Dashboard Siswa">
+            👤 {user.name}
+          </a>
+        )}
+        {prevLesson && (
+          <a href={`/belajar/sql/${prevLesson.slug}`} class="btn btn-secondary btn-xs" title="Modul Sebelumnya">
+            ← Modul Sebelumnya
+          </a>
+        )}
+        {nextLesson && (
+          <a href={`/belajar/sql/${nextLesson.slug}`} class="btn btn-secondary btn-xs" title="Modul Selanjutnya">
+            Modul Selanjutnya →
+          </a>
+        )}
+      </div>
+    </div>
+
+    <div class="workspace-grid">
+      <!-- PANEL KIRI: Teori & Instruksi Tugas -->
+      <div class="panel panel-instructions glass-card">
+        <div class="panel-header">
+          <span class="badge badge-cyan">{lesson.category}</span>
+          <span class="module-tag">Modul #{lesson.order_index}</span>
+        </div>
+
+        <h1 class="lesson-heading">{lesson.title}</h1>
+
+        <div class="panel-section">
+          <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Teori & Penjelasan
+          </h2>
+          <div class="prose theory-content" set:html={formattedTheory} />
+        </div>
+
+        <div class="panel-section instruction-section">
+          <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Instruksi Tugas
+          </h2>
+          <div class="instruction-box">
+            <div class="prose" set:html={formattedInstructions} />
+          </div>
+        </div>
+
+        <!-- Evaluation Banner Status -->
+        <div id="eval-status" class="eval-banner" style="display: none;"></div>
+      </div>
+
+      <!-- PANEL KANAN: Editor SQL & Tabel Hasil Exec -->
+      <div class="panel panel-editor">
+        <!-- Header Controls Editor -->
+        <div class="editor-header glass-card">
+          <div class="editor-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <strong>SQL Editor</strong>
+          </div>
+
+          <div class="btn-group">
+            <button id="run-btn" class="btn btn-secondary btn-sm" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Run Query
+            </button>
+            <button id="submit-btn" class="btn btn-primary btn-sm" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              Submit Answer
+            </button>
+          </div>
+        </div>
+
+        <!-- Editor Input Textarea -->
+        <div class="editor-container glass-card">
+          <div class="editor-wrapper">
+            <textarea 
+              id="sql-input" 
+              class="sql-code-editor" 
+              placeholder="-- Tulis query SQL Anda di sini..."
+              spellcheck="false"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+            >{lesson.initial_code}</textarea>
+          </div>
+        </div>
+
+        <!-- Output Result Table Panel -->
+        <div class="result-panel glass-card">
+          <div class="result-header">
+            <span class="result-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              Hasil Query (Result Set)
+            </span>
+            <span id="rows-count" class="rows-count"></span>
+          </div>
+
+          <div id="output-table-container" class="output-container">
+            <p class="placeholder-text">
+              Klik <strong>Run Query</strong> untuk mengeksekusi sintaks SQL atau <strong>Submit Answer</strong> untuk menguji kebenaran jawaban Anda.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline define:vars={{ 
+  seedSql: lesson.seed_sql, 
+  expectedSql: lesson.expected_sql, 
+  lessonId: lesson.id,
+  nextSlug: nextLesson ? nextLesson.slug : null
+}}>
+  const runBtn = document.getElementById('run-btn');
+  const submitBtn = document.getElementById('submit-btn');
+  const sqlInput = document.getElementById('sql-input');
+  const tableContainer = document.getElementById('output-table-container');
+  const rowsCountEl = document.getElementById('rows-count');
+  const evalStatus = document.getElementById('eval-status');
+
+  // Support Tab key indentation inside textarea
+  sqlInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = sqlInput.selectionStart;
+      const end = sqlInput.selectionEnd;
+      sqlInput.value = sqlInput.value.substring(0, start) + '  ' + sqlInput.value.substring(end);
+      sqlInput.selectionStart = sqlInput.selectionEnd = start + 2;
+    }
+  });
+
+  runBtn?.addEventListener('click', async () => {
+    if (!sqlInput) return;
+    const userSql = sqlInput.value;
+    
+    setLoadingState(true);
+    if (evalStatus) evalStatus.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/sql/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seedSql, userSql })
+      });
+      const data = await res.json();
+      renderTable(data);
+    } catch (err) {
+      if (tableContainer) {
+        tableContainer.innerHTML = `<div class="error-alert">❌ Gagal terhubung ke server: ${err.message}</div>`;
+      }
+    } finally {
+      setLoadingState(false);
+    }
+  });
+
+  submitBtn?.addEventListener('click', async () => {
+    if (!sqlInput) return;
+    const userSql = sqlInput.value;
+
+    setLoadingState(true);
+
+    try {
+      const res = await fetch('/api/sql/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessonId, seedSql, expectedSql, userSql })
+      });
+      const data = await res.json();
+
+      if (data.userResult) {
+        renderTable(data.userResult);
+      }
+
+      if (evalStatus) {
+        evalStatus.style.display = 'block';
+        if (data.passed) {
+          evalStatus.className = 'eval-banner eval-success';
+          let nextBtnHtml = '';
+          if (nextSlug) {
+            nextBtnHtml = `<div class="next-lesson-action"><a href="/belajar/sql/${nextSlug}" class="btn btn-primary btn-sm">Modul Selanjutnya ➔</a></div>`;
+          }
+          evalStatus.innerHTML = `
+            <div class="eval-content">
+              <span class="eval-icon">🎉</span>
+              <div>
+                <strong>${data.message || 'Jawaban Anda Benar!'}</strong>
+                <p>Selamat, query SQL Anda berhasil mengembalikan data yang tepat!</p>
+              </div>
+            </div>
+            ${nextBtnHtml}
+          `;
+        } else {
+          evalStatus.className = 'eval-banner eval-error';
+          evalStatus.innerHTML = `
+            <div class="eval-content">
+              <span class="eval-icon">⚠️</span>
+              <div>
+                <strong>${data.error || 'Hasil query belum sesuai.'}</strong>
+                <p>Coba periksa kembali klausa SQL, nama kolom, atau kondisi WHERE Anda.</p>
+              </div>
+            </div>
+          `;
+        }
+        evalStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    } catch (err) {
+      if (evalStatus) {
+        evalStatus.style.display = 'block';
+        evalStatus.className = 'eval-banner eval-error';
+        evalStatus.innerHTML = `⚠️ Terjadi kesalahan saat mengevaluasi jawaban: ${err.message}`;
+      }
+    } finally {
+      setLoadingState(false);
+    }
+  });
+
+  function setLoadingState(isLoading) {
+    if (runBtn) runBtn.disabled = isLoading;
+    if (submitBtn) submitBtn.disabled = isLoading;
+    if (isLoading && tableContainer) {
+      tableContainer.innerHTML = '<div class="loading-spinner">⚡ Mengeksekusi query SQL...</div>';
+    }
+  }
+
+  function renderTable(data) {
+    if (!tableContainer) return;
+
+    if (data.error) {
+      if (rowsCountEl) rowsCountEl.innerText = '';
+      tableContainer.innerHTML = `
+        <div class="error-alert">
+          <strong>❌ SQL Syntax Error:</strong>
+          <pre class="error-code">${escapeHtml(data.error)}</pre>
+        </div>
+      `;
+      return;
+    }
+
+    if (!data.columns || data.columns.length === 0) {
+      if (rowsCountEl) rowsCountEl.innerText = '0 baris';
+      tableContainer.innerHTML = `<p class="placeholder-text">Query berhasil dieksekusi tetapi tidak ada baris data yang dikembalikan.</p>`;
+      return;
+    }
+
+    if (rowsCountEl) {
+      rowsCountEl.innerText = `${data.values ? data.values.length : 0} baris data`;
+    }
+
+    let html = '<div class="table-wrapper"><table class="data-table"><thead><tr>';
+    data.columns.forEach(col => {
+      html += `<th>${escapeHtml(col)}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    if (data.values && data.values.length > 0) {
+      data.values.forEach(row => {
+        html += '<tr>';
+        row.forEach(val => {
+          html += `<td>${val === null ? '<span class="null-val">NULL</span>' : escapeHtml(String(val))}</td>`;
+        });
+        html += '</tr>';
+      });
+    } else {
+      html += `<tr><td colspan="${data.columns.length}" style="text-align: center; color: var(--text-muted);">Tidak ada baris</td></tr>`;
+    }
+
+    html += '</tbody></table></div>';
+    tableContainer.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+</script>
+
+<style>
+  .workspace-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: calc(100vh - 120px);
+  }
+
+  .workspace-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .back-link:hover {
+    color: var(--accent-primary);
+  }
+
+  .nav-separator {
+    color: var(--text-muted);
+  }
+
+  .nav-current {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .nav-right {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-xs {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: 45% 55%;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  /* PANEL KIRI */
+  .panel-instructions {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .module-tag {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .lesson-heading {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+  }
+
+  .theory-content {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .instruction-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-primary);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    font-size: 0.925rem;
+  }
+
+  /* EVALUATION BANNER */
+  .eval-banner {
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    margin-top: 0.5rem;
+  }
+
+  .eval-success {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+  }
+
+  .eval-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+  }
+
+  .eval-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .eval-icon {
+    font-size: 1.4rem;
+  }
+
+  .eval-content p {
+    font-size: 0.875rem;
+    margin-top: 0.2rem;
+    opacity: 0.9;
+  }
+
+  .next-lesson-action {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* PANEL KANAN */
+  .panel-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .editor-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .editor-container {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .editor-wrapper {
+    position: relative;
+    background: #090d16;
+    border-radius: var(--radius-xl);
+  }
+
+  .sql-code-editor {
+    width: 100%;
+    height: 220px;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    background: transparent;
+    color: #38bdf8;
+    border: none;
+    padding: 1.25rem;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .result-panel {
+    padding: 1.25rem;
+    min-height: 220px;
+  }
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .result-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .rows-count {
+    font-size: 0.775rem;
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+  }
+
+  .output-container {
+    min-height: 140px;
+  }
+
+  .placeholder-text {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 1rem 0;
+  }
+
+  .loading-spinner {
+    color: var(--accent-cyan);
+    font-size: 0.9rem;
+    padding: 1.5rem 0;
+    font-family: var(--font-mono);
+  }
+
+  .error-alert {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+  }
+
+  .error-code {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.825rem;
+    white-space: pre-wrap;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  @media (max-width: 960px) {
+    .workspace-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<style is:global>
+  .table-wrapper {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    font-family: var(--font-sans);
+  }
+
+  .data-table th, .data-table td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .data-table th {
+    background: var(--bg-secondary);
+    color: var(--accent-cyan);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .data-table tr:nth-child(even) {
+    background: var(--border-subtle);
+  }
+
+  .data-table td {
+    color: var(--text-primary);
+  }
+
+  .null-val {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.775rem;
+  }
+</style>

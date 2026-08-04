@@ -1,0 +1,380 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { seedLessons, type SQLLesson } from '../../../lib/seedLessons';
+import { query } from '../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+let lessons: SQLLesson[] = seedLessons;
+try {
+  const dbRes = await query('SELECT * FROM sql_lessons ORDER BY order_index ASC');
+  if (dbRes.rows && dbRes.rows.length > 0) {
+    lessons = dbRes.rows as SQLLesson[];
+  }
+} catch (err) {
+  console.warn('Fallback to seedLessons for catalog page:', err);
+}
+
+const completedLessonIds = new Set<number>();
+if (user) {
+  try {
+    const progressRes = await query(
+      "SELECT lesson_id FROM user_progress WHERE user_id = $1 AND status = 'completed'",
+      [user.id]
+    );
+    progressRes.rows.forEach((r: any) => completedLessonIds.add(Number(r.lesson_id)));
+  } catch (err) {
+    console.warn('Could not fetch user progress:', err);
+  }
+}
+
+const completedCount = completedLessonIds.size;
+const totalCount = lessons.length;
+const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+---
+
+<MainLayout 
+  title="Katalog Pembelajaran SQL Interaktif | Suhendar Aryadi"
+  description="Kurikulum pembelajaran SQL interaktif bergaya FreeCodeCamp. Pelajari SELECT, WHERE, ORDER BY, INSERT INTO, dan UPDATE dengan editor SQL & evaluasi otomatis."
+>
+  <div class="container">
+    <div class="catalog-hero glass-card">
+      <div class="hero-content">
+        <span class="badge badge-cyan">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          Interactive SQL Learning Platform
+        </span>
+        <h1 class="hero-title">Belajar SQL Interaktif <span class="text-gradient">Praktis di Browser</span></h1>
+        <p class="hero-description">
+          Kuasai sintaksis database SQL dasar hingga pemrosesan data menggunakan simulasi mesin database SQLite WASM. 
+          Tulis query, jalankan secara real-time, dan dapatkan umpan balik evaluasi otomatis.
+        </p>
+
+        {user ? (
+          <div class="user-status-card">
+            <div class="user-info">
+              <div class="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
+              <div>
+                <div class="user-name">Selamat datang kembali, <strong>{user.name}</strong></div>
+                <div class="user-progress-text">Progres Anda: <strong>{completedCount} dari {totalCount}</strong> modul selesai ({completionPercentage}%)</div>
+              </div>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style={`width: ${completionPercentage}%`}></div>
+            </div>
+            <div class="status-actions">
+              <a href="/dashboard" class="btn btn-secondary btn-sm">
+                📊 Lihat Dashboard Siswa
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div class="auth-prompt-card">
+            <div class="auth-prompt-text">
+              <span class="prompt-icon">💡</span>
+              <div>
+                <strong>Simpan Progres Belajar Anda</strong>
+                <p>Login atau daftar akun siswa untuk menyimpan riwayat jawaban dan mendapatkan sertifikat latihan SQL.</p>
+              </div>
+            </div>
+            <div class="auth-prompt-buttons">
+              <a href="/auth/login" class="btn btn-primary btn-sm">Login Siswa</a>
+              <a href="/auth/register" class="btn btn-outline btn-sm">Daftar Akun Baru</a>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <section class="curriculum-section">
+      <div class="section-header">
+        <div>
+          <h2>📚 Modul Latihan SQL Fundamentals</h2>
+          <p class="section-desc">Kurikulum standar industri berbasis materi W3Schools SQL</p>
+        </div>
+        <span class="badge">{lessons.length} Modul Tersedia</span>
+      </div>
+
+      <div class="lessons-grid">
+        {lessons.map((lesson) => {
+          const isCompleted = completedLessonIds.has(lesson.id);
+          return (
+            <div class:list={['lesson-card', 'glass-card', 'glass-card-interactive', { completed: isCompleted }]}>
+              <div class="card-top">
+                <span class="badge badge-cyan">{lesson.category}</span>
+                <span class="module-number">Modul #{lesson.order_index}</span>
+              </div>
+              <h3 class="lesson-title">{lesson.title}</h3>
+              <p class="lesson-desc">
+                {lesson.instructions_markdown.replace(/\*\*/g, '').slice(0, 110)}...
+              </p>
+              <div class="card-footer">
+                {isCompleted ? (
+                  <span class="completion-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Selesai
+                  </span>
+                ) : (
+                  <span class="status-pending">Belum Dikerjakan</span>
+                )}
+                <a href={`/belajar/sql/${lesson.slug}`} class="btn btn-primary btn-sm cta-btn">
+                  {isCompleted ? 'Ulangi Modul' : 'Mulai Latihan'} ➔
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  </div>
+</MainLayout>
+
+<style>
+  .catalog-hero {
+    padding: 2.5rem;
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%), var(--glass-bg);
+  }
+
+  .hero-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-description {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    max-width: 780px;
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+  }
+
+  .user-status-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .user-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-full);
+    background: var(--accent-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .user-name {
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .user-progress-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .progress-bar-container {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-full);
+    transition: width 0.4s ease;
+  }
+
+  .status-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .auth-prompt-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .auth-prompt-text {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+  }
+
+  .prompt-icon {
+    font-size: 1.5rem;
+  }
+
+  .auth-prompt-text strong {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+
+  .auth-prompt-text p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.2rem;
+  }
+
+  .auth-prompt-buttons {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-sm {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+  }
+
+  .curriculum-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .section-desc {
+    color: var(--text-secondary);
+    font-size: 0.925rem;
+    margin-top: 0.25rem;
+  }
+
+  .lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .lesson-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lesson-card.completed {
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .module-number {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .lesson-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .lesson-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    flex: 1;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .completion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #10b981;
+  }
+
+  .status-pending {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+  }
+
+  .cta-btn {
+    margin-left: auto;
+  }
+
+  @media (max-width: 640px) {
+    .catalog-hero {
+      padding: 1.5rem;
+    }
+
+    .hero-title {
+      font-size: 1.75rem;
+    }
+
+    .auth-prompt-card {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .auth-prompt-buttons {
+      justify-content: flex-end;
+    }
+  }
+</style>
