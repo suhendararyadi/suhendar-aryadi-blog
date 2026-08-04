@@ -630,7 +630,51 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
     color: var(--text-muted);
   }
 
-  .access-actions {
-    margin-top: 1.5rem;
+  @media (max-width: 640px) {
+    .admin-header {
+      padding: 1.25rem;
+    }
+
+    .admin-title {
+      font-size: 1.5rem;
+    }
+
+    .header-main {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .header-cta {
+      width: 100%;
+    }
+
+    .header-cta .btn {
+      width: 100%;
+      min-height: 44px;
+    }
+
+    .section-block {
+      padding: 1.25rem;
+    }
+
+    .search-filter-wrap {
+      width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 44px;
+      font-size: 16px !important;
+    }
+
+    .difficult-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
   }
 </style>

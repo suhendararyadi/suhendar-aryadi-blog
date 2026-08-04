@@ -684,11 +684,33 @@ const pathGroups = LEARNING_PATHS.map((path) => {
 
   @media (max-width: 640px) {
     .catalog-hero {
-      padding: 1.5rem;
+      padding: 1.5rem 1.25rem;
     }
 
     .hero-title {
-      font-size: 1.75rem;
+      font-size: 1.65rem;
+    }
+
+    .filter-bar {
+      padding: 0.875rem 1rem;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .filter-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0.35rem;
+      margin-right: -0.5rem;
+    }
+
+    .filter-tab {
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding: 0.55rem 0.95rem;
+      min-height: 44px;
     }
 
     .auth-prompt-card {
@@ -697,7 +719,12 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     }
 
     .auth-prompt-buttons {
-      justify-content: flex-end;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .auth-prompt-buttons .btn {
+      width: 100%;
     }
 
     .path-header-top {
@@ -711,6 +738,21 @@ const pathGroups = LEARNING_PATHS.map((path) => {
 
     .path-progress-label {
       text-align: left;
+    }
+
+    .lessons-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .card-footer .cta-btn {
+      width: 100%;
+      min-height: 44px;
     }
   }
 </style>
