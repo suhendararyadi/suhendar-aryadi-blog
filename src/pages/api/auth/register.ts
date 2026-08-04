@@ -86,7 +86,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   } catch (err: any) {
     console.error('Registration API Error:', err);
     return new Response(
-      JSON.stringify({ error: 'Terjadi kesalahan pada server saat pendaftaran' }),
+      JSON.stringify({ error: err.message || 'Terjadi kesalahan pada server saat pendaftaran' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

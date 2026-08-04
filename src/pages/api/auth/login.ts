@@ -25,49 +25,43 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    const userResult = await query('SELECT * FROM users WHERE email = $1', [email]);
-    if (userResult.rows.length === 0) {
+    const res = await query('SELECT id, name, email, password_hash, role FROM users WHERE email = $1', [email]);
+    if (res.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Email atau password salah' }),
+        JSON.stringify({ error: 'Email atau password salah.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const user = userResult.rows[0];
-    const isValidPassword = await verifyPassword(password, user.password_hash);
-    if (!isValidPassword) {
+    const user = res.rows[0];
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) {
       return new Response(
-        JSON.stringify({ error: 'Email atau password salah' }),
+        JSON.stringify({ error: 'Email atau password salah.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const sessionId = await createSession(user.id);
-
     cookies.set('session_id', sessionId, {
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
+      maxAge: 30 * 24 * 60 * 60,
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        },
+        user: { id: user.id, name: user.name, email: user.email, role: user.role }
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
     console.error('Login API Error:', err);
     return new Response(
-      JSON.stringify({ error: 'Terjadi kesalahan pada server saat login' }),
+      JSON.stringify({ error: err.message || 'Terjadi kesalahan pada server saat login' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
