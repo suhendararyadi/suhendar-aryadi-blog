@@ -34,6 +34,8 @@ try {
   // fallback to seedLessons
 }
 
+allLessons = [...allLessons].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+
 const currentIdx = allLessons.findIndex((l) => l.id === lesson!.id || l.slug === lesson!.slug);
 const nextLesson = currentIdx !== -1 && currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null;
 const prevLesson = currentIdx > 0 ? allLessons[currentIdx - 1] : null;
@@ -103,7 +105,12 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       <!-- PANEL KIRI: Teori & Instruksi Tugas -->
       <div class="panel panel-instructions glass-card">
         <div class="panel-header">
-          <span class="badge badge-cyan">{lesson.category}</span>
+          <div class="badge-group">
+            <span class="badge badge-cyan">{lesson.category}</span>
+            <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
+              {lesson.evaluator_type === 'schema_match' ? '📐 Schema Match' : '📊 Data Match'}
+            </span>
+          </div>
           <span class="module-tag">Modul #{lesson.order_index}</span>
         </div>
 
@@ -148,6 +155,9 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
               <polyline points="8 6 2 12 8 18"></polyline>
             </svg>
             <strong>SQL Editor</strong>
+            <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
+              {lesson.evaluator_type === 'schema_match' ? '📐 Schema Match' : '📊 Data Match'}
+            </span>
           </div>
 
           <div class="btn-group">
@@ -211,6 +221,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
   seedSql: lesson.seed_sql, 
   expectedSql: lesson.expected_sql, 
   lessonId: lesson.id,
+  evaluatorType: lesson.evaluator_type || 'data_match',
   nextSlug: nextLesson ? nextLesson.slug : null
 }}>
   const runBtn = document.getElementById('run-btn');
@@ -265,7 +276,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       const res = await fetch('/api/sql/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lessonId, seedSql, expectedSql, userSql })
+        body: JSON.stringify({ lessonId, seedSql, expectedSql, userSql, evaluatorType })
       });
       const data = await res.json();
 
@@ -275,6 +286,8 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
 
       if (evalStatus) {
         evalStatus.style.display = 'block';
+        const isSchema = evaluatorType === 'schema_match';
+
         if (data.passed) {
           evalStatus.className = 'eval-banner eval-success';
           let nextBtnHtml = '';
@@ -285,20 +298,22 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
             <div class="eval-content">
               <span class="eval-icon">🎉</span>
               <div>
-                <strong>${data.message || 'Jawaban Anda Benar!'}</strong>
-                <p>Selamat, query SQL Anda berhasil mengembalikan data yang tepat!</p>
+                <strong>${escapeHtml(data.message || 'Jawaban Anda Benar!')}</strong>
+                <p>${isSchema ? '📐 <strong>Schema Verified:</strong> Struktur tabel, view, tipe data kolom, dan constraint (PK/FK/UNIQUE/DEFAULT) berhasil diverifikasi!' : 'Selamat, query SQL Anda berhasil mengembalikan data yang tepat!'}</p>
               </div>
             </div>
             ${nextBtnHtml}
           `;
         } else {
           evalStatus.className = 'eval-banner eval-error';
+          const errorMsg = data.message || data.error || 'Hasil query belum sesuai.';
           evalStatus.innerHTML = `
             <div class="eval-content">
               <span class="eval-icon">⚠️</span>
               <div>
-                <strong>${data.error || 'Hasil query belum sesuai.'}</strong>
-                <p>Coba periksa kembali klausa SQL, nama kolom, atau kondisi WHERE Anda.</p>
+                <strong>${isSchema ? 'Evaluasi Schema DDL Belum Sesuai' : 'Hasil query belum sesuai.'}</strong>
+                <p class="eval-detail">${escapeHtml(errorMsg)}</p>
+                ${isSchema ? '<div class="schema-feedback-tip">💡 <strong>Petunjuk DDL:</strong> Pastikan nama tabel/view, nama kolom, tipe data, dan constraint (PRIMARY KEY, FOREIGN KEY, UNIQUE, DEFAULT, NOT NULL) sudah sesuai instruksi.</div>' : '<p>Coba periksa kembali klausa SQL, nama kolom, atau kondisi WHERE Anda.</p>'}
               </div>
             </div>
           `;
@@ -327,6 +342,8 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
   function renderTable(data) {
     if (!tableContainer) return;
 
+    const isSchema = evaluatorType === 'schema_match';
+
     if (data.error) {
       if (rowsCountEl) rowsCountEl.innerText = '';
       tableContainer.innerHTML = `
@@ -340,25 +357,30 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
 
     if (!data.columns || data.columns.length === 0) {
       if (rowsCountEl) rowsCountEl.innerText = '0 baris';
-      tableContainer.innerHTML = `<p class="placeholder-text">Query berhasil dieksekusi tetapi tidak ada baris data yang dikembalikan.</p>`;
+      tableContainer.innerHTML = `<p class="placeholder-text">${isSchema ? 'Query DDL berhasil dieksekusi! Klik <strong>Submit Answer</strong> untuk memverifikasi struktur schema database.' : 'Query berhasil dieksekusi tetapi tidak ada baris data yang dikembalikan.'}</p>`;
       return;
     }
 
     if (rowsCountEl) {
-      rowsCountEl.innerText = `${data.values ? data.values.length : 0} baris data`;
+      rowsCountEl.innerText = `${data.values ? data.values.length : 0} ${isSchema ? 'objek schema' : 'baris data'}`;
     }
 
     let html = '<div class="table-wrapper"><table class="data-table"><thead><tr>';
     data.columns.forEach(col => {
-      html += `<th>${escapeHtml(col)}</th>`;
+      const colLabel = isSchema ? (col === 'type' ? 'Tipe Objek' : col === 'name' ? 'Nama Objek' : col === 'sql' ? 'Sintaks DDL (Schema)' : col) : col;
+      html += `<th>${escapeHtml(colLabel)}</th>`;
     });
     html += '</tr></thead><tbody>';
 
     if (data.values && data.values.length > 0) {
       data.values.forEach(row => {
         html += '<tr>';
-        row.forEach(val => {
-          html += `<td>${val === null ? '<span class="null-val">NULL</span>' : escapeHtml(String(val))}</td>`;
+        row.forEach((val, idx) => {
+          if (isSchema && data.columns[idx] === 'sql' && val) {
+            html += `<td><code class="sql-schema-code">${escapeHtml(String(val))}</code></td>`;
+          } else {
+            html += `<td>${val === null ? '<span class="null-val">NULL</span>' : escapeHtml(String(val))}</td>`;
+          }
         });
         html += '</tr>';
       });
@@ -495,6 +517,34 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     border-radius: var(--radius-md);
     padding: 1rem 1.25rem;
     font-size: 0.925rem;
+  }
+
+  .badge-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .badge-purple {
+    background-color: rgba(168, 85, 247, 0.12);
+    color: #c084fc;
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+
+  .eval-detail {
+    margin-top: 0.25rem;
+    font-weight: 500;
+  }
+
+  .schema-feedback-tip {
+    margin-top: 0.5rem;
+    font-size: 0.825rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-sm);
+    color: #fbbf24;
   }
 
   /* EVALUATION BANNER */
@@ -709,5 +759,16 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     color: var(--text-muted);
     font-style: italic;
     font-size: 0.775rem;
+  }
+
+  .sql-schema-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #38bdf8;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 </style>
