@@ -49,4 +49,4 @@ Peserta didik mampu memahami struktur dokumen HTML5, menerapkan pengayakan visua
 
 Anda dapat mengunduh berkas lengkap modul ajar ini dalam format PDF melalui tautan di bawah ini:
 
-[📥 Download Modul PDF](/downloads/modul-pemrograman-web-dasar.pdf)
+[Download Modul PDF](/downloads/modul-pemrograman-web-dasar.pdf)

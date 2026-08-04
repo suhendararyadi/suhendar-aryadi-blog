@@ -85,17 +85,17 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       <div class="nav-right">
         {user && (
           <a href="/dashboard" class="btn btn-outline btn-xs" title="Dashboard Siswa">
-            👤 {user.name}
+            {user.name}
           </a>
         )}
         {prevLesson && (
           <a href={`/belajar/sql/${prevLesson.slug}`} class="btn btn-secondary btn-xs" title="Modul Sebelumnya">
-            ← Modul Sebelumnya
+            Modul Sebelumnya
           </a>
         )}
         {nextLesson && (
           <a href={`/belajar/sql/${nextLesson.slug}`} class="btn btn-secondary btn-xs" title="Modul Selanjutnya">
-            Modul Selanjutnya →
+            Modul Selanjutnya
           </a>
         )}
       </div>
@@ -108,7 +108,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
           <div class="badge-group">
             <span class="badge badge-cyan">{lesson.category}</span>
             <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
-              {lesson.evaluator_type === 'schema_match' ? '📐 Schema Match' : '📊 Data Match'}
+              {lesson.evaluator_type === 'schema_match' ? 'Schema Match' : 'Data Match'}
             </span>
           </div>
           <span class="module-tag">Modul #{lesson.order_index}</span>
@@ -156,7 +156,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
             </svg>
             <strong>SQL Editor</strong>
             <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
-              {lesson.evaluator_type === 'schema_match' ? '📐 Schema Match' : '📊 Data Match'}
+              {lesson.evaluator_type === 'schema_match' ? 'Schema Match' : 'Data Match'}
             </span>
           </div>
 
@@ -259,7 +259,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       renderTable(data);
     } catch (err) {
       if (tableContainer) {
-        tableContainer.innerHTML = `<div class="error-alert">❌ Gagal terhubung ke server: ${err.message}</div>`;
+        tableContainer.innerHTML = `<div class="error-alert">Gagal terhubung ke server: ${err.message}</div>`;
       }
     } finally {
       setLoadingState(false);
@@ -292,14 +292,17 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
           evalStatus.className = 'eval-banner eval-success';
           let nextBtnHtml = '';
           if (nextSlug) {
-            nextBtnHtml = `<div class="next-lesson-action"><a href="/belajar/sql/${nextSlug}" class="btn btn-primary btn-sm">Modul Selanjutnya ➔</a></div>`;
+            nextBtnHtml = `<div class="next-lesson-action"><a href="/belajar/sql/${nextSlug}" class="btn btn-primary btn-sm">Modul Selanjutnya</a></div>`;
           }
           evalStatus.innerHTML = `
             <div class="eval-content">
-              <span class="eval-icon">🎉</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eval-icon">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
               <div>
                 <strong>${escapeHtml(data.message || 'Jawaban Anda Benar!')}</strong>
-                <p>${isSchema ? '📐 <strong>Schema Verified:</strong> Struktur tabel, view, tipe data kolom, dan constraint (PK/FK/UNIQUE/DEFAULT) berhasil diverifikasi!' : 'Selamat, query SQL Anda berhasil mengembalikan data yang tepat!'}</p>
+                <p>${isSchema ? '<strong>Schema Verified:</strong> Struktur tabel, view, tipe data kolom, dan constraint (PK/FK/UNIQUE/DEFAULT) berhasil diverifikasi!' : 'Selamat, query SQL Anda berhasil mengembalikan data yang tepat!'}</p>
               </div>
             </div>
             ${nextBtnHtml}
@@ -309,11 +312,15 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
           const errorMsg = data.message || data.error || 'Hasil query belum sesuai.';
           evalStatus.innerHTML = `
             <div class="eval-content">
-              <span class="eval-icon">⚠️</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eval-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
               <div>
                 <strong>${isSchema ? 'Evaluasi Schema DDL Belum Sesuai' : 'Hasil query belum sesuai.'}</strong>
                 <p class="eval-detail">${escapeHtml(errorMsg)}</p>
-                ${isSchema ? '<div class="schema-feedback-tip">💡 <strong>Petunjuk DDL:</strong> Pastikan nama tabel/view, nama kolom, tipe data, dan constraint (PRIMARY KEY, FOREIGN KEY, UNIQUE, DEFAULT, NOT NULL) sudah sesuai instruksi.</div>' : '<p>Coba periksa kembali klausa SQL, nama kolom, atau kondisi WHERE Anda.</p>'}
+                ${isSchema ? '<div class="schema-feedback-tip"><strong>Petunjuk DDL:</strong> Pastikan nama tabel/view, nama kolom, tipe data, dan constraint (PRIMARY KEY, FOREIGN KEY, UNIQUE, DEFAULT, NOT NULL) sudah sesuai instruksi.</div>' : '<p>Coba periksa kembali klausa SQL, nama kolom, atau kondisi WHERE Anda.</p>'}
               </div>
             </div>
           `;
@@ -324,7 +331,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       if (evalStatus) {
         evalStatus.style.display = 'block';
         evalStatus.className = 'eval-banner eval-error';
-        evalStatus.innerHTML = `⚠️ Terjadi kesalahan saat mengevaluasi jawaban: ${err.message}`;
+        evalStatus.innerHTML = `Terjadi kesalahan saat mengevaluasi jawaban: ${err.message}`;
       }
     } finally {
       setLoadingState(false);
@@ -335,7 +342,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     if (runBtn) runBtn.disabled = isLoading;
     if (submitBtn) submitBtn.disabled = isLoading;
     if (isLoading && tableContainer) {
-      tableContainer.innerHTML = '<div class="loading-spinner">⚡ Mengeksekusi query SQL...</div>';
+      tableContainer.innerHTML = '<div class="loading-spinner">Mengeksekusi query SQL...</div>';
     }
   }
 
@@ -348,7 +355,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       if (rowsCountEl) rowsCountEl.innerText = '';
       tableContainer.innerHTML = `
         <div class="error-alert">
-          <strong>❌ SQL Syntax Error:</strong>
+          <strong>SQL Syntax Error:</strong>
           <pre class="error-code">${escapeHtml(data.error)}</pre>
         </div>
       `;
@@ -573,7 +580,8 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
   }
 
   .eval-icon {
-    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
   }
 
   .eval-content p {

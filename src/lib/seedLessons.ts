@@ -14,7 +14,7 @@ export interface SQLLesson {
 }
 
 export const seedLessons: SQLLesson[] = [
-  // 🟢 PATH 1: SQL BASICS (1 - 10)
+  // PATH 1: SQL BASICS (1 - 10)
   {
     id: 1,
     slug: 'sql-select-all',
@@ -320,7 +320,7 @@ INSERT INTO customers VALUES (1, 'Budi'), (2, 'Siti'), (3, 'Andi'), (4, 'Dewi'),
     evaluator_type: 'data_match',
   },
 
-  // 🟡 PATH 2: SQL AGGREGATES & FUNCTIONS (11 - 18)
+  // PATH 2: SQL AGGREGATES & FUNCTIONS (11 - 18)
   {
     id: 11,
     slug: 'sql-min-max',
@@ -507,7 +507,7 @@ INSERT INTO products VALUES (1, 'Mouse', 150000), (2, 'Keyboard', 450000), (3, '
     evaluator_type: 'data_match',
   },
 
-  // 🔵 PATH 3: SQL JOINS & RELASI TABEL (19 - 24)
+  // PATH 3: SQL JOINS & RELASI TABEL (19 - 24)
   {
     id: 19,
     slug: 'sql-aliases',
@@ -672,7 +672,7 @@ INSERT INTO suppliers VALUES (1, 'Jakarta'), (2, 'Surabaya');`,
     evaluator_type: 'data_match',
   },
 
-  // 🟣 PATH 4: SQL GROUPING & SUBQUERIES (25 - 30)
+  // PATH 4: SQL GROUPING & SUBQUERIES (25 - 30)
   {
     id: 25,
     slug: 'sql-group-by',
@@ -825,7 +825,7 @@ INSERT INTO students VALUES (1, 'Budi', 85), (2, 'Siti', 65), (3, 'Andi', 70);`,
     evaluator_type: 'data_match',
   },
 
-  // 🟧 PATH 5: SQL DDL, CONSTRAINTS & SECURITY (31 - 40)
+  // PATH 5: SQL DDL, CONSTRAINTS & SECURITY (31 - 40)
   {
     id: 31,
     slug: 'sql-create-table',

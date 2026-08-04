@@ -40,7 +40,6 @@ interface LearningPathDef {
   shortTitle: string;
   badgeText: string;
   badgeClass: string;
-  icon: string;
   description: string;
   modulesRange: string;
 }
@@ -52,7 +51,6 @@ const LEARNING_PATHS: LearningPathDef[] = [
     shortTitle: 'Basics',
     badgeText: 'Level 1',
     badgeClass: 'badge-emerald',
-    icon: '🟢',
     description: 'Kuasai dasar-dasar SQL: sintaksis SELECT, filter WHERE, pengurutan ORDER BY, hingga manipulasi data INSERT, UPDATE, dan DELETE.',
     modulesRange: 'Modul 1 – 10'
   },
@@ -62,7 +60,6 @@ const LEARNING_PATHS: LearningPathDef[] = [
     shortTitle: 'Aggregates',
     badgeText: 'Level 2',
     badgeClass: 'badge-amber',
-    icon: '🟡',
     description: 'Pelajari fungsi agregasi data (COUNT, SUM, AVG, MIN, MAX), kalkulasi aritmatika, filter teks LIKE, serta fungsi String dan Date.',
     modulesRange: 'Modul 11 – 18'
   },
@@ -72,7 +69,6 @@ const LEARNING_PATHS: LearningPathDef[] = [
     shortTitle: 'Joins',
     badgeText: 'Level 3',
     badgeClass: 'badge-sky',
-    icon: '🔵',
     description: 'Gabungkan informasi dari berbagai tabel relasional dengan INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN, dan Self Join.',
     modulesRange: 'Modul 19 – 24'
   },
@@ -82,7 +78,6 @@ const LEARNING_PATHS: LearningPathDef[] = [
     shortTitle: 'Grouping',
     badgeText: 'Level 4',
     badgeClass: 'badge-purple',
-    icon: '🟣',
     description: 'Analisis kelompok data dengan GROUP BY & HAVING, query bersarang (Subqueries), kueri kondisi EXISTS, operator ANY/ALL, dan UNION.',
     modulesRange: 'Modul 25 – 30'
   },
@@ -92,7 +87,6 @@ const LEARNING_PATHS: LearningPathDef[] = [
     shortTitle: 'DDL & Security',
     badgeText: 'Level 5',
     badgeClass: 'badge-orange',
-    icon: '🟧',
     description: 'Definisikan skema database (CREATE, ALTER, DROP), kelola batasan data (Constraints), Transaksi, Views, dan Proteksi Keamanan SQL.',
     modulesRange: 'Modul 31 – 40'
   }
@@ -158,14 +152,13 @@ const pathGroups = LEARNING_PATHS.map((path) => {
             </div>
             <div class="status-actions">
               <a href="/dashboard" class="btn btn-secondary btn-sm">
-                📊 Lihat Dashboard Siswa
+                Lihat Dashboard Siswa
               </a>
             </div>
           </div>
         ) : (
           <div class="auth-prompt-card">
             <div class="auth-prompt-text">
-              <span class="prompt-icon">💡</span>
               <div>
                 <strong>Simpan Progres Belajar Anda</strong>
                 <p>Login atau daftar akun siswa untuk menyimpan riwayat jawaban dan memantau pencapaian 5 Learning Path.</p>
@@ -183,16 +176,16 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     <!-- Interactive Filter Bar -->
     <div class="filter-bar glass-card">
       <div class="filter-header">
-        <span class="filter-title">🔍 Filter Learning Path:</span>
+        <span class="filter-title">Filter Learning Path:</span>
       </div>
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">
-          <span>✨ Semua</span>
+          <span>Semua</span>
           <span class="tab-count">{totalCount} Modul</span>
         </button>
         {pathGroups.map((path) => (
           <button class="filter-tab" data-filter={path.id}>
-            <span>{path.icon} {path.shortTitle}</span>
+            <span>{path.shortTitle}</span>
             <span class="tab-count">{path.completed}/{path.total}</span>
           </button>
         ))}
@@ -206,7 +199,6 @@ const pathGroups = LEARNING_PATHS.map((path) => {
           <div class:list={['path-header-card', 'glass-card', path.id]}>
             <div class="path-header-top">
               <div class="path-title-group">
-                <span class="path-icon">{path.icon}</span>
                 <div>
                   <div class="path-badge-wrap">
                     <span class:list={['badge', path.badgeClass]}>{path.badgeText}</span>
@@ -236,9 +228,9 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                   <div class="card-top">
                     <span class="module-number">Modul #{lesson.order_index}</span>
                     {evaluatorType === 'schema_match' ? (
-                      <span class="badge badge-purple" title="Evaluasi struktur tabel / skema DDL">📐 Schema Match</span>
+                      <span class="badge badge-purple" title="Evaluasi struktur tabel / skema DDL">Schema Match</span>
                     ) : (
-                      <span class="badge badge-cyan" title="Evaluasi baris data SELECT">📊 Data Match</span>
+                      <span class="badge badge-cyan" title="Evaluasi baris data SELECT">Data Match</span>
                     )}
                   </div>
                   <h3 class="lesson-title">{lesson.title}</h3>
@@ -251,13 +243,13 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                           <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
-                        ✅ Selesai
+                        Selesai
                       </span>
                     ) : (
-                      <span class="status-pending">⏳ Belum Dikerjakan</span>
+                      <span class="status-pending">Belum Dikerjakan</span>
                     )}
                     <a href={`/belajar/sql/${lesson.slug}`} class="btn btn-primary btn-sm cta-btn">
-                      {isCompleted ? 'Ulangi Modul' : 'Mulai Latihan'} ➔
+                      {isCompleted ? 'Ulangi Modul' : 'Mulai Latihan'}
                     </a>
                   </div>
                 </div>
@@ -395,10 +387,6 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     gap: 0.875rem;
   }
 
-  .prompt-icon {
-    font-size: 1.5rem;
-  }
-
   .auth-prompt-text strong {
     color: var(--text-primary);
     font-size: 0.95rem;
@@ -525,12 +513,6 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     display: flex;
     align-items: flex-start;
     gap: 0.875rem;
-  }
-
-  .path-icon {
-    font-size: 1.75rem;
-    line-height: 1;
-    margin-top: 0.2rem;
   }
 
   .path-badge-wrap {

@@ -44,11 +44,11 @@ const modules = await getCollection('modules');
 
           <div class="module-footer">
             <a href={`/materi/${mod.slug}`} class="btn btn-primary btn-sm">
-              <span>📖 Baca Modul</span>
+              <span>Baca Modul</span>
             </a>
             {mod.data.downloadUrl && (
               <a href={mod.data.downloadUrl} target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                <span>📥 PDF</span>
+                <span>PDF</span>
               </a>
             )}
           </div>
