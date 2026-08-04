@@ -120,8 +120,8 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
   // Fallback to in-memory SQLite sandbox
   const sdb = await getSqliteDb();
 
-  // Convert Postgres parameter syntax $1, $2 to SQLite syntax ?1, ?2
-  let sqliteQuery = text.replace(/\$(\d+)/g, '?$1');
+  // Convert Postgres parameter syntax $1, $2 to SQLite parameter marker ?
+  let sqliteQuery = text.replace(/\$\d+/g, '?');
 
   // Handle RETURNING clause for SQLite
   const isReturning = /RETURNING\s+([a-z0-9_,\s]+)/i.exec(sqliteQuery);
@@ -147,10 +147,10 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
       if (isReturning) {
         const lastIdRes = sdb.exec('SELECT last_insert_rowid() as id');
         const lastId = lastIdRes[0]?.values[0]?.[0];
-        if (lastId) {
+        if (lastId !== undefined) {
           const tableNameMatch = /INSERT\s+INTO\s+([a-z0-9_]+)/i.exec(sqliteQuery);
           const tableName = tableNameMatch ? tableNameMatch[1] : 'users';
-          const stmt = sdb.prepare(`SELECT * FROM ${tableName} WHERE id = ?1`);
+          const stmt = sdb.prepare(`SELECT * FROM ${tableName} WHERE id = ?`);
           stmt.bind([lastId]);
           const rows: any[] = [];
           if (stmt.step()) {
