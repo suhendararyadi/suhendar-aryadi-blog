@@ -72,6 +72,37 @@ const CREATE_TABLES_PG = `
   );
 `;
 
+async function seedLessonsPg(client: any) {
+  for (const lesson of seedLessons) {
+    await client.query(`
+      INSERT INTO sql_lessons (id, slug, title, category, order_index, theory_markdown, instructions_markdown, seed_sql, expected_sql, initial_code)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (slug) DO UPDATE SET
+        id = EXCLUDED.id,
+        title = EXCLUDED.title,
+        category = EXCLUDED.category,
+        order_index = EXCLUDED.order_index,
+        theory_markdown = EXCLUDED.theory_markdown,
+        instructions_markdown = EXCLUDED.instructions_markdown,
+        seed_sql = EXCLUDED.seed_sql,
+        expected_sql = EXCLUDED.expected_sql,
+        initial_code = EXCLUDED.initial_code;
+    `, [
+      lesson.id,
+      lesson.slug,
+      lesson.title,
+      lesson.category,
+      lesson.order_index,
+      lesson.theory_markdown,
+      lesson.instructions_markdown,
+      lesson.seed_sql,
+      lesson.expected_sql,
+      lesson.initial_code
+    ]);
+  }
+  await client.query(`SELECT setval(pg_get_serial_sequence('sql_lessons', 'id'), (SELECT MAX(id) FROM sql_lessons));`);
+}
+
 export async function query(text: string, params: any[] = []): Promise<{ rows: any[] }> {
   const hasPgUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
@@ -84,6 +115,10 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
       try {
         if (!tablesInitializedPg) {
           await client.query(CREATE_TABLES_PG);
+          const countRes = await client.query('SELECT COUNT(*) FROM sql_lessons');
+          if (!countRes.rows[0]?.count || parseInt(countRes.rows[0].count, 10) === 0) {
+            await seedLessonsPg(client);
+          }
           tablesInitializedPg = true;
         }
         const result = await client.query(text, params);
