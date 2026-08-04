@@ -1,4 +1,6 @@
 import initSqlJs, { type Database } from 'sql.js';
+import path from 'path';
+import fs from 'fs';
 
 export interface QueryResult {
   columns: string[];
@@ -15,9 +17,37 @@ export interface EvaluationResult {
 
 let sqlInstancePromise: Promise<any> | null = null;
 
+async function loadWasmBinary(): Promise<ArrayBuffer | undefined> {
+  const possiblePaths = [
+    path.join(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
+    path.join(process.cwd(), 'sql-wasm.wasm'),
+    '/var/task/node_modules/sql.js/dist/sql-wasm.wasm',
+    '/var/task/sql-wasm.wasm',
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      const buf = fs.readFileSync(p);
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+    }
+  }
+
+  try {
+    const response = await fetch('https://sql.js.org/dist/sql-wasm.wasm');
+    const arrayBuffer = await response.arrayBuffer();
+    return arrayBuffer;
+  } catch (e) {
+    console.warn('WASM fetch from CDN failed in sqlEvaluator:', e);
+    return undefined;
+  }
+}
+
 async function getSqlEngine() {
   if (!sqlInstancePromise) {
-    sqlInstancePromise = initSqlJs();
+    sqlInstancePromise = (async () => {
+      const wasmBinary = await loadWasmBinary();
+      return await initSqlJs(wasmBinary ? { wasmBinary } : undefined);
+    })();
   }
   return await sqlInstancePromise;
 }

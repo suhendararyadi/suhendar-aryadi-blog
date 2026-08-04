@@ -1,5 +1,7 @@
 import { createPool } from '@vercel/postgres';
 import initSqlJs from 'sql.js';
+import path from 'path';
+import fs from 'fs';
 
 let sqliteDb: any = null;
 let tablesInitializedPg = false;
@@ -84,9 +86,35 @@ const CREATE_TABLES_SQLITE = `
   );
 `;
 
+async function loadWasmBinary(): Promise<ArrayBuffer | undefined> {
+  const possiblePaths = [
+    path.join(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
+    path.join(process.cwd(), 'sql-wasm.wasm'),
+    '/var/task/node_modules/sql.js/dist/sql-wasm.wasm',
+    '/var/task/sql-wasm.wasm',
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      const buf = fs.readFileSync(p);
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+    }
+  }
+
+  try {
+    const response = await fetch('https://sql.js.org/dist/sql-wasm.wasm');
+    const arrayBuffer = await response.arrayBuffer();
+    return arrayBuffer;
+  } catch (e) {
+    console.warn('WASM fetch from CDN failed:', e);
+    return undefined;
+  }
+}
+
 async function getSqliteDb() {
   if (!sqliteDb) {
-    const SQL = await initSqlJs();
+    const wasmBinary = await loadWasmBinary();
+    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : undefined);
     sqliteDb = new SQL.Database();
     sqliteDb.run(CREATE_TABLES_SQLITE);
   }
