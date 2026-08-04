@@ -331,6 +331,51 @@ img, svg, video {
   overflow-x: auto;
   margin: 1.5rem 0;
   border: 1px solid var(--border-color);
+  position: relative;
+}
+
+pre {
+  position: relative;
+}
+
+/* Copy Code Button for Code Blocks */
+.copy-code-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  opacity: 0.85;
+  z-index: 10;
+}
+
+.copy-code-btn:hover {
+  opacity: 1;
+  color: var(--text-primary);
+  border-color: var(--border-color-hover);
+  background-color: var(--bg-tertiary);
+  transform: translateY(-1px);
+}
+
+.copy-code-btn:active {
+  transform: translateY(0);
+}
+
+.copy-code-btn.copied {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
+  background-color: rgba(16, 185, 129, 0.1);
 }
 
 .prose pre code {

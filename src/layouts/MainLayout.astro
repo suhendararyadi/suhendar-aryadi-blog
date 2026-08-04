@@ -44,6 +44,43 @@ const {
       </main>
       <Footer />
     </div>
+
+    <script>
+      function setupCopyButtons() {
+        const codeBlocks = document.querySelectorAll('pre');
+        codeBlocks.forEach((codeBlock) => {
+          if (codeBlock.querySelector('.copy-code-btn')) return;
+
+          const copyButton = document.createElement('button');
+          copyButton.className = 'copy-code-btn';
+          copyButton.type = 'button';
+          copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+          copyButton.innerText = '📋 Copy';
+
+          copyButton.addEventListener('click', async () => {
+            const code = codeBlock.querySelector('code');
+            const textToCopy = code ? code.innerText : codeBlock.innerText;
+
+            try {
+              await navigator.clipboard.writeText(textToCopy);
+              copyButton.innerText = '✅ Copied!';
+              copyButton.classList.add('copied');
+              setTimeout(() => {
+                copyButton.innerText = '📋 Copy';
+                copyButton.classList.remove('copied');
+              }, 2000);
+            } catch (err) {
+              console.error('Failed to copy code:', err);
+            }
+          });
+
+          codeBlock.appendChild(copyButton);
+        });
+      }
+
+      setupCopyButtons();
+      document.addEventListener('astro:page-load', setupCopyButtons);
+    </script>
   </body>
 </html>
 
