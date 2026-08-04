@@ -1,11 +1,34 @@
 ---
+import MainLayout from '../layouts/MainLayout.astro';
 ---
-<html lang="id">
-  <head>
-    <meta charset="utf-8" />
-    <title>Suhendar Aryadi | Guru RPL SMK</title>
-  </head>
-  <body>
-    <h1>Selamat Datang di Blog Suhendar Aryadi</h1>
-  </body>
-</html>
+
+<MainLayout title="Suhendar Aryadi, S.Kom. | Guru RPL SMK & Web Developer">
+  <section class="hero-section">
+    <h1 class="hero-title">Selamat Datang di <span class="text-gradient">Portal & Blog RPL</span></h1>
+    <p class="hero-subtitle">
+      Website resmi Suhendar Aryadi, S.Kom. Tempat belajar Rekayasa Perangkat Lunak, modul pembelajaran IT, dan tutorial pemrograman web.
+    </p>
+  </section>
+</MainLayout>
+
+<style>
+  .hero-section {
+    padding: 3rem 0;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+</style>

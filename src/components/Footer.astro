@@ -1,0 +1,179 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer-container">
+    <div class="footer-brand">
+      <a href="/" class="footer-logo">
+        <span class="logo-icon-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </span>
+        <span class="logo-text">Suhendar <span class="text-gradient">Aryadi</span></span>
+      </a>
+      <p class="tagline">Pendidikan Vokasi IT - Siap Kerja, Santun, Mandiri, Kreatif.</p>
+    </div>
+
+    <div class="footer-nav">
+      <div class="footer-col">
+        <h4 class="footer-title">Navigasi</h4>
+        <ul class="footer-links">
+          <li><a href="/">Beranda</a></li>
+          <li><a href="/materi">Materi RPL</a></li>
+          <li><a href="/blog">Blog & Tutorial</a></li>
+          <li><a href="/portofolio">Portofolio</a></li>
+          <li><a href="/tentang">Tentang Guru</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-title">Materi RPL</h4>
+        <ul class="footer-links">
+          <li><a href="/materi">Pemrograman Web</a></li>
+          <li><a href="/materi">Basis Data</a></li>
+          <li><a href="/materi">PBO (OOP)</a></li>
+          <li><a href="/materi">Pemrograman Perangkat Bergerak</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container footer-bottom-container">
+      <p class="copyright">
+        &copy; {currentYear} Suhendar Aryadi, S.Kom. | Guru Jurusan RPL SMK.
+      </p>
+      <p class="built-with">
+        Dibuat dengan <span class="heart">&hearts;</span> menggunakan <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    margin-top: auto;
+    padding-top: 3.5rem;
+    transition: background-color var(--transition-normal), border-color var(--transition-normal);
+  }
+
+  .footer-container {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    .footer-container {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+
+  .logo-icon-sm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--accent-gradient);
+    color: #ffffff;
+  }
+
+  .tagline {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    max-width: 22rem;
+  }
+
+  .footer-nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    .footer-nav {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .footer-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .footer-links a {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    transition: color var(--transition-fast);
+  }
+
+  .footer-links a:hover {
+    color: var(--accent-primary);
+  }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border-subtle);
+    padding: 1.5rem 0;
+    background-color: var(--bg-primary);
+  }
+
+  .footer-bottom-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .built-with a {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .built-with a:hover {
+    color: var(--accent-primary);
+  }
+
+  .heart {
+    color: #ef4444;
+  }
+</style>
