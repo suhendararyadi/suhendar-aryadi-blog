@@ -1,0 +1,636 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../lib/auth';
+import { seedLessons } from '../../lib/seedLessons';
+import { query } from '../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect('/auth/login');
+}
+
+// Allow access for teachers, admins, or account owner
+const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || user.email.includes('suhendar');
+
+let students: any[] = [];
+let totalStudentsCount = 0;
+let totalCompletionsCount = 0;
+let difficultModules: any[] = [];
+const totalLessonsCount = seedLessons.length || 40;
+
+if (isTeacherOrAdmin) {
+  try {
+    // 1. Fetch all registered students & completion metrics
+    const studentsRes = await query(
+      `SELECT u.id, u.name, u.email, u.role, u.created_at,
+              COUNT(up.id) as completed_count,
+              MAX(up.completed_at) as last_completed_at
+       FROM users u
+       LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+       GROUP BY u.id, u.name, u.email, u.role, u.created_at
+       ORDER BY u.created_at DESC`
+    );
+
+    if (studentsRes.rows) {
+      students = studentsRes.rows.map((row: any) => {
+        const count = parseInt(row.completed_count || '0', 10);
+        const percentage = Math.round((count / totalLessonsCount) * 100);
+
+        let rankTitle = 'SQL Novice';
+        let badgeClass = 'badge-novice';
+        if (count >= 40) {
+          rankTitle = 'Master SQL Engineer';
+          badgeClass = 'badge-master';
+        } else if (count >= 25) {
+          rankTitle = 'SQL Advanced';
+          badgeClass = 'badge-advanced';
+        } else if (count >= 11) {
+          rankTitle = 'SQL Intermediate';
+          badgeClass = 'badge-intermediate';
+        }
+
+        return {
+          ...row,
+          completed_count: count,
+          percentage,
+          rankTitle,
+          badgeClass
+        };
+      });
+      totalStudentsCount = students.length;
+      totalCompletionsCount = students.reduce((acc, curr) => acc + curr.completed_count, 0);
+    }
+
+    // 2. Fetch module completion breakdown across all students
+    const diffRes = await query(
+      `SELECT sl.id, sl.title, sl.category, sl.order_index,
+              COUNT(up.id) as completion_count
+       FROM sql_lessons sl
+       LEFT JOIN user_progress up ON sl.id = up.lesson_id AND up.status = 'completed'
+       GROUP BY sl.id, sl.title, sl.category, sl.order_index
+       ORDER BY completion_count ASC, sl.order_index ASC
+       LIMIT 5`
+    );
+
+    if (diffRes.rows) {
+      difficultModules = diffRes.rows.map((r: any) => ({
+        ...r,
+        completion_count: parseInt(r.completion_count || '0', 10),
+        completion_rate: totalStudentsCount > 0 ? Math.round((parseInt(r.completion_count || '0', 10) / totalStudentsCount) * 100) : 0
+      }));
+    }
+  } catch (err) {
+    console.warn('Teacher dashboard query error:', err);
+  }
+}
+
+const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount / totalStudentsCount).toFixed(1) : '0';
+---
+
+<MainLayout 
+  title="Portal Guru & Admin Dashboard | Suhendar Aryadi"
+  description="Dashboard Guru Rekayasa Perangkat Lunak (RPL). Rekap nilai siswa, ekspor CSV raport, dan analitik pembelajaran SQL."
+>
+  <div class="container admin-container">
+    {!isTeacherOrAdmin ? (
+      <div class="access-denied-card glass-card">
+        <div class="access-icon">🔒</div>
+        <h2>Akses Terbatas — Portal Guru</h2>
+        <p>Halaman ini diperuntukkan bagi Guru / Administrator untuk memantau rekap nilai dan progres belajar siswa SMK.</p>
+        <p class="access-sub">Akun Anda saat ini terdaftar sebagai <strong>{user.role.toUpperCase()}</strong> ({user.email}).</p>
+        <div class="access-actions">
+          <a href="/dashboard" class="btn btn-primary btn-sm">Kembali ke Dashboard Siswa</a>
+        </div>
+      </div>
+    ) : (
+      <>
+        <!-- Header Banner -->
+        <div class="admin-header glass-card">
+          <div class="header-main">
+            <div>
+              <div class="badge-wrap">
+                <span class="badge badge-cyan">PORTAL GURU &amp; ADMIN</span>
+                <span class="badge badge-role">{user.role.toUpperCase()}</span>
+              </div>
+              <h1 class="admin-title">Dashboard Rekap Nilai Siswa</h1>
+              <p class="admin-sub">
+                Selamat datang, <strong>Pak {user.name}</strong>. Pantau progres belajar seluruh siswa, identifikasi modul yang memerlukan pembahasan ulang, dan unduh data rekap nilai untuk Raport.
+              </p>
+            </div>
+            <div class="header-cta">
+              <button id="export-csv-btn" class="btn btn-primary btn-sm" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export Rekap CSV (Excel)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card glass-card">
+            <span class="stat-value">{totalStudentsCount}</span>
+            <span class="stat-label">Siswa Terdaftar</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-value">{totalCompletionsCount}</span>
+            <span class="stat-label">Total Penyelesaian Modul</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-value">{avgCompletionsPerStudent} <span class="stat-unit">modul/siswa</span></span>
+            <span class="stat-label">Rata-Rata Progres Kelas</span>
+          </div>
+        </div>
+
+        <!-- Difficult Modules Analysis -->
+        <div class="section-block glass-card">
+          <div class="block-header">
+            <div>
+              <h2 class="block-title">Analitik Modul Perlu Pembahasan Ulang</h2>
+              <p class="block-sub">5 modul dengan tingkat penyelesaian terendah di kelas (perlu perhatian khusus)</p>
+            </div>
+          </div>
+
+          <div class="difficult-grid">
+            {difficultModules.map((mod) => (
+              <div class="diff-card">
+                <div class="diff-top">
+                  <span class="diff-num">Modul #{mod.order_index}</span>
+                  <span class="badge badge-cyan">{mod.category}</span>
+                </div>
+                <h3 class="diff-title">{mod.title}</h3>
+                <div class="diff-progress-wrap">
+                  <div class="diff-progress-track">
+                    <div class="diff-progress-fill" style={`width: ${mod.completion_rate}%`}></div>
+                  </div>
+                  <span class="diff-count">{mod.completion_count}/{totalStudentsCount} siswa ({mod.completion_rate}%)</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Student Roster Table -->
+        <div class="section-block glass-card">
+          <div class="block-header">
+            <div>
+              <h2 class="block-title">Daftar Rekap Nilai Siswa</h2>
+              <p class="block-sub">Rincian pencapaian 40 Modul SQL per siswa terdaftar</p>
+            </div>
+            <div class="search-filter-wrap">
+              <input 
+                type="text" 
+                id="student-search" 
+                class="search-input" 
+                placeholder="Cari nama atau email siswa..." 
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="admin-table" id="students-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Siswa</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Modul Selesai</th>
+                  <th>Peringkat Rank</th>
+                  <th>Terdaftar pada</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((item, idx) => (
+                  <tr class="student-row">
+                    <td class="num-col">{idx + 1}</td>
+                    <td>
+                      <div class="user-cell">
+                        <span class="user-avatar-sm">{item.name.charAt(0).toUpperCase()}</span>
+                        <strong class="user-name">{item.name}</strong>
+                      </div>
+                    </td>
+                    <td class="email-col">{item.email}</td>
+                    <td>
+                      <span class="badge badge-role">{item.role.toUpperCase()}</span>
+                    </td>
+                    <td>
+                      <span class="module-score font-mono">
+                        <strong>{item.completed_count}</strong> / {totalLessonsCount} ({item.percentage}%)
+                      </span>
+                    </td>
+                    <td>
+                      <span class={`badge ${item.badgeClass}`}>{item.rankTitle}</span>
+                    </td>
+                    <td class="date-col">
+                      {new Date(item.created_at).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      })}
+                    </td>
+                    <td>
+                      <a href={`/belajar/sql/leaderboard`} class="btn btn-outline btn-xs">
+                        Detail
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+</MainLayout>
+
+<script is:inline define:vars={{ studentsData: students, totalLessonsCount }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const exportBtn = document.getElementById('export-csv-btn');
+    const searchInput = document.getElementById('student-search');
+    const tableRows = document.querySelectorAll('.student-row');
+
+    // Filter table by name/email
+    searchInput?.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      tableRows.forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        if (!term || text.includes(term)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // CSV Exporter for Raport Record
+    exportBtn?.addEventListener('click', () => {
+      if (!studentsData || studentsData.length === 0) {
+        alert('Tidak ada data siswa untuk diekspor.');
+        return;
+      }
+
+      // UTF-8 BOM for Excel compatibility
+      let csv = '\uFEFF';
+      csv += 'No,Nama Siswa,Email,Role,Modul Selesai,Total Modul,Persentase,Peringkat Rank,Tanggal Terdaftar\n';
+
+      studentsData.forEach((s, idx) => {
+        const name = `"${(s.name || '').replace(/"/g, '""')}"`;
+        const email = `"${(s.email || '').replace(/"/g, '""')}"`;
+        const role = s.role || 'student';
+        const completed = s.completed_count || 0;
+        const pct = `${s.percentage || 0}%`;
+        const rank = `"${s.rankTitle || ''}"`;
+        const date = new Date(s.created_at).toLocaleDateString('id-ID');
+
+        csv += `${idx + 1},${name},${email},${role},${completed},${totalLessonsCount},${pct},${rank},${date}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `rekap-nilai-sql-siswa-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  });
+</script>
+
+<style>
+  .admin-container {
+    margin-top: 1.5rem;
+    margin-bottom: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  /* Header Banner */
+  .admin-header {
+    padding: 2rem;
+  }
+
+  .header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .badge-wrap {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .admin-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .admin-sub {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-top: 0.4rem;
+    max-width: 680px;
+    line-height: 1.6;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .stat-unit {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Section Blocks */
+  .section-block {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .block-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .block-sub {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  .search-input {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    width: 260px;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+  }
+
+  /* Difficult modules grid */
+  .difficult-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .diff-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .diff-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .diff-num {
+    font-family: var(--font-mono);
+    font-size: 0.775rem;
+    color: var(--text-muted);
+  }
+
+  .diff-title {
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .diff-progress-wrap {
+    margin-top: 0.25rem;
+  }
+
+  .diff-progress-track {
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+  }
+
+  .diff-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #f59e0b);
+    border-radius: var(--radius-full);
+  }
+
+  .diff-count {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+  }
+
+  /* Admin Table */
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .admin-table th {
+    text-align: left;
+    padding: 0.875rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+  }
+
+  .admin-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  .num-col {
+    color: var(--text-muted);
+    font-weight: 600;
+    width: 45px;
+  }
+
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .user-avatar-sm {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background: var(--accent-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  .user-name {
+    color: var(--text-primary);
+  }
+
+  .email-col {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .date-col {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  .badge-role {
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-color: transparent;
+  }
+
+  .badge-novice {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .badge-intermediate {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .badge-advanced {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.25);
+  }
+
+  .badge-master {
+    background-color: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .btn-sm {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-xs {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  /* Access Denied Card */
+  .access-denied-card {
+    padding: 3rem;
+    text-align: center;
+    max-width: 550px;
+    margin: 3rem auto;
+  }
+
+  .access-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .access-denied-card h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .access-denied-card p {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .access-sub {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .access-actions {
+    margin-top: 1.5rem;
+  }
+</style>

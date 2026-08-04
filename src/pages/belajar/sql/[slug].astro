@@ -161,6 +161,21 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
           </div>
 
           <div class="btn-group">
+            <button id="reset-btn" class="btn btn-outline btn-sm" type="button" title="Kembalikan kode ke instruksi awal">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              Reset Kode
+            </button>
+            <button id="hint-btn" class="btn btn-secondary btn-sm" type="button" title="Tampilkan petunjuk kunci">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              Hint
+            </button>
             <button id="run-btn" class="btn btn-secondary btn-sm" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -220,16 +235,72 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
 <script is:inline define:vars={{ 
   seedSql: lesson.seed_sql, 
   expectedSql: lesson.expected_sql, 
+  initialCode: lesson.initial_code,
   lessonId: lesson.id,
   evaluatorType: lesson.evaluator_type || 'data_match',
   nextSlug: nextLesson ? nextLesson.slug : null
 }}>
   const runBtn = document.getElementById('run-btn');
   const submitBtn = document.getElementById('submit-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  const hintBtn = document.getElementById('hint-btn');
   const sqlInput = document.getElementById('sql-input');
   const tableContainer = document.getElementById('output-table-container');
   const rowsCountEl = document.getElementById('rows-count');
   const evalStatus = document.getElementById('eval-status');
+
+  // Reset Code handler
+  resetBtn?.addEventListener('click', () => {
+    if (!sqlInput) return;
+    if (confirm('Kembalikan kode editor ke instruksi awal?')) {
+      sqlInput.value = initialCode || '';
+      if (evalStatus) evalStatus.style.display = 'none';
+      if (tableContainer) {
+        tableContainer.innerHTML = '<p class="placeholder-text">Kode berhasil di-reset. Klik <strong>Run Query</strong> untuk mengeksekusi.</p>';
+      }
+    }
+  });
+
+  // Hint handler: Generates structured SQL clue without giving away full answer
+  hintBtn?.addEventListener('click', () => {
+    if (!evalStatus) return;
+    evalStatus.style.display = 'block';
+    evalStatus.className = 'eval-banner eval-hint';
+    
+    // Create structured clue from expectedSql
+    let clueText = '';
+    const uppercaseExpected = (expectedSql || '').trim();
+    if (uppercaseExpected.toUpperCase().startsWith('SELECT')) {
+      const match = uppercaseExpected.match(/SELECT\s+(.*?)\s+FROM\s+([^\s;]+)(?:\s+WHERE\s+([^\s;]+(?:\s+.*)?))?/i);
+      if (match) {
+        clueText = `Struktur Query: SELECT ${match[1]} FROM ${match[2]}${match[3] ? ' WHERE ...' : ''}`;
+      } else {
+        clueText = `Gunakan klausa SELECT dan FROM pada tabel target.`;
+      }
+    } else if (uppercaseExpected.toUpperCase().startsWith('CREATE TABLE')) {
+      const match = uppercaseExpected.match(/CREATE TABLE\s+([^\s(]+)/i);
+      clueText = `Gunakan klausa CREATE TABLE ${match ? match[1] : 'nama_tabel'} (kolom tipe_data ...);`;
+    } else if (uppercaseExpected.toUpperCase().startsWith('INSERT')) {
+      clueText = `Gunakan klausa INSERT INTO nama_tabel VALUES (...);`;
+    } else {
+      clueText = `Perhatikan kata kunci utama pada teori dan instruksi di panel kiri.`;
+    }
+
+    evalStatus.innerHTML = `
+      <div class="eval-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eval-icon" style="color: #f59e0b;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div>
+          <strong style="color: #f59e0b;">Petunjuk Kunci (Hint)</strong>
+          <p>${escapeHtml(clueText)}</p>
+        </div>
+      </div>
+    `;
+    evalStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
 
   // Support Tab key indentation inside textarea
   sqlInput?.addEventListener('keydown', (e) => {
@@ -565,6 +636,12 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     background: rgba(16, 185, 129, 0.12);
     border: 1px solid rgba(16, 185, 129, 0.4);
     color: #34d399;
+  }
+
+  .eval-hint {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
   }
 
   .eval-error {

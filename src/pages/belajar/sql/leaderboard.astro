@@ -1,0 +1,557 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { seedLessons } from '../../../lib/seedLessons';
+import { query } from '../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const currentUser = await getSessionUser(sessionId);
+
+const totalLessonsCount = seedLessons.length || 40;
+
+interface LeaderboardUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  completed_count: number;
+  last_completed_at: string | null;
+  percentage: number;
+  rankTitle: string;
+  badgeClass: string;
+}
+
+let leaderboard: LeaderboardUser[] = [];
+
+try {
+  const res = await query(
+    `SELECT u.id, u.name, u.email, u.role,
+            COUNT(up.id) as completed_count,
+            MAX(up.completed_at) as last_completed_at
+     FROM users u
+     LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+     GROUP BY u.id, u.name, u.email, u.role
+     ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC`
+  );
+
+  if (res.rows) {
+    leaderboard = res.rows.map((row: any) => {
+      const count = parseInt(row.completed_count || '0', 10);
+      const percentage = Math.round((count / totalLessonsCount) * 100);
+
+      let rankTitle = 'SQL Novice';
+      let badgeClass = 'badge-novice';
+
+      if (count >= 40) {
+        rankTitle = 'Master SQL Engineer';
+        badgeClass = 'badge-master';
+      } else if (count >= 25) {
+        rankTitle = 'SQL Advanced';
+        badgeClass = 'badge-advanced';
+      } else if (count >= 11) {
+        rankTitle = 'SQL Intermediate';
+        badgeClass = 'badge-intermediate';
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        role: row.role,
+        completed_count: count,
+        last_completed_at: row.last_completed_at,
+        percentage,
+        rankTitle,
+        badgeClass
+      };
+    });
+  }
+} catch (err) {
+  console.warn('Leaderboard db query error:', err);
+}
+
+const top3 = leaderboard.slice(0, 3);
+const remainingLeaderboard = leaderboard.slice(3);
+---
+
+<MainLayout 
+  title="Leaderboard Siswa SQL Masterclass | Suhendar Aryadi"
+  description="Papan peringkat kelulusan siswa RPL pada platform pembelajaran SQL 40 Modul."
+>
+  <div class="container leaderboard-container">
+    <div class="header-banner glass-card">
+      <div class="header-content">
+        <span class="badge badge-cyan">Papan Peringkat Kelas</span>
+        <h1 class="header-title">Leaderboard <span class="text-gradient">SQL Masterclass</span></h1>
+        <p class="header-sub">
+          Peringkat ketercapaian 40 Modul SQL oleh seluruh siswa RPL. Selesaikan latihan dan tingkatkan peringkat kelulusan Anda!
+        </p>
+        <div class="header-actions">
+          <a href="/belajar/sql" class="btn btn-primary btn-sm">Mulai Latihan SQL</a>
+          {currentUser && (
+            <a href="/dashboard" class="btn btn-outline btn-sm">Dashboard Saya</a>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <!-- Podium Top 3 -->
+    {top3.length > 0 && (
+      <div class="podium-grid">
+        {/* Juara 2 */}
+        {top3[1] ? (
+          <div class="podium-card rank-2 glass-card">
+            <div class="podium-badge">🥈 #2</div>
+            <div class="podium-avatar">{top3[1].name.charAt(0).toUpperCase()}</div>
+            <h3 class="podium-name">{top3[1].name}</h3>
+            <span class={`badge ${top3[1].badgeClass}`}>{top3[1].rankTitle}</span>
+            <div class="podium-score">
+              <strong>{top3[1].completed_count}</strong> / {totalLessonsCount} Modul
+            </div>
+            <div class="podium-bar-track">
+              <div class="podium-bar-fill" style={`width: ${top3[1].percentage}%`}></div>
+            </div>
+          </div>
+        ) : (
+          <div class="podium-card rank-empty glass-card">
+            <div class="podium-badge">🥈 #2</div>
+            <p class="empty-podium-text">Belum ada posisi 2</p>
+          </div>
+        )}
+
+        {/* Juara 1 */}
+        {top3[0] ? (
+          <div class="podium-card rank-1 glass-card">
+            <div class="podium-badge top-gold">🥇 #1 Champion</div>
+            <div class="podium-avatar gold-avatar">{top3[0].name.charAt(0).toUpperCase()}</div>
+            <h3 class="podium-name gold-name">{top3[0].name}</h3>
+            <span class={`badge ${top3[0].badgeClass}`}>{top3[0].rankTitle}</span>
+            <div class="podium-score gold-score">
+              <strong>{top3[0].completed_count}</strong> / {totalLessonsCount} Modul Selesai
+            </div>
+            <div class="podium-bar-track">
+              <div class="podium-bar-fill gold-fill" style={`width: ${top3[0].percentage}%`}></div>
+            </div>
+          </div>
+        ) : (
+          <div class="podium-card rank-empty glass-card">
+            <div class="podium-badge">🥇 #1</div>
+            <p class="empty-podium-text">Belum ada posisi 1</p>
+          </div>
+        )}
+
+        {/* Juara 3 */}
+        {top3[2] ? (
+          <div class="podium-card rank-3 glass-card">
+            <div class="podium-badge">🥉 #3</div>
+            <div class="podium-avatar">{top3[2].name.charAt(0).toUpperCase()}</div>
+            <h3 class="podium-name">{top3[2].name}</h3>
+            <span class={`badge ${top3[2].badgeClass}`}>{top3[2].rankTitle}</span>
+            <div class="podium-score">
+              <strong>{top3[2].completed_count}</strong> / {totalLessonsCount} Modul
+            </div>
+            <div class="podium-bar-track">
+              <div class="podium-bar-fill" style={`width: ${top3[2].percentage}%`}></div>
+            </div>
+          </div>
+        ) : (
+          <div class="podium-card rank-empty glass-card">
+            <div class="podium-badge">🥉 #3</div>
+            <p class="empty-podium-text">Belum ada posisi 3</p>
+          </div>
+        )}
+      </div>
+    )}
+
+    <!-- Full Leaderboard Table -->
+    <div class="table-section glass-card">
+      <div class="table-header">
+        <h2>Peringkat Keseluruhan Siswa</h2>
+        <span class="total-students">{leaderboard.length} Siswa Terdaftar</span>
+      </div>
+
+      {leaderboard.length > 0 ? (
+        <div class="table-wrapper">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Peringkat</th>
+                <th>Siswa</th>
+                <th>Tingkat Rank</th>
+                <th>Progres Modul</th>
+                <th>Persentase</th>
+                <th>Terakhir Aktif</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboard.map((item, index) => {
+                const isCurrentUser = currentUser && currentUser.id === item.id;
+                return (
+                  <tr class:list={[{ 'current-user-row': isCurrentUser }]}>
+                    <td class="rank-col">
+                      <span class:list={['rank-number', { 'top-3-rank': index < 3 }]}>
+                        #{index + 1}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="student-name-wrap">
+                        <span class="user-avatar-sm">{item.name.charAt(0).toUpperCase()}</span>
+                        <div>
+                          <strong class="student-name">{item.name} {isCurrentUser ? '(Anda)' : ''}</strong>
+                          <span class="student-role">{item.role.toUpperCase()}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class={`badge ${item.badgeClass}`}>{item.rankTitle}</span>
+                    </td>
+                    <td>
+                      <span class="module-score font-mono">
+                        <strong>{item.completed_count}</strong> / {totalLessonsCount}
+                      </span>
+                    </td>
+                    <td class="pct-col">
+                      <div class="tbl-progress-wrap">
+                        <div class="tbl-progress-track">
+                          <div class="tbl-progress-fill" style={`width: ${item.percentage}%`}></div>
+                        </div>
+                        <span class="pct-text">{item.percentage}%</span>
+                      </div>
+                    </td>
+                    <td class="date-col">
+                      {item.last_completed_at ? new Date(item.last_completed_at).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      }) : 'Belum Mulai'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>Belum ada data siswa terdaftar saat ini.</p>
+        </div>
+      )}
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .leaderboard-container {
+    margin-top: 1.5rem;
+    margin-bottom: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .header-banner {
+    padding: 2.5rem;
+  }
+
+  .header-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .header-sub {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    max-width: 650px;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  /* Podium */
+  .podium-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1fr;
+    gap: 1.25rem;
+    align-items: end;
+  }
+
+  @media (max-width: 768px) {
+    .podium-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .podium-card {
+    padding: 1.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem;
+    position: relative;
+  }
+
+  .rank-1 {
+    transform: translateY(-8px);
+    border-color: rgba(245, 158, 11, 0.4);
+    background: radial-gradient(circle at top, rgba(245, 158, 11, 0.12), transparent 70%), var(--glass-bg);
+  }
+
+  .podium-badge {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .top-gold {
+    color: #f59e0b;
+    font-size: 0.9rem;
+  }
+
+  .podium-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .gold-avatar {
+    width: 4.25rem;
+    height: 4.25rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff;
+    font-size: 1.75rem;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  }
+
+  .podium-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .gold-name {
+    font-size: 1.25rem;
+  }
+
+  .podium-score {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .gold-score {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  .podium-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: 0.25rem;
+  }
+
+  .podium-bar-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-full);
+  }
+
+  .gold-fill {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  }
+
+  .rank-empty {
+    opacity: 0.6;
+  }
+
+  .empty-podium-text {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  /* Table */
+  .table-section {
+    padding: 1.75rem;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .table-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .total-students {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .leaderboard-table th {
+    text-align: left;
+    padding: 0.875rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+  }
+
+  .leaderboard-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  .current-user-row td {
+    background: rgba(99, 102, 241, 0.08);
+  }
+
+  .rank-col {
+    width: 80px;
+  }
+
+  .rank-number {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .top-3-rank {
+    color: var(--accent-cyan);
+  }
+
+  .student-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user-avatar-sm {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .student-name {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+  }
+
+  .student-role {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    display: block;
+  }
+
+  .pct-col {
+    min-width: 150px;
+  }
+
+  .tbl-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .tbl-progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .tbl-progress-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-full);
+  }
+
+  .pct-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 35px;
+  }
+
+  .date-col {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  /* Badge variants */
+  .badge-novice {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .badge-intermediate {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .badge-advanced {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.25);
+  }
+
+  .badge-master {
+    background-color: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  .btn-sm {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+  }
+
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+</style>
