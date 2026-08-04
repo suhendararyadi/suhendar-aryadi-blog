@@ -9,6 +9,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     let seedSql = '';
     let expectedSql = '';
     let userSql = '';
+    let evaluatorType = 'data_match';
 
     const contentType = request.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -19,6 +20,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       seedSql = body.seedSql || body.seed_sql || '';
       expectedSql = body.expectedSql || body.expected_sql || '';
       userSql = body.userSql || body.user_sql || body.sql || '';
+      evaluatorType = body.evaluatorType || body.evaluator_type || 'data_match';
     } else if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       const rawLessonId = formData.get('lessonId') || formData.get('lesson_id');
@@ -28,6 +30,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       seedSql = ((formData.get('seedSql') || formData.get('seed_sql') || '') as string);
       expectedSql = ((formData.get('expectedSql') || formData.get('expected_sql') || '') as string);
       userSql = ((formData.get('userSql') || formData.get('user_sql') || formData.get('sql') || '') as string);
+      const rawEvaluatorType = formData.get('evaluatorType') || formData.get('evaluator_type');
+      if (rawEvaluatorType) {
+        evaluatorType = rawEvaluatorType as string;
+      }
     }
 
     if (!userSql || !userSql.trim()) {
@@ -38,14 +44,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // Fetch lesson details from DB if lessonId is provided
-    if (lessonId && (!seedSql || !expectedSql)) {
+    if (lessonId) {
       const lessonRes = await query(
-        'SELECT seed_sql, expected_sql FROM sql_lessons WHERE id = $1',
+        'SELECT seed_sql, expected_sql, evaluator_type FROM sql_lessons WHERE id = $1',
         [lessonId]
       );
       if (lessonRes.rows.length > 0) {
         if (!seedSql) seedSql = lessonRes.rows[0].seed_sql || '';
         if (!expectedSql) expectedSql = lessonRes.rows[0].expected_sql || '';
+        if (lessonRes.rows[0].evaluator_type) {
+          evaluatorType = lessonRes.rows[0].evaluator_type;
+        }
       }
     }
 
@@ -57,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // Evaluate solution using sqlEvaluator
-    const evaluation = await evaluateSolution(seedSql, expectedSql, userSql);
+    const evaluation = await evaluateSolution(seedSql, expectedSql, userSql, evaluatorType);
 
     // Check user authentication via session cookie
     const sessionId = cookies.get('session_id')?.value;
