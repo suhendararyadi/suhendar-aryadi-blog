@@ -1,11 +1,31 @@
 import { createPool } from '@vercel/postgres';
+import fs from 'fs';
+import path from 'path';
+
+// Load .env.local if present
+const envLocalPath = path.join(process.cwd(), '.env.local');
+if (fs.existsSync(envLocalPath)) {
+  const envContent = fs.readFileSync(envLocalPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const idx = trimmed.indexOf('=');
+      const key = trimmed.slice(0, idx).trim();
+      let val = trimmed.slice(idx + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      process.env[key] = val;
+    }
+  });
+}
 
 const db = createPool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/postgres'
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
 });
 
 async function migrate() {
-  console.log('Running SQL Platform migrations...');
+  console.log('Running SQL Platform migrations on Neon Postgres...');
   await db.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -45,7 +65,7 @@ async function migrate() {
       UNIQUE(user_id, lesson_id)
     );
   `);
-  console.log('Migrations completed successfully!');
+  console.log('Migrations completed successfully on Neon Postgres!');
   process.exit(0);
 }
 
