@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build && pagefind --site dist",
+    "build": "astro check && astro build && node -e \"const fs=require('fs');const p='.vercel/output/functions/_render.func/.vc-config.json';if(fs.existsSync(p)){let c=fs.readFileSync(p,'utf8').replace('nodejs18.x','nodejs20.x');fs.writeFileSync(p,c);}\" && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
   },
