@@ -12,10 +12,19 @@
   "dependencies": {
     "@astrojs/check": "^0.9.0",
     "@astrojs/mdx": "^3.0.0",
+    "@astrojs/vercel": "^7.8.2",
+    "@codemirror/lang-sql": "^6.10.0",
+    "@codemirror/state": "^6.7.1",
+    "@codemirror/view": "^6.43.7",
+    "@vercel/postgres": "^0.10.0",
     "astro": "^4.10.0",
+    "bcryptjs": "^3.0.3",
+    "sql.js": "^1.14.1",
     "typescript": "^5.4.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/sql.js": "^1.4.11",
     "pagefind": "^1.1.0"
   }
 }
