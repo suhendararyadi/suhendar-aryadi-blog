@@ -1,0 +1,388 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+
+const subjects = [
+  {
+    code: 'PWPB',
+    name: 'Pemrograman Web dan Perangkat Bergerak',
+    level: 'Kelas XI & XII RPL',
+    description: 'Mengajarkan dasar-dasar HTML5, CSS3, JavaScript ES6+, kerangka kerja web modern (Astro/React/Laravel), serta dasar pengembangan aplikasi mobile.',
+  },
+  {
+    code: 'PBO',
+    name: 'Pemrograman Berorientasi Objek',
+    level: 'Kelas XI RPL',
+    description: 'Konsep dasar OOP (Encapsulation, Inheritance, Polymorphism, Abstraction) menggunakan bahasa pemrograman Java dan C#.',
+  },
+  {
+    code: 'BD',
+    name: 'Basis Data & SQL',
+    level: 'Kelas X & XI RPL',
+    description: 'Perancangan ERD, Normalisasi data, serta DDL, DML, DCL menggunakan RDBMS Relasional seperti MySQL dan PostgreSQL.',
+  },
+  {
+    code: 'PKK',
+    name: 'Produk Kreatif & Kewirausahaan IT',
+    level: 'Kelas XII RPL',
+    description: 'Pengembangan produk perangkat lunak bernilai jual, simulasi start-up IT, riset pasar, dan Software Product Lifecycle.',
+  },
+];
+
+const skills = [
+  { category: 'Web Development', items: ['HTML5 & CSS3', 'JavaScript ES6+', 'Astro Framework', 'React.js', 'PHP / Laravel', 'Tailwind CSS'] },
+  { category: 'Database & Systems', items: ['MySQL', 'PostgreSQL', 'RESTful API Design', 'Database Normalization', 'ERD Modeling'] },
+  { category: 'Tools & DevOps', items: ['Git & GitHub', 'VS Code', 'Linux CLI', 'Netlify / Vercel Hosting', 'npm / Node.js'] },
+  { category: 'Kompetensi Vokasi', items: ['Kurikulum Merdeka SMK', 'Penyusunan Modul Ajar', 'Pembimbing LKS RPL', 'Pembimbing PKL Industri'] },
+];
+---
+
+<MainLayout 
+  title="Tentang Guru | Suhendar Aryadi, S.Kom."
+  description="Profil profesional, latar belakang pendidikan, mata pelajaran yang diampu, dan kompetensi Suhendar Aryadi, S.Kom. sebagai Guru Rekayasa Perangkat Lunak (RPL) SMK."
+>
+  <div class="tentang-container">
+    <!-- Hero Profile Header -->
+    <header class="profile-card glass-card">
+      <div class="profile-content">
+        <div class="profile-avatar">
+          <div class="avatar-fallback">SA</div>
+        </div>
+        <div class="profile-info">
+          <span class="badge badge-cyan">Guru RPL SMK & Web Developer</span>
+          <h1 class="profile-name">Suhendar Aryadi, S.Kom.</h1>
+          <p class="profile-bio">
+            Pendidik vokasi di bidang <strong>Rekayasa Perangkat Lunak (RPL)</strong> dengan latar belakang Sarjana Komputer (S.Kom.). Berkomitmen mendidik calon pengembang perangkat lunak muda yang kompeten, berdaya saing tinggi, dan memiliki karakter profesional di industri digital.
+          </p>
+          <div class="profile-contact-tags">
+            <span class="contact-tag">📍 Indonesia</span>
+            <span class="contact-tag">✉️ Edukasi & Vokasi IT</span>
+            <span class="contact-tag">💻 Web Engineering</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Section 1: Mata Pelajaran yang Diampu -->
+    <section class="section mt-10">
+      <div class="section-header">
+        <h2 class="section-title">📚 Mata Pelajaran yang Diampu</h2>
+        <p class="section-subtitle">Materi keahlian utama Jurusan Rekayasa Perangkat Lunak (RPL) SMK</p>
+      </div>
+
+      <div class="subjects-grid">
+        {subjects.map((subj) => (
+          <div class="glass-card subject-card">
+            <div class="subject-header">
+              <span class="badge-code">{subj.code}</span>
+              <span class="subject-level">{subj.level}</span>
+            </div>
+            <h3 class="subject-name">{subj.name}</h3>
+            <p class="subject-desc">{subj.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Section 2: Kompetensi & Keahlian -->
+    <section class="section mt-10">
+      <div class="section-header">
+        <h2 class="section-title">⚡ Kompetensi & Keahlian Teknis</h2>
+        <p class="section-subtitle">Penguasaan teknologi modern dan keahlian pedagogi vokasi</p>
+      </div>
+
+      <div class="skills-grid">
+        {skills.map((group) => (
+          <div class="glass-card skill-card">
+            <h3 class="skill-category">{group.category}</h3>
+            <ul class="skill-list">
+              {group.items.map((item) => (
+                <li class="skill-item">
+                  <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Section 3: Visi & Misi Pembelajaran -->
+    <section class="section mt-10">
+      <div class="glass-card vision-card">
+        <h2 class="vision-title">🎯 Visi & Misi Pembelajaran Vokasi</h2>
+        <div class="vision-grid">
+          <div class="vision-box">
+            <h3 class="vision-subhead">Visi</h3>
+            <p>
+              Menjadi pendidik vokasi IT terdepan yang mampu menjembatani kurikulum sekolah dengan kebutuhan nyata industri perangkat lunak global.
+            </p>
+          </div>
+          <div class="vision-box">
+            <h3 class="vision-subhead">Misi</h3>
+            <ul>
+              <li>Menyediakan modul ajar & praktikum berbasis proyek industri (Project-Based Learning).</li>
+              <li>Membimbing siswa menguasai *coding standard*, konsep arsitektur bersih, dan kolaborasi tim.</li>
+              <li>Mendorong inovasi dan jiwa kewirausahaan teknologi bagi generasi muda SMK.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</MainLayout>
+
+<style>
+  .tentang-container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .mt-10 {
+    margin-top: 3.5rem;
+  }
+
+  /* Profile Card Header */
+  .profile-card {
+    padding: 2.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .profile-card {
+      padding: 1.5rem;
+    }
+  }
+
+  .profile-content {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  @media (max-width: 768px) {
+    .profile-content {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  }
+
+  .profile-avatar {
+    flex-shrink: 0;
+  }
+
+  .avatar-fallback {
+    width: 6.5rem;
+    height: 6.5rem;
+    border-radius: var(--radius-2xl);
+    background: var(--accent-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.25rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .profile-info {
+    flex: 1;
+  }
+
+  .profile-name {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.5rem 0 1rem;
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .profile-name {
+      font-size: 1.75rem;
+    }
+  }
+
+  .profile-bio {
+    font-size: 1.0625rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+  }
+
+  .profile-contact-tags {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    .profile-contact-tags {
+      justify-content: center;
+    }
+  }
+
+  .contact-tag {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    background-color: var(--bg-secondary);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+  }
+
+  /* Section Header */
+  .section-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .section-subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  /* Subjects Grid */
+  .subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .subject-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .subject-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .badge-code {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-sm);
+    background: var(--accent-gradient);
+    color: #ffffff;
+  }
+
+  .subject-level {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .subject-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .subject-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Skills Grid */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .skill-card {
+    padding: 1.5rem;
+  }
+
+  .skill-category {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+  }
+
+  .skill-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .skill-item {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .check-icon {
+    color: var(--accent-primary);
+    flex-shrink: 0;
+  }
+
+  /* Vision Card */
+  .vision-card {
+    padding: 2.25rem;
+  }
+
+  .vision-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+  }
+
+  .vision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .vision-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .vision-subhead {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: 0.75rem;
+  }
+
+  .vision-box p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .vision-box ul {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    padding-left: 1.25rem;
+  }
+
+  .vision-box li {
+    margin-bottom: 0.5rem;
+  }
+</style>

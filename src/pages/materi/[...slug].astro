@@ -1,0 +1,161 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const modules = await getCollection('modules');
+  return modules.map((module) => ({
+    params: { slug: module.slug },
+    props: { module },
+  }));
+}
+
+interface Props {
+  module: CollectionEntry<'modules'>;
+}
+
+const { module } = Astro.props;
+const { Content } = await module.render();
+---
+
+<MainLayout title={`${module.data.title} | Materi RPL`} description={`Modul pembelajaran ${module.data.subject} (${module.data.grade})`}>
+  <article class="module-container">
+    <div class="back-navigation">
+      <a href="/materi" class="back-link">
+        &larr; Kembali ke Daftar Materi
+      </a>
+    </div>
+
+    <header class="module-header glass-card">
+      <div class="header-badges">
+        <span class="badge badge-cyan">{module.data.subject}</span>
+        <span class="badge">{module.data.grade}</span>
+      </div>
+
+      <h1 class="module-title">{module.data.title}</h1>
+
+      <div class="header-footer">
+        <div class="module-tags">
+          {module.data.tags.map((tag) => (
+            <span class="tag">#{tag}</span>
+          ))}
+        </div>
+
+        {module.data.downloadUrl && (
+          <a 
+            href={module.data.downloadUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="btn btn-primary"
+          >
+            <span>📥 Unduh Berkas PDF</span>
+          </a>
+        )}
+      </div>
+    </header>
+
+    <div class="module-content glass-card prose">
+      <Content />
+    </div>
+
+    <footer class="module-footer-nav">
+      <a href="/materi" class="btn btn-secondary">
+        &larr; Kembali ke Semua Materi Pembelajaran
+      </a>
+    </footer>
+  </article>
+</MainLayout>
+
+<style>
+  .module-container {
+    max-width: 840px;
+    margin: 0 auto;
+  }
+
+  .back-navigation {
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .back-link:hover {
+    color: var(--accent-primary);
+  }
+
+  .module-header {
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .module-header {
+      padding: 1.5rem;
+    }
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .module-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  @media (max-width: 768px) {
+    .module-title {
+      font-size: 1.75rem;
+    }
+  }
+
+  .header-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .module-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .module-content {
+    padding: 2.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .module-content {
+      padding: 1.5rem;
+    }
+  }
+
+  .module-footer-nav {
+    margin-top: 2.5rem;
+    display: flex;
+    justify-content: center;
+  }
+</style>

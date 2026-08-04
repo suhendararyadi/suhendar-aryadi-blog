@@ -1,0 +1,191 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date));
+}
+---
+
+<MainLayout title={`${post.data.title} | Blog Suhendar Aryadi`} description={post.data.description}>
+  <article class="post-container">
+    <div class="back-navigation">
+      <a href="/blog" class="back-link">
+        &larr; Kembali ke Daftar Artikel
+      </a>
+    </div>
+
+    <header class="article-header glass-card">
+      <div class="header-badges">
+        <span class="badge badge-cyan">{post.data.category}</span>
+        <time datetime={post.data.pubDate.toISOString()} class="post-date">
+          {formatDate(post.data.pubDate)}
+        </time>
+      </div>
+
+      <h1 class="article-title">{post.data.title}</h1>
+      <p class="article-description">{post.data.description}</p>
+
+      <div class="article-meta">
+        <div class="author-info">
+          <span class="author-label">Penulis:</span>
+          <span class="author-name">{post.data.author}</span>
+        </div>
+        <div class="article-tags">
+          {post.data.tags.map((tag) => (
+            <span class="tag">#{tag}</span>
+          ))}
+        </div>
+      </div>
+    </header>
+
+    <div class="article-content glass-card prose">
+      <Content />
+    </div>
+
+    <footer class="article-footer-nav">
+      <a href="/blog" class="btn btn-secondary">
+        &larr; Kembali ke Semua Artikel Blog
+      </a>
+    </footer>
+  </article>
+</MainLayout>
+
+<style>
+  .post-container {
+    max-width: 840px;
+    margin: 0 auto;
+  }
+
+  .back-navigation {
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .back-link:hover {
+    color: var(--accent-primary);
+  }
+
+  .article-header {
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .article-header {
+      padding: 1.5rem;
+    }
+  }
+
+  .header-badges {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .post-date {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .article-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  @media (max-width: 768px) {
+    .article-title {
+      font-size: 1.75rem;
+    }
+  }
+
+  .article-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .author-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .author-label {
+    color: var(--text-muted);
+  }
+
+  .author-name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .article-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .article-content {
+    padding: 2.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .article-content {
+      padding: 1.5rem;
+    }
+  }
+
+  .article-footer-nav {
+    margin-top: 2.5rem;
+    display: flex;
+    justify-content: center;
+  }
+</style>

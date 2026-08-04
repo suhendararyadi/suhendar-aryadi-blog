@@ -2,3 +2,5 @@
 
 Task 1: complete (commits 3b7d7ca..80f1c9e, review clean)
 Task 2: complete (commits 80f1c9e..3a5f3fb, review clean)
+Task 3: complete (commits 3a5f3fb..9f0da01, review clean)
+Task 4: complete (commits 9f0da01..fbcee80, review clean)

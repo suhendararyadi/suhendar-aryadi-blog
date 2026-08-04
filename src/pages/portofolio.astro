@@ -1,0 +1,270 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+
+const teacherProjects = [
+  {
+    title: 'Portal Edukasi & Bank Soal RPL SMK',
+    category: 'Sistem Pembelajaran',
+    description: 'Platform manajemen materi, Jobsheet praktikum, dan simulasi asesmen berbasis web untuk siswa Rekayasa Perangkat Lunak.',
+    tags: ['Astro', 'TypeScript', 'CSS3', 'Markdown'],
+    role: 'Pengembang Utama & Content Author',
+    status: 'Aktif Digunakan',
+  },
+  {
+    title: 'Sistem Informasi Manajemen Presensi & Nilai Siswa',
+    category: 'Aplikasi Web Vokasi',
+    description: 'Aplikasi pengelolaan data kehadiran dan rekapitulasi penilaian berbasis web terintegrasi untuk mendukung admin lab RPL.',
+    tags: ['PHP / Laravel', 'MySQL', 'Bootstrap', 'REST API'],
+    role: 'Full-stack Developer',
+    status: 'Selesai & Implementasi',
+  },
+  {
+    title: 'Modul Interaktif Pemrograman Web & Mobile',
+    category: 'Media Pembelajaran',
+    description: 'Bahan ajar digital interaktif yang menggabungkan panduan HTML5/CSS3, JavaScript modern, dan latihan hands-on.',
+    tags: ['HTML5', 'CSS Grid & Flexbox', 'JavaScript ES6'],
+    role: 'Penyusun Modul Ajar',
+    status: 'Publik',
+  },
+];
+
+const studentProjects = [
+  {
+    title: 'Point of Sale (POS) Kantin & Toko Sekolah',
+    category: 'Proyek Akhir Siswa Kelas XII',
+    description: 'Aplikasi kasir berbasis desktop & web dengan fitur pencatatan transaksi, cetak struk, dan laporan stok barang harian.',
+    tags: ['Laravel', 'Vue.js', 'MySQL', 'Tailwind CSS'],
+    role: 'Pembimbing Proyek Siswa',
+    status: 'Karya Unggulan RPL',
+  },
+  {
+    title: 'Web Portal Resmi OSIS & Ekstrakurikuler',
+    category: 'Proyek Kelompok Siswa',
+    description: 'Website publik untuk publikasi kegiatan siswa, pendaftaran ekstrakurikuler, dan majalah dinding digital sekolah.',
+    tags: ['Astro', 'TailwindCSS', 'Netlify CMS'],
+    role: 'Pembimbing Technical Advisor',
+    status: 'Karya Unggulan RPL',
+  },
+  {
+    title: 'Aplikasi Peminjaman Alat Lab RPL',
+    category: 'Proyek Produk Kreatif & Kewirausahaan (PKK)',
+    description: 'Sistem berbasis QR-code untuk peminjaman perangkat lab komputer, laptop praktikum, dan mikrokontroler.',
+    tags: ['CodeIgniter 4', 'Bootstrap', 'MySQL'],
+    role: 'Pembimbing Produk Kreatif',
+    status: 'Proyek Praktikum',
+  },
+];
+---
+
+<MainLayout 
+  title="Portofolio & Karya Vokasi | Suhendar Aryadi, S.Kom."
+  description="Etalase proyek teknologi, media pembelajaran, dan sistem informasi karya Suhendar Aryadi, S.Kom. serta proyek unggulan siswa SMK RPL."
+>
+  <div class="portfolio-header">
+    <span class="badge badge-cyan">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+      Showcase Vokasi IT
+    </span>
+    <h1 class="page-title">Portofolio & <span class="text-gradient">Karya Teknologi</span></h1>
+    <p class="page-subtitle">
+      Kumpulan proyek pengembangan perangkat lunak, sistem informasi pendidikan, dan hasil karya inovasi siswa binaan Rekayasa Perangkat Lunak.
+    </p>
+  </div>
+
+  <!-- Section 1: Karya & Sistem Edukasi Guru -->
+  <section class="portfolio-section">
+    <div class="section-badge-wrapper">
+      <h2 class="section-title">👨‍🏫 Sistem & Karya Edukasi Guru</h2>
+      <p class="section-subtitle">Aplikasi dan media pembelajaran yang dikembangkan untuk mendukung kegiatan KBM di SMK</p>
+    </div>
+
+    <div class="projects-grid">
+      {teacherProjects.map((project) => (
+        <div class="glass-card project-card">
+          <div class="project-header">
+            <span class="badge badge-cyan">{project.category}</span>
+            <span class="project-status">{project.status}</span>
+          </div>
+
+          <h3 class="project-title">{project.title}</h3>
+          <p class="project-description">{project.description}</p>
+
+          <div class="project-role">
+            <span class="role-label">Peran:</span> {project.role}
+          </div>
+
+          <div class="project-footer">
+            <div class="tech-tags">
+              {project.tags.map((tag) => (
+                <span class="tech-tag">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Section 2: Karya & Proyek Siswa Binaan -->
+  <section class="portfolio-section mt-12">
+    <div class="section-badge-wrapper">
+      <h2 class="section-title">🎓 Proyek Unggulan Siswa Binaan RPL</h2>
+      <p class="section-subtitle">Hasil karya praktikum, uji kompetensi (UKK), dan proyek PKK siswa Rekayasa Perangkat Lunak</p>
+    </div>
+
+    <div class="projects-grid">
+      {studentProjects.map((project) => (
+        <div class="glass-card project-card">
+          <div class="project-header">
+            <span class="badge">{project.category}</span>
+            <span class="project-status">{project.status}</span>
+          </div>
+
+          <h3 class="project-title">{project.title}</h3>
+          <p class="project-description">{project.description}</p>
+
+          <div class="project-role">
+            <span class="role-label">Pembimbing:</span> {project.role}
+          </div>
+
+          <div class="project-footer">
+            <div class="tech-tags">
+              {project.tags.map((tag) => (
+                <span class="tech-tag">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</MainLayout>
+
+<style>
+  .portfolio-header {
+    text-align: center;
+    max-width: 750px;
+    margin: 1rem auto 3rem;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.75rem 0;
+  }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 1.875rem;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 1.0625rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .portfolio-section {
+    margin-bottom: 3.5rem;
+  }
+
+  .mt-12 {
+    margin-top: 4rem;
+  }
+
+  .section-badge-wrapper {
+    margin-bottom: 1.75rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .section-subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .project-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .project-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .project-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--text-primary);
+    margin-bottom: 0.875rem;
+  }
+
+  .project-description {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+    flex: 1;
+  }
+
+  .project-role {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+  }
+
+  .role-label {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .project-footer {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .tech-tags {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+
+  .tech-tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+  }
+</style>
