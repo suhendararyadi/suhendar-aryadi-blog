@@ -1,3 +1,8 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+
 /* Global CSS & Design System Tokens */
 
 :root {
