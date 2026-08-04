@@ -49,13 +49,18 @@ async function migrate() {
       slug VARCHAR(100) UNIQUE NOT NULL,
       title VARCHAR(200) NOT NULL,
       category VARCHAR(100) NOT NULL,
+      path_id VARCHAR(50) DEFAULT 'basics',
       order_index INT NOT NULL,
       theory_markdown TEXT NOT NULL,
       instructions_markdown TEXT NOT NULL,
       seed_sql TEXT NOT NULL,
       expected_sql TEXT NOT NULL,
-      initial_code TEXT DEFAULT 'SELECT * FROM customers;'
+      initial_code TEXT DEFAULT 'SELECT * FROM customers;',
+      evaluator_type VARCHAR(50) DEFAULT 'data_match'
     );
+
+    ALTER TABLE sql_lessons ADD COLUMN IF NOT EXISTS path_id VARCHAR(50) DEFAULT 'basics';
+    ALTER TABLE sql_lessons ADD COLUMN IF NOT EXISTS evaluator_type VARCHAR(50) DEFAULT 'data_match';
 
     CREATE TABLE IF NOT EXISTS user_progress (
       id SERIAL PRIMARY KEY,
@@ -72,29 +77,33 @@ async function migrate() {
 
   for (const lesson of seedLessons) {
     await db.query(`
-      INSERT INTO sql_lessons (id, slug, title, category, order_index, theory_markdown, instructions_markdown, seed_sql, expected_sql, initial_code)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      ON CONFLICT (slug) DO UPDATE SET
-        id = EXCLUDED.id,
+      INSERT INTO sql_lessons (id, slug, title, category, path_id, order_index, theory_markdown, instructions_markdown, seed_sql, expected_sql, initial_code, evaluator_type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      ON CONFLICT (id) DO UPDATE SET
+        slug = EXCLUDED.slug,
         title = EXCLUDED.title,
         category = EXCLUDED.category,
+        path_id = EXCLUDED.path_id,
         order_index = EXCLUDED.order_index,
         theory_markdown = EXCLUDED.theory_markdown,
         instructions_markdown = EXCLUDED.instructions_markdown,
         seed_sql = EXCLUDED.seed_sql,
         expected_sql = EXCLUDED.expected_sql,
-        initial_code = EXCLUDED.initial_code;
+        initial_code = EXCLUDED.initial_code,
+        evaluator_type = EXCLUDED.evaluator_type;
     `, [
       lesson.id,
       lesson.slug,
       lesson.title,
       lesson.category,
+      lesson.path_id,
       lesson.order_index,
       lesson.theory_markdown,
       lesson.instructions_markdown,
       lesson.seed_sql,
       lesson.expected_sql,
-      lesson.initial_code
+      lesson.initial_code,
+      lesson.evaluator_type
     ]);
   }
 
