@@ -38,313 +38,180 @@ try {
 const completedCount = completedModules.length;
 const completionPercentage = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
 
-// 4-Tier Rank Badge System:
-// - 🟢 SQL Novice (1 - 10 Modul)
-// - 🟡 SQL Intermediate (11 - 24 Modul)
-// - 🔵 SQL Advanced (25 - 39 Modul)
-// - 🏆 Master SQL Engineer (40 Modul Selesai)
-let rankInfo = {
-  title: 'SQL Novice',
-  icon: '🟢',
-  badgeClass: 'badge-novice'
-};
-
+// 4-Tier Rank System
+let rankInfo = { title: 'SQL Novice', badgeClass: 'badge-novice' };
 if (completedCount >= 40) {
-  rankInfo = {
-    title: 'Master SQL Engineer',
-    icon: '🏆',
-    badgeClass: 'badge-master'
-  };
+  rankInfo = { title: 'Master SQL Engineer', badgeClass: 'badge-master' };
 } else if (completedCount >= 25) {
-  rankInfo = {
-    title: 'SQL Advanced',
-    icon: '🔵',
-    badgeClass: 'badge-advanced'
-  };
+  rankInfo = { title: 'SQL Advanced', badgeClass: 'badge-advanced' };
 } else if (completedCount >= 11) {
-  rankInfo = {
-    title: 'SQL Intermediate',
-    icon: '🟡',
-    badgeClass: 'badge-intermediate'
-  };
-} else {
-  rankInfo = {
-    title: 'SQL Novice',
-    icon: '🟢',
-    badgeClass: 'badge-novice'
-  };
+  rankInfo = { title: 'SQL Intermediate', badgeClass: 'badge-intermediate' };
 }
 
-// 5 Learning Paths Definition & Analytics
 interface PathDefinition {
   id: 'basics' | 'aggregates' | 'joins' | 'grouping' | 'ddl_security';
   title: string;
-  shortTitle: string;
-  icon: string;
   total: number;
-  badgeClass: string;
-  gradient: string;
+  accentVar: string;
   description: string;
 }
 
 const LEARNING_PATHS: PathDefinition[] = [
-  {
-    id: 'basics',
-    title: 'Path 1: SQL Basics',
-    shortTitle: 'SQL Basics',
-    icon: '🟢',
-    total: 10,
-    badgeClass: 'badge-emerald',
-    gradient: 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
-    description: 'SELECT, WHERE, ORDER BY, INSERT, UPDATE, DELETE'
-  },
-  {
-    id: 'aggregates',
-    title: 'Path 2: SQL Aggregates & Functions',
-    shortTitle: 'Aggregates',
-    icon: '🟡',
-    total: 8,
-    badgeClass: 'badge-amber',
-    gradient: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
-    description: 'Fungsi Agregasi (COUNT, SUM, AVG, MIN, MAX), String & Date'
-  },
-  {
-    id: 'joins',
-    title: 'Path 3: SQL Joins & Relasi Tabel',
-    shortTitle: 'Joins',
-    icon: '🔵',
-    total: 6,
-    badgeClass: 'badge-sky',
-    gradient: 'linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%)',
-    description: 'INNER, LEFT, RIGHT, FULL OUTER & Self Join'
-  },
-  {
-    id: 'grouping',
-    title: 'Path 4: SQL Grouping & Subqueries',
-    shortTitle: 'Grouping',
-    icon: '🟣',
-    total: 6,
-    badgeClass: 'badge-purple',
-    gradient: 'linear-gradient(90deg, #a855f7 0%, #7e22ce 100%)',
-    description: 'GROUP BY, HAVING, Subqueries, EXISTS, UNION'
-  },
-  {
-    id: 'ddl_security',
-    title: 'Path 5: SQL DDL, Constraints & Security',
-    shortTitle: 'DDL & Security',
-    icon: '🟧',
-    total: 10,
-    badgeClass: 'badge-orange',
-    gradient: 'linear-gradient(90deg, #f97316 0%, #ea580c 100%)',
-    description: 'CREATE, ALTER, DROP, Constraints, Transactions, Views'
-  }
+  { id: 'basics', title: 'SQL Basics', total: 10, accentVar: '#10b981', description: 'SELECT, WHERE, ORDER BY, INSERT, UPDATE, DELETE' },
+  { id: 'aggregates', title: 'Aggregates & Functions', total: 8, accentVar: '#f59e0b', description: 'COUNT, SUM, AVG, MIN, MAX, LIKE, IN, BETWEEN' },
+  { id: 'joins', title: 'Joins & Relasi Tabel', total: 6, accentVar: '#0ea5e9', description: 'INNER, LEFT, RIGHT, FULL, SELF JOIN' },
+  { id: 'grouping', title: 'Grouping & Subqueries', total: 6, accentVar: '#a855f7', description: 'GROUP BY, HAVING, EXISTS, ANY/ALL, CASE' },
+  { id: 'ddl_security', title: 'DDL, Constraints & Security', total: 10, accentVar: '#f97316', description: 'CREATE, ALTER, DROP, PK, FK, VIEW, SQL Injection' },
 ];
 
-const pathCompletedCounts: Record<string, number> = {
-  basics: 0,
-  aggregates: 0,
-  joins: 0,
-  grouping: 0,
-  ddl_security: 0
-};
-
+const pathCompletedCounts: Record<string, number> = { basics: 0, aggregates: 0, joins: 0, grouping: 0, ddl_security: 0 };
 completedModules.forEach((item) => {
   const lesson = seedLessons.find((l) => l.id === item.lesson_id);
   const pathId = item.path_id || lesson?.path_id || 'basics';
-  if (pathCompletedCounts[pathId] !== undefined) {
-    pathCompletedCounts[pathId]++;
-  }
+  if (pathCompletedCounts[pathId] !== undefined) pathCompletedCounts[pathId]++;
 });
 
 const pathAnalytics = LEARNING_PATHS.map((path) => {
   const completed = pathCompletedCounts[path.id] || 0;
   const percentage = path.total > 0 ? Math.round((completed / path.total) * 100) : 0;
-  return {
-    ...path,
-    completed,
-    percentage
-  };
+  return { ...path, completed, percentage };
 });
 ---
 
 <MainLayout 
-  title={`Dashboard Siswa - ${user.name} | Suhendar Aryadi`}
-  description="Dashboard progres belajar siswa RPL. Lihat statistik progres 5 Learning Path SQL dan peringkat kelulusan."
+  title={`Dashboard — ${user.name} | Suhendar Aryadi`}
+  description="Dashboard progres belajar siswa. Lihat statistik dan progres 5 Learning Path SQL."
 >
-  <div class="container dashboard-container">
-    <div class="dashboard-card glass-card">
-      <div class="user-header">
-        <div class="user-avatar-lg">
-          {user.name.charAt(0).toUpperCase()}
-        </div>
-        <div class="user-details">
-          <div class="badge-group">
-            <span class="badge badge-cyan">{user.role.toUpperCase()}</span>
-            <span class={`badge ${rankInfo.badgeClass}`}>
-              {rankInfo.icon} {rankInfo.title}
-            </span>
-          </div>
-          <h1 class="user-name">{user.name}</h1>
-          <p class="user-email">✉️ {user.email}</p>
-        </div>
+  <div class="dash-wrapper">
 
-        <div class="header-actions">
-          <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            Keluar / Logout
-          </button>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="section-title-group">
-        <h2>📊 Ringkasan Statistik Progres SQL</h2>
-        <a href="/belajar/sql" class="btn btn-primary btn-sm">
-          📚 Lanjutkan Belajar SQL ➔
-        </a>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat-card glass-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-content">
-            <span class="stat-num">{completedCount} / {totalLessonsCount}</span>
-            <span class="stat-label">Modul Selesai</span>
+    <!-- Profile header -->
+    <div class="profile-card glass-card">
+      <div class="profile-inner">
+        <div class="avatar-wrap">
+          <div class="avatar-circle">
+            {user.name.charAt(0).toUpperCase()}
           </div>
         </div>
-
-        <div class="stat-card glass-card">
-          <div class="stat-icon">📈</div>
-          <div class="stat-content">
-            <span class="stat-num">{completionPercentage}%</span>
-            <span class="stat-label">Tingkat Penyelesaian</span>
+        <div class="profile-info">
+          <div class="profile-badges">
+            <span class="badge badge-role">{user.role.toUpperCase()}</span>
+            <span class={`badge ${rankInfo.badgeClass}`}>{rankInfo.title}</span>
           </div>
+          <h1 class="profile-name">{user.name}</h1>
+          <p class="profile-email">{user.email}</p>
         </div>
-
-        <div class="stat-card glass-card">
-          <div class="stat-icon">{rankInfo.icon}</div>
-          <div class="stat-content">
-            <span class="stat-num rank-title-num">{rankInfo.title}</span>
-            <span class="stat-label">Peringkat Kelulusan</span>
-          </div>
+        <div class="profile-actions">
+          <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">Keluar</button>
         </div>
-      </div>
-
-      <div class="progress-bar-section">
-        <div class="progress-bar-label">
-          <span>Target Kurikulum SQL (40 Modul)</span>
-          <span><strong>{completedCount} / {totalLessonsCount} Modul</strong> ({completionPercentage}%)</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" style={`width: ${completionPercentage}%`}></div>
-        </div>
-      </div>
-
-      <div class="paths-analytics-section">
-        <div class="paths-section-header">
-          <h3>🎯 Progres per Learning Path (5 Alur Belajar)</h3>
-          <p>Breakdown pencapaian modul dari tingkat Dasar hingga Keamanan Database</p>
-        </div>
-
-        <div class="paths-grid">
-          {pathAnalytics.map((path) => (
-            <div class="path-card glass-card">
-              <div class="path-header">
-                <div class="path-title-wrap">
-                  <span class="path-icon">{path.icon}</span>
-                  <div>
-                    <h4 class="path-title">{path.title}</h4>
-                    <span class="path-desc">{path.description}</span>
-                  </div>
-                </div>
-                <div class="path-badge-wrap">
-                  <span class={`badge ${path.badgeClass}`}>
-                    {path.completed} / {path.total} Modul
-                  </span>
-                </div>
-              </div>
-
-              <div class="path-progress-bar-container">
-                <div class="path-progress-track">
-                  <div 
-                    class="path-progress-fill" 
-                    style={`width: ${path.percentage}%; background: ${path.gradient};`}
-                  ></div>
-                </div>
-                <div class="path-progress-info">
-                  <span class="path-pct-text">{path.percentage}% Selesai</span>
-                  <span class="path-count-text">{path.completed} dari {path.total} modul</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="modules-section">
-        <h3>📜 Riwayat Modul yang Telah Diselesaikan</h3>
-        {completedModules.length > 0 ? (
-          <div class="table-wrapper">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Modul</th>
-                  <th>Kategori</th>
-                  <th>Tanggal Selesai</th>
-                  <th>Kode SQL Disubmit</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {completedModules.map((item) => (
-                  <tr>
-                    <td>
-                      <strong>#{item.order_index} {item.title}</strong>
-                    </td>
-                    <td>
-                      <span class="badge badge-cyan">{item.category}</span>
-                    </td>
-                    <td class="date-col">
-                      {item.completed_at ? new Date(item.completed_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : 'Terbaru'}
-                    </td>
-                    <td>
-                      <code class="code-preview">{item.submitted_code}</code>
-                    </td>
-                    <td>
-                      <a href={`/belajar/sql/${item.slug}`} class="btn btn-outline btn-xs">
-                        Buka Workspace ➔
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div class="empty-state glass-card">
-            <div class="empty-icon">💡</div>
-            <h4>Belum Ada Modul yang Diselesaikan</h4>
-            <p>Anda belum menyelesaikan modul SQL. Mulai latihan sekarang dan selesaikan tantangan pertama Anda!</p>
-            <a href="/belajar/sql" class="btn btn-primary btn-sm" style="margin-top: 1rem;">
-              Mulai Belajar Sekarang ➔
-            </a>
-          </div>
-        )}
       </div>
     </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-item glass-card">
+        <span class="stat-value">{completedCount} <span class="stat-total">/ {totalLessonsCount}</span></span>
+        <span class="stat-label">Modul Selesai</span>
+      </div>
+      <div class="stat-item glass-card">
+        <span class="stat-value">{completionPercentage}<span class="stat-unit">%</span></span>
+        <span class="stat-label">Tingkat Penyelesaian</span>
+      </div>
+      <div class="stat-item glass-card">
+        <span class="stat-value stat-rank">{rankInfo.title}</span>
+        <span class="stat-label">Peringkat Saat Ini</span>
+      </div>
+    </div>
+
+    <!-- Overall progress -->
+    <div class="progress-card glass-card">
+      <div class="progress-header">
+        <span class="progress-label">Progress Kurikulum SQL (40 Modul)</span>
+        <span class="progress-count">{completedCount} / {totalLessonsCount}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style={`width: ${completionPercentage}%`}></div>
+      </div>
+    </div>
+
+    <!-- Learning paths -->
+    <div class="paths-section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Progress per Learning Path</h2>
+          <p class="section-subtitle">5 alur belajar dari dasar hingga keamanan database</p>
+        </div>
+        <a href="/belajar/sql" class="btn btn-primary btn-sm">Lanjutkan Belajar</a>
+      </div>
+
+      <div class="paths-grid">
+        {pathAnalytics.map((path) => (
+          <div class="path-card glass-card">
+            <div class="path-top">
+              <div class="path-text">
+                <h3 class="path-title">{path.title}</h3>
+                <p class="path-desc">{path.description}</p>
+              </div>
+              <span class="path-count">{path.completed}/{path.total}</span>
+            </div>
+            <div class="path-progress-track">
+              <div class="path-progress-fill" style={`width: ${path.percentage}%; background-color: ${path.accentVar};`}></div>
+            </div>
+            <p class="path-pct">{path.percentage}% selesai</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- History table -->
+    <div class="history-section">
+      <h2 class="section-title">Riwayat Modul Selesai</h2>
+
+      {completedModules.length > 0 ? (
+        <div class="table-wrap glass-card">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Modul</th>
+                <th>Kategori</th>
+                <th>Tanggal</th>
+                <th>SQL Terakhir</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {completedModules.map((item) => (
+                <tr>
+                  <td>
+                    <span class="module-num">#{item.order_index}</span> {item.title}
+                  </td>
+                  <td>
+                    <span class="badge badge-role">{item.category}</span>
+                  </td>
+                  <td class="date-col">
+                    {item.completed_at ? new Date(item.completed_at).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'short', year: 'numeric'
+                    }) : '—'}
+                  </td>
+                  <td>
+                    <code class="code-snippet">{item.submitted_code}</code>
+                  </td>
+                  <td>
+                    <a href={`/belajar/sql/${item.slug}`} class="btn btn-outline btn-xs">Buka</a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div class="empty-state glass-card">
+          <p class="empty-title">Belum ada modul yang diselesaikan.</p>
+          <p class="empty-desc">Mulai latihan SQL dan selesaikan tantangan pertama Anda.</p>
+          <a href="/belajar/sql" class="btn btn-primary btn-sm" style="margin-top: 1.25rem;">Mulai Belajar</a>
+        </div>
+      )}
+    </div>
+
   </div>
 </MainLayout>
 
@@ -361,212 +228,146 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
 </script>
 
 <style>
-  .dashboard-container {
-    margin-top: 1.5rem;
-    margin-bottom: 3rem;
+  .dash-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
-  .dashboard-card {
-    padding: 2.5rem;
+  /* Profile Card */
+  .profile-card {
+    padding: 1.75rem 2rem;
   }
 
-  .user-header {
+  .profile-inner {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    position: relative;
+    gap: 1.25rem;
     flex-wrap: wrap;
   }
 
-  .user-avatar-lg {
-    width: 4.5rem;
-    height: 4.5rem;
+  .avatar-circle {
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: var(--radius-full);
     background: var(--accent-gradient);
-    color: #ffffff;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    font-weight: 800;
-    box-shadow: var(--shadow-glow);
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
   }
 
-  .user-details {
+  .profile-info {
     flex: 1;
   }
 
-  .badge-group {
+  .profile-badges {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
     flex-wrap: wrap;
   }
 
-  .user-name {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--text-primary);
-  }
-
-  .user-email {
-    color: var(--text-secondary);
-    font-size: 0.925rem;
-    margin-top: 0.2rem;
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-  }
-
-  .btn-sm {
-    padding: 0.45rem 0.95rem;
-    font-size: 0.875rem;
-  }
-
-  .btn-xs {
-    padding: 0.25rem 0.6rem;
-    font-size: 0.775rem;
-  }
-
-  .divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 2rem 0;
-  }
-
-  .section-title-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .section-title-group h2 {
-    font-size: 1.35rem;
+  .profile-name {
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
+    letter-spacing: -0.01em;
   }
 
-  .stats-grid {
+  .profile-email {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+  }
+
+  .profile-actions {
+    margin-left: auto;
+  }
+
+  /* Stats Row */
+  .stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    align-items: center;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
-    background: var(--bg-secondary);
   }
 
-  .stat-icon {
-    font-size: 2rem;
+  @media (max-width: 640px) {
+    .stats-row {
+      grid-template-columns: 1fr;
+    }
   }
 
-  .stat-content {
+  .stat-item {
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
+    gap: 0.35rem;
   }
 
-  .stat-num {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--accent-cyan);
-    line-height: 1.2;
-  }
-
-  .rank-title-num {
-    font-size: 1.15rem;
+  .stat-value {
+    font-size: 2rem;
     font-weight: 800;
     color: var(--text-primary);
-    line-height: 1.3;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-rank {
+    font-size: 1.1rem;
+    letter-spacing: 0;
+  }
+
+  .stat-total {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .stat-unit {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-secondary);
   }
 
   .stat-label {
-    font-size: 0.825rem;
-    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  /* Rank Badge Styles */
-  .badge-novice {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
-    border-color: rgba(16, 185, 129, 0.3);
+  /* Overall Progress */
+  .progress-card {
+    padding: 1.25rem 1.75rem;
   }
 
-  .badge-intermediate {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.3);
-  }
-
-  .badge-advanced {
-    background-color: rgba(14, 165, 233, 0.12);
-    color: #0ea5e9;
-    border-color: rgba(14, 165, 233, 0.3);
-  }
-
-  .badge-master {
-    background-color: rgba(168, 85, 247, 0.15);
-    color: #c084fc;
-    border-color: rgba(168, 85, 247, 0.4);
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
-  }
-
-  /* Learning Path Badge Colors */
-  .badge-emerald {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
-    border-color: rgba(16, 185, 129, 0.25);
-  }
-
-  .badge-amber {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.25);
-  }
-
-  .badge-sky {
-    background-color: rgba(14, 165, 233, 0.12);
-    color: #0ea5e9;
-    border-color: rgba(14, 165, 233, 0.25);
-  }
-
-  .badge-purple {
-    background-color: rgba(168, 85, 247, 0.12);
-    color: #a855f7;
-    border-color: rgba(168, 85, 247, 0.25);
-  }
-
-  .badge-orange {
-    background-color: rgba(249, 115, 22, 0.12);
-    color: #f97316;
-    border-color: rgba(249, 115, 22, 0.25);
-  }
-
-  .progress-bar-section {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
-  .progress-bar-label {
+  .progress-header {
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .progress-label {
     color: var(--text-secondary);
-    margin-bottom: 0.6rem;
+    font-weight: 500;
+  }
+
+  .progress-count {
+    color: var(--text-primary);
+    font-weight: 600;
   }
 
   .progress-track {
-    height: 10px;
+    height: 6px;
     background: var(--bg-tertiary);
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -576,87 +377,86 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
     height: 100%;
     background: var(--accent-gradient);
     border-radius: var(--radius-full);
-    transition: width 0.5s ease-in-out;
+    transition: width 0.6s ease;
   }
 
-  /* Path Analytics Section */
-  .paths-analytics-section {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+  /* Paths section */
+  .paths-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .paths-section-header {
-    margin-bottom: 1.25rem;
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
-  .paths-section-header h3 {
+  .section-title {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-primary);
+    letter-spacing: -0.01em;
   }
 
-  .paths-section-header p {
+  .section-subtitle {
     font-size: 0.875rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-top: 0.2rem;
   }
 
   .paths-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .path-card {
-    padding: 1.25rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1rem;
   }
 
-  .path-header {
+  .path-card {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .path-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 0.75rem;
   }
 
-  .path-title-wrap {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  .path-icon {
-    font-size: 1.5rem;
-    line-height: 1;
+  .path-text {
+    flex: 1;
   }
 
   .path-title {
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 0.9375rem;
+    font-weight: 600;
     color: var(--text-primary);
   }
 
   .path-desc {
     font-size: 0.775rem;
-    color: var(--text-secondary);
-    display: block;
-    margin-top: 0.15rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    line-height: 1.4;
   }
 
-  .path-progress-bar-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+  .path-count {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    padding: 0.2rem 0.6rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
   }
 
   .path-progress-track {
-    height: 8px;
+    height: 4px;
     background: var(--bg-tertiary);
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -665,33 +465,65 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
   .path-progress-fill {
     height: 100%;
     border-radius: var(--radius-full);
-    transition: width 0.5s ease-in-out;
+    transition: width 0.6s ease;
   }
 
-  .path-progress-info {
-    display: flex;
-    justify-content: space-between;
+  .path-pct {
     font-size: 0.775rem;
+    color: var(--text-muted);
   }
 
-  .path-pct-text {
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .path-count-text {
+  /* Badge variants */
+  .badge-role {
+    background-color: var(--bg-tertiary);
     color: var(--text-secondary);
+    border-color: transparent;
   }
 
-  .modules-section h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+  .badge-novice {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
   }
 
-  .table-wrapper {
-    overflow-x: auto;
+  .badge-intermediate {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .badge-advanced {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.25);
+  }
+
+  .badge-master {
+    background-color: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+
+  /* Buttons */
+  .btn-sm {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-xs {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  /* History section */
+  .history-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .table-wrap {
+    overflow: hidden;
   }
 
   .history-table {
@@ -700,29 +532,46 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
     font-size: 0.875rem;
   }
 
-  .history-table th, .history-table td {
-    border: 1px solid var(--border-color);
-    padding: 0.75rem 1rem;
-    text-align: left;
-  }
-
   .history-table th {
-    background: var(--bg-secondary);
-    color: var(--accent-primary);
+    text-align: left;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.75rem;
     font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
   }
 
-  .history-table tr:nth-child(even) {
+  .history-table td {
+    padding: 0.875rem 1.25rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  .history-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .history-table tr:hover td {
     background: var(--border-subtle);
   }
 
+  .module-num {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+
   .date-col {
-    color: var(--text-secondary);
-    font-size: 0.825rem;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
     white-space: nowrap;
   }
 
-  .code-preview {
+  .code-snippet {
     font-family: var(--font-mono);
     font-size: 0.8rem;
     color: var(--accent-cyan);
@@ -730,50 +579,50 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
     padding: 0.2rem 0.5rem;
     border-radius: var(--radius-sm);
     display: inline-block;
-    max-width: 250px;
+    max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    vertical-align: middle;
   }
 
+  /* Empty state */
   .empty-state {
+    padding: 3rem 2rem;
     text-align: center;
-    padding: 2.5rem;
-    background: var(--bg-secondary);
   }
 
-  .empty-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .empty-state h4 {
-    font-size: 1.1rem;
+  .empty-title {
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
   }
 
-  .empty-state p {
-    color: var(--text-secondary);
+  .empty-desc {
     font-size: 0.9rem;
-    max-width: 500px;
+    color: var(--text-muted);
+    max-width: 420px;
     margin: 0 auto;
   }
 
   @media (max-width: 640px) {
-    .dashboard-card {
-      padding: 1.5rem;
+    .profile-card {
+      padding: 1.25rem;
     }
 
-    .user-header {
+    .profile-inner {
+      flex-wrap: wrap;
+    }
+
+    .profile-actions {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .section-head {
       flex-direction: column;
       align-items: flex-start;
     }
-
-    .header-actions {
-      width: 100%;
-      justify-content: flex-end;
-    }
   }
 </style>
-

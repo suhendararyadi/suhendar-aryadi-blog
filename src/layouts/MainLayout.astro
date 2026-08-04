@@ -22,6 +22,11 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
     <!-- Primary Meta Tags -->
     <title>{title}</title>
     <meta name="title" content={title} />
@@ -55,7 +60,7 @@ const {
           copyButton.className = 'copy-code-btn';
           copyButton.type = 'button';
           copyButton.setAttribute('aria-label', 'Copy code to clipboard');
-          copyButton.innerText = '📋 Copy';
+          copyButton.innerText = 'Copy';
 
           copyButton.addEventListener('click', async () => {
             const code = codeBlock.querySelector('code');
@@ -63,10 +68,10 @@ const {
 
             try {
               await navigator.clipboard.writeText(textToCopy);
-              copyButton.innerText = '✅ Copied!';
+              copyButton.innerText = 'Copied';
               copyButton.classList.add('copied');
               setTimeout(() => {
-                copyButton.innerText = '📋 Copy';
+                copyButton.innerText = 'Copy';
                 copyButton.classList.remove('copied');
               }, 2000);
             } catch (err) {
