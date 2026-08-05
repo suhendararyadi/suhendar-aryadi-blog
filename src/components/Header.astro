@@ -104,11 +104,11 @@ function isActive(href: string): boolean {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--glass-bg);
+    background: rgba(7, 10, 18, 0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--glass-border);
-    transition: background-color var(--transition-normal), border-color var(--transition-normal);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
   }
 
   .header-container {
@@ -116,6 +116,9 @@ function isActive(href: string): boolean {
     align-items: center;
     justify-content: space-between;
     height: 4.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
   }
 
   .logo {
@@ -123,9 +126,10 @@ function isActive(href: string): boolean {
     align-items: center;
     gap: 0.625rem;
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1.25rem;
-    color: var(--text-primary);
+    color: #ffffff;
+    letter-spacing: -0.02em;
   }
 
   .logo-icon {
@@ -135,9 +139,9 @@ function isActive(href: string): boolean {
     width: 2.25rem;
     height: 2.25rem;
     border-radius: var(--radius-md);
-    background: var(--accent-gradient);
-    color: #ffffff;
-    box-shadow: var(--shadow-sm);
+    background: linear-gradient(135deg, #84cc16 0%, #10b981 100%);
+    color: #080c14;
+    box-shadow: 0 2px 10px rgba(132, 204, 22, 0.3);
   }
 
   .nav-desktop {
@@ -153,22 +157,22 @@ function isActive(href: string): boolean {
   }
 
   .nav-link {
-    padding: 0.5rem 0.875rem;
-    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
     font-size: 0.9375rem;
     font-weight: 500;
-    color: var(--text-secondary);
-    transition: all var(--transition-fast);
+    color: #cbd5e1;
+    transition: all 0.2s ease;
   }
 
   .nav-link:hover {
-    color: var(--text-primary);
-    background-color: var(--border-subtle);
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.06);
   }
 
   .nav-link.active {
-    color: var(--accent-primary);
-    background-color: rgba(99, 102, 241, 0.1);
+    color: #84cc16;
+    background-color: rgba(132, 204, 22, 0.1);
     font-weight: 600;
   }
 
@@ -176,6 +180,22 @@ function isActive(href: string): boolean {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+  }
+
+  .header-auth-btn {
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.25rem !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .header-auth-btn:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(132, 204, 22, 0.5) !important;
+    transform: translateY(-1px);
   }
 
   .mobile-toggle {
