@@ -130,26 +130,14 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
             </a>
           )}
           <button id="open-edit-profile-btn" class="btn btn-secondary btn-sm" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
             <span>Edit Profil</span>
           </button>
           <a href="/belajar/sql/leaderboard" class="btn btn-outline btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-              <path d="M4 22h16"></path>
-              <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
-              <path d="M14 14.66V17c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.34"></path>
-              <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
-            </svg>
             <span>Papan Peringkat</span>
           </a>
           {(completedCount >= totalLessonsCount || isTeacherOrAdmin) && (
             <a href="/sertifikat/sql" class="btn btn-outline btn-sm">
-              <span>🎓 Sertifikat</span>
+              <span>Sertifikat Kelulusan</span>
             </a>
           )}
           <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">Keluar</button>
