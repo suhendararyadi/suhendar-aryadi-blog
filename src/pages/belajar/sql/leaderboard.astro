@@ -7,6 +7,10 @@ import { query } from '../../../lib/db';
 const sessionId = Astro.cookies.get('session_id')?.value;
 const currentUser = await getSessionUser(sessionId);
 
+if (!currentUser) {
+  return Astro.redirect('/auth/login?redirect=/belajar/sql/leaderboard');
+}
+
 const totalLessonsCount = seedLessons.length || 40;
 
 interface LeaderboardUser {

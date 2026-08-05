@@ -12,6 +12,7 @@ if (!user) {
 }
 
 let completedModules: any[] = [];
+let topLeaderboard: any[] = [];
 let totalLessonsCount = seedLessons.length;
 
 try {
@@ -31,6 +32,21 @@ try {
     [user.id]
   );
   completedModules = progressRes.rows;
+
+  const lbRes = await query(
+    `SELECT u.id, u.name, u.role,
+            COUNT(DISTINCT up.lesson_id) as completed_count
+     FROM users u
+     LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+     GROUP BY u.id, u.name, u.role
+     ORDER BY completed_count DESC, u.id ASC
+     LIMIT 5`
+  );
+  topLeaderboard = lbRes.rows.map((r) => {
+    const count = parseInt(r.completed_count || '0', 10);
+    const pct = totalLessonsCount > 0 ? Math.round((count / totalLessonsCount) * 100) : 0;
+    return { ...r, count, pct };
+  });
 } catch (err) {
   console.warn('Could not fetch dashboard progress from database:', err);
 }
@@ -101,6 +117,17 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
           <p class="profile-email">{user.email}</p>
         </div>
         <div class="profile-actions">
+          <a href="/belajar/sql/leaderboard" class="btn btn-outline btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+              <path d="M4 22h16"></path>
+              <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+              <path d="M14 14.66V17c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.34"></path>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
+            </svg>
+            <span>Papan Peringkat</span>
+          </a>
           <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">Keluar</button>
         </div>
       </div>
