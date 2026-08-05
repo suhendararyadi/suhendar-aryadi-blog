@@ -160,35 +160,40 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
             </span>
           </div>
 
-          <div class="btn-group">
-            <button id="reset-btn" class="btn btn-outline btn-sm" type="button" title="Kembalikan kode ke instruksi awal">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="1 4 1 10 7 10"></polyline>
-                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-              </svg>
-              Reset Kode
-            </button>
-            <button id="hint-btn" class="btn btn-secondary btn-sm" type="button" title="Tampilkan petunjuk kunci">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-              </svg>
-              Hint
-            </button>
-            <button id="run-btn" class="btn btn-secondary btn-sm" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-              Run Query
-            </button>
-            <button id="submit-btn" class="btn btn-primary btn-sm" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-              Submit Answer
-            </button>
+          <div class="editor-actions">
+            <div class="utility-btns">
+              <button id="reset-btn" class="btn btn-outline btn-sm" type="button" title="Kembalikan kode ke instruksi awal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+                <span>Reset</span>
+              </button>
+              <button id="hint-btn" class="btn btn-secondary btn-sm" type="button" title="Tampilkan petunjuk kunci">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>Hint</span>
+              </button>
+            </div>
+
+            <div class="primary-btns">
+              <button id="run-btn" class="btn btn-secondary btn-sm" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Run Query</span>
+              </button>
+              <button id="submit-btn" class="btn btn-primary btn-sm" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                <span>Submit Answer</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -685,6 +690,8 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .editor-title {
@@ -695,14 +702,27 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     color: var(--text-primary);
   }
 
-  .btn-group {
+  .editor-actions {
     display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .utility-btns, .primary-btns {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
 
   .btn-sm {
-    padding: 0.4rem 0.85rem;
+    padding: 0.45rem 0.85rem;
     font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .btn-sm span {
+    white-space: nowrap;
   }
 
   .editor-container {
@@ -830,14 +850,28 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       padding: 1rem;
     }
 
-    .btn-group {
+    .editor-actions {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 0.5rem;
+    }
+
+    .utility-btns {
       display: grid;
       grid-template-columns: 1fr 1fr;
       width: 100%;
       gap: 0.5rem;
     }
 
-    .btn-group #submit-btn {
+    .primary-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      gap: 0.5rem;
+    }
+
+    .primary-btns #submit-btn {
       grid-column: span 2;
     }
 
