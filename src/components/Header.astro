@@ -15,10 +15,9 @@ try {
 const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin' || (user?.email && user.email.toLowerCase().includes('suhendar'));
 
 const navItems = [
-  { href: '/', label: 'Beranda' },
   { href: '/belajar', label: 'Pembelajaran' },
   { href: '/materi', label: 'Materi RPL' },
-  { href: '/blog', label: 'Blog & Tutorial' },
+  { href: '/blog', label: 'Artikel & Tutorial' },
   { href: '/portofolio', label: 'Portofolio' },
   { href: '/tentang', label: 'Tentang Guru' },
 ];
