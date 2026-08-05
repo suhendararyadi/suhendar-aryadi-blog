@@ -1,0 +1,603 @@
+---
+import MainLayout from '../../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../../lib/auth';
+import { query } from '../../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect('/auth/login?redirect=/belajar/informatika/bk/lkpd');
+}
+
+let existingSubmission: any = null;
+try {
+  const res = await query(
+    `SELECT * FROM lkpd_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+  if (res.rows && res.rows.length > 0) {
+    existingSubmission = res.rows[0];
+  }
+} catch (err) {
+  console.warn('Error fetching student submission:', err);
+}
+
+const isGraded = existingSubmission && existingSubmission.score !== null;
+---
+
+<MainLayout
+  title="LKPD Digital: Berpikir Komputasional | Informatika SMK"
+  description="Lembar Kerja Peserta Didik (LKPD) Interaktif Berpikir Komputasional Berbasis 4 Pilar untuk Siswa SMK RPL."
+>
+  <div class="lkpd-page-container">
+    <!-- Top Nav Controls (Hidden on print) -->
+    <div class="page-top-nav no-print">
+      <a href="/belajar/informatika/bk" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Elemen 1 BK
+      </a>
+      <div class="top-nav-actions">
+        <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
+          🖨️ Cetak / Unduh PDF
+        </button>
+        <span class="badge badge-purple">LKPD DIGITAL VOKASI</span>
+      </div>
+    </div>
+
+    <!-- Teacher Evaluation Banner (If Graded) -->
+    {isGraded && (
+      <div class="grade-banner glass-card no-print">
+        <div class="grade-badge-box">
+          <span class="grade-label">NILAI AKHIR LKPD</span>
+          <span class="grade-score">{existingSubmission.score} / 100</span>
+        </div>
+        <div class="grade-feedback-box">
+          <strong>💬 Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
+          <p>{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan analisis 4 pilar berpikir komputasional tim kalian.'}</p>
+        </div>
+      </div>
+    )}
+
+    <!-- LKPD Document Body -->
+    <div class="lkpd-document-paper" id="lkpd-document">
+      <div class="doc-header">
+        <div class="header-logo-wrap">
+          <div class="doc-badge">SMK RPL</div>
+          <div>
+            <h1 class="doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL</h1>
+            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 1: Berpikir Komputasional (BK)</p>
+          </div>
+        </div>
+        <div class="doc-meta-right">
+          <span>Pengampu: <strong>Suhendar Aryadi, S.Pd.,Gr.</strong></span>
+          <span>Siswa Login: <strong>{user.name}</strong></span>
+        </div>
+      </div>
+
+      <form id="lkpd-form">
+        <!-- Part 1: Team & Class Identity -->
+        <section class="doc-section">
+          <h2 class="section-title">1. IDENTITAS TIM &amp; STUDI KASUS</h2>
+          <div class="identity-grid">
+            <div class="form-group">
+              <label for="team-name">Nama Kelompok / Tim:</label>
+              <input type="text" id="team-name" class="doc-input" placeholder="Misal: Tim Cypher RPL 1" value={existingSubmission?.team_name || ''} required />
+            </div>
+            <div class="form-group">
+              <label for="class-identity">Kelas &amp; Rombel:</label>
+              <input type="text" class="doc-input" value={user.class_name || 'X RPL'} readonly />
+            </div>
+          </div>
+
+          <div class="form-group margin-top">
+            <label for="case-study-select">Pilih Studi Kasus Sistem Perangkat Lunak:</label>
+            <select id="case-study-select" class="doc-select">
+              <option value="kiosk" selected={existingSubmission?.case_study_id === 'kiosk'}>📱 Studi Kasus A: Kiosk Self-Service Restoran (FoodExpress)</option>
+              <option value="ekantin" selected={existingSubmission?.case_study_id === 'ekantin'}>🛍️ Studi Kasus B: Marketplace E-Kantin Sekolah (E-Kantin RPL)</option>
+              <option value="klinik" selected={existingSubmission?.case_study_id === 'klinik'}>🏥 Studi Kasus C: Sistem Antrean Klinik Digital (SmartKlinik)</option>
+              <option value="custom" selected={existingSubmission?.case_study_id === 'custom'}>🚀 Studi Kasus D: Proyek Perangkat Lunak Mandiri Tim</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Part 2: 4 Pillars Worksheet -->
+        <section class="doc-section">
+          <h2 class="section-title">2. AKTIVITAS ANALISIS 4 PILAR BERPIKIR KOMPUTASIONAL</h2>
+
+          <!-- 2.1 Dekomposisi -->
+          <div class="pillar-box">
+            <h3 class="pillar-heading">🧩 2.1 Dekomposisi (Decomposition)</h3>
+            <p class="pillar-instruction">Pecahlah sistem pilihan kalian menjadi 4 modul/sub-sistem kecil beserta fungsi utamanya:</p>
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">No</th>
+                  <th style="width: 240px;">Nama Modul / Sub-Sistem</th>
+                  <th>Fungsi Utama &amp; Fitur di Dalam Modul</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center">1</td>
+                  <td><input type="text" id="deco-mod-1" class="doc-table-input" placeholder="Misal: Modul Katalog Menu" /></td>
+                  <td><input type="text" id="deco-func-1" class="doc-table-input" placeholder="Menampilkan daftar makanan, foto, dan filter harga" /></td>
+                </tr>
+                <tr>
+                  <td class="text-center">2</td>
+                  <td><input type="text" id="deco-mod-2" class="doc-table-input" placeholder="Misal: Modul Antrean &amp; Dapur" /></td>
+                  <td><input type="text" id="deco-func-2" class="doc-table-input" placeholder="Mengatur nomor urut pesanan sesuai kedatangan (Queue)" /></td>
+                </tr>
+                <tr>
+                  <td class="text-center">3</td>
+                  <td><input type="text" id="deco-mod-3" class="doc-table-input" placeholder="Misal: Modul Keranjang &amp; Checkout" /></td>
+                  <td><input type="text" id="deco-func-3" class="doc-table-input" placeholder="Merekam daftar belanja dan menghitung total harga" /></td>
+                </tr>
+                <tr>
+                  <td class="text-center">4</td>
+                  <td><input type="text" id="deco-mod-4" class="doc-table-input" placeholder="Misal: Modul Pembayaran Digital" /></td>
+                  <td><input type="text" id="deco-func-4" class="doc-table-input" placeholder="Integrasi saldo/QRIS dan mencetak struk transaksi" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 2.2 Pengenalan Pola -->
+          <div class="pillar-box margin-top">
+            <h3 class="pillar-heading">🔍 2.2 Pengenalan Pola (Pattern Recognition)</h3>
+            <p class="pillar-instruction">Identifikasi pola kesamaan atau alur kerja berulang yang ada di dalam sistem:</p>
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">No</th>
+                  <th style="width: 280px;">Pola / Kemiripan Masalah Ditemukan</th>
+                  <th>Rencana Penerapan Solusi Berulang dalam Sistem</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center">1</td>
+                  <td><input type="text" id="patt-name-1" class="doc-table-input" placeholder="Alur Autentikasi / Login Siswa &amp; Guru" /></td>
+                  <td><input type="text" id="patt-sol-1" class="doc-table-input" placeholder="Membuat 1 fungsi terpusat validasi password &amp; token session" /></td>
+                </tr>
+                <tr>
+                  <td class="text-center">2</td>
+                  <td><input type="text" id="patt-name-2" class="doc-table-input" placeholder="Fitur Pencarian Data Menu &amp; Pasien" /></td>
+                  <td><input type="text" id="patt-sol-2" class="doc-table-input" placeholder="Memakai algoritma searching terstandar untuk pencarian kata kunci" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 2.3 Abstraksi -->
+          <div class="pillar-box margin-top">
+            <h3 class="pillar-heading">💡 2.3 Abstraksi (Abstraction)</h3>
+            <div class="form-group">
+              <label for="abs-kept"><strong>Data / Atribut Utama yang WAJIB Disimpan dalam Database:</strong></label>
+              <textarea id="abs-kept" class="doc-textarea" rows="2" placeholder="ID Transaksi, Nama Pelanggan, Daftar Menu Dibelanja, Total Bayar, Waktu Transaksi"></textarea>
+            </div>
+            <div class="form-group margin-top">
+              <label for="abs-ignored"><strong>Detail Informasi yang DIABSTRAKSIKAN (Diabaikan):</strong></label>
+              <textarea id="abs-ignored" class="doc-textarea" rows="2" placeholder="Warna baju pembeli, jenis sepatu, suasana hati pelanggan saat memesan"></textarea>
+            </div>
+          </div>
+
+          <!-- 2.4 Perancangan Algoritma -->
+          <div class="pillar-box margin-top">
+            <h3 class="pillar-heading">⚙️ 2.4 Perancangan Algoritma &amp; Struktur Data</h3>
+
+            <div class="grid-2col">
+              <div class="form-group">
+                <label for="alg-search">Algoritma Searching Yang Dipilih:</label>
+                <select id="alg-search" class="doc-select">
+                  <option value="Linear Search">Linear Search (Pencarian Berurutan)</option>
+                  <option value="Binary Search">Binary Search (Pencarian Bagi Dua - Data Terurut)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="alg-sort">Algoritma Sorting Yang Dipilih:</label>
+                <select id="alg-sort" class="doc-select">
+                  <option value="Bubble Sort">Bubble Sort (Pengurutan Gelembung)</option>
+                  <option value="Selection Sort">Selection Sort (Pengurutan Minimum)</option>
+                  <option value="Quick Sort">Quick Sort (Pengurutan Cepat)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2col margin-top">
+              <div class="form-group">
+                <label for="alg-queue-use">Penerapan Queue (FIFO - First In First Out):</label>
+                <input type="text" id="alg-queue-use" class="doc-input" placeholder="Manajemen Antrean Pesanan Dapur / Nomor Berobat Pasien" />
+              </div>
+              <div class="form-group">
+                <label for="alg-stack-use">Penerapan Stack (LIFO - Last In First Out):</label>
+                <input type="text" id="alg-stack-use" class="doc-input" placeholder="Fitur Undo / Redo Pembatalan Transaksi Kasir" />
+              </div>
+            </div>
+
+            <div class="form-group margin-top">
+              <label for="alg-pseudocode"><strong>Pseudocode / Notasi Algoritma Alur Utama Sistem:</strong></label>
+              <textarea id="alg-pseudocode" class="doc-textarea font-mono" rows="6" placeholder="ALGORITMA Proses_Pemesanan_Kantin
+START
+  INPUT id_menu, jumlah
+  CEK stok_menu
+  IF stok_menu >= jumlah THEN
+     Hitung total_bayar
+     Potong saldo_siswa
+     MASUKKAN antrean_dapur (QUEUE)
+  ELSE
+     TAMPILKAN 'Stok Tidak Cukup'
+  ENDIF
+END"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Submit Button (Hidden on print) -->
+        <div class="doc-actions no-print">
+          <button id="submit-lkpd-btn" class="btn btn-primary btn-lg" type="submit">
+            🚀 Kirim Tugas LKPD ke LMS Guru
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline define:vars={{ existingSubmission }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const printBtn = document.getElementById('print-lkpd-btn');
+    const form = document.getElementById('lkpd-form');
+
+    // Populate existing fields if available
+    if (existingSubmission) {
+      try {
+        const deco = JSON.parse(existingSubmission.decomposition_json || '[]');
+        if (deco[0]) { document.getElementById('deco-mod-1').value = deco[0].mod || ''; document.getElementById('deco-func-1').value = deco[0].func || ''; }
+        if (deco[1]) { document.getElementById('deco-mod-2').value = deco[0].mod || ''; document.getElementById('deco-func-2').value = deco[1].func || ''; }
+        if (deco[2]) { document.getElementById('deco-mod-3').value = deco[0].mod || ''; document.getElementById('deco-func-3').value = deco[2].func || ''; }
+        if (deco[3]) { document.getElementById('deco-mod-4').value = deco[0].mod || ''; document.getElementById('deco-func-4').value = deco[3].func || ''; }
+
+        const patt = JSON.parse(existingSubmission.pattern_json || '[]');
+        if (patt[0]) { document.getElementById('patt-name-1').value = patt[0].name || ''; document.getElementById('patt-sol-1').value = patt[0].sol || ''; }
+        if (patt[1]) { document.getElementById('patt-name-2').value = patt[1].name || ''; document.getElementById('patt-sol-2').value = patt[1].sol || ''; }
+
+        const abs = JSON.parse(existingSubmission.abstraction_json || '{}');
+        document.getElementById('abs-kept').value = abs.kept || '';
+        document.getElementById('abs-ignored').value = abs.ignored || '';
+
+        const alg = JSON.parse(existingSubmission.algorithm_json || '{}');
+        document.getElementById('alg-search').value = alg.search || 'Linear Search';
+        document.getElementById('alg-sort').value = alg.sort || 'Bubble Sort';
+        document.getElementById('alg-queue-use').value = alg.queue || '';
+        document.getElementById('alg-stack-use').value = alg.stack || '';
+        document.getElementById('alg-pseudocode').value = alg.pseudocode || '';
+      } catch (err) {
+        console.warn('Error parsing submission data:', err);
+      }
+    }
+
+    printBtn?.addEventListener('click', () => {
+      window.print();
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const caseStudyId = document.getElementById('case-study-select').value;
+      const teamName = document.getElementById('team-name').value;
+
+      const decomposition = [
+        { mod: document.getElementById('deco-mod-1').value, func: document.getElementById('deco-func-1').value },
+        { mod: document.getElementById('deco-mod-2').value, func: document.getElementById('deco-func-2').value },
+        { mod: document.getElementById('deco-mod-3').value, func: document.getElementById('deco-func-3').value },
+        { mod: document.getElementById('deco-mod-4').value, func: document.getElementById('deco-func-4').value }
+      ];
+
+      const pattern = [
+        { name: document.getElementById('patt-name-1').value, sol: document.getElementById('patt-sol-1').value },
+        { name: document.getElementById('patt-name-2').value, sol: document.getElementById('patt-sol-2').value }
+      ];
+
+      const abstraction = {
+        kept: document.getElementById('abs-kept').value,
+        ignored: document.getElementById('abs-ignored').value
+      };
+
+      const algorithm = {
+        search: document.getElementById('alg-search').value,
+        sort: document.getElementById('alg-sort').value,
+        queue: document.getElementById('alg-queue-use').value,
+        stack: document.getElementById('alg-stack-use').value,
+        pseudocode: document.getElementById('alg-pseudocode').value
+      };
+
+      const submitBtn = document.getElementById('submit-lkpd-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Mengirim LKPD...';
+
+      try {
+        const res = await fetch('/api/lkpd/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caseStudyId,
+            teamName,
+            teamMembers: [],
+            decomposition,
+            pattern,
+            abstraction,
+            algorithm
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('✅ ' + data.message);
+          window.location.reload();
+        } else {
+          alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan.'));
+        }
+      } catch (err) {
+        alert('❌ Error koneksi ke server.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🚀 Kirim Tugas LKPD ke LMS Guru';
+      }
+    });
+  });
+</script>
+
+<style>
+  .lkpd-page-container {
+    max-width: 1040px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Grade Banner */
+  .grade-banner {
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.12) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-xl);
+  }
+
+  .grade-badge-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #10b981;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-lg);
+    min-width: 140px;
+  }
+
+  .grade-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .grade-score {
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .grade-feedback-box {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
+
+  /* Paper Document */
+  .lkpd-document-paper {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 2.5rem;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px double #0891b2;
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+
+  .header-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .doc-badge {
+    background: linear-gradient(135deg, #0891b2, #4f46e5);
+    color: #ffffff;
+    font-weight: 800;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .doc-title {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+  }
+
+  .doc-sub {
+    font-size: 0.85rem;
+    color: #0891b2;
+    font-weight: 600;
+  }
+
+  .doc-meta-right {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    font-size: 0.825rem;
+    color: #475569;
+  }
+
+  .doc-section {
+    margin-bottom: 2.25rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0891b2;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .identity-grid, .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .identity-grid, .grid-2col {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .doc-input, .doc-select, .doc-textarea, .doc-table-input {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+  }
+
+  .doc-input:focus, .doc-select:focus, .doc-textarea:focus, .doc-table-input:focus {
+    outline: none;
+    border-color: #0891b2;
+    background: #ffffff;
+  }
+
+  .margin-top {
+    margin-top: 1rem;
+  }
+
+  .pillar-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+  }
+
+  .pillar-heading {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+  }
+
+  .pillar-instruction {
+    font-size: 0.825rem;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .doc-table th {
+    background: #e2e8f0;
+    color: #1e293b;
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.775rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .doc-table td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid #cbd5e1;
+  }
+
+  .doc-table-input {
+    width: 100%;
+    background: #ffffff;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .doc-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  /* Print Stylesheet */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: #ffffff !important;
+    }
+    .lkpd-page-container {
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .lkpd-document-paper {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 1rem !important;
+    }
+  }
+</style>

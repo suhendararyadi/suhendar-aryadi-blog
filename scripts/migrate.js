@@ -74,6 +74,22 @@ async function migrate() {
       completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, lesson_id)
     );
+
+    CREATE TABLE IF NOT EXISTS lkpd_submissions (
+      id SERIAL PRIMARY KEY,
+      user_id INT REFERENCES users(id) ON DELETE CASCADE,
+      case_study_id VARCHAR(50) NOT NULL,
+      team_name VARCHAR(150) DEFAULT '',
+      team_members TEXT NOT NULL,
+      decomposition_json TEXT NOT NULL,
+      pattern_json TEXT NOT NULL,
+      abstraction_json TEXT NOT NULL,
+      algorithm_json TEXT NOT NULL,
+      score INT DEFAULT NULL,
+      teacher_feedback TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   console.log('Seeding sql_lessons table on Neon Postgres...');

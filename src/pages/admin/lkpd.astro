@@ -1,0 +1,345 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../lib/auth';
+import { query } from '../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin' || (user?.email && user.email.toLowerCase().includes('suhendar'));
+
+if (!user || !isTeacherOrAdmin) {
+  return Astro.redirect('/dashboard');
+}
+
+let submissions: any[] = [];
+try {
+  const res = await query(
+    `SELECT s.*, u.name as student_name, u.email as student_email, u.class_name
+     FROM lkpd_submissions s
+     JOIN users u ON s.user_id = u.id
+     ORDER BY s.updated_at DESC`
+  );
+  if (res.rows) {
+    submissions = res.rows;
+  }
+} catch (err) {
+  console.warn('Error fetching LKPD submissions:', err);
+}
+---
+
+<MainLayout
+  title="Portal Penilaian LKPD Digital | Suhendar Aryadi, S.Pd.,Gr."
+  description="Portal evaluasi dan penilaian Lembar Kerja Peserta Didik (LKPD) Berpikir Komputasional oleh Guru."
+>
+  <div class="admin-lkpd-container">
+    <!-- Header Banner -->
+    <div class="admin-header glass-card">
+      <div class="header-main">
+        <div>
+          <span class="badge badge-purple">PORTAL GURU &amp; ADMIN</span>
+          <h1 class="admin-title">Penilaian LKPD Digital Informatika</h1>
+          <p class="admin-sub">
+            Evaluasi dan berikan umpan balik tugas Lembar Kerja Peserta Didik (LKPD) Berpikir Komputasional per rombel kelas.
+          </p>
+        </div>
+        <div class="header-actions">
+          <a href="/admin/dashboard" class="btn btn-outline btn-sm">
+            &larr; Dashboard Rekap Nilai
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions Block -->
+    <div class="section-block glass-card">
+      <div class="block-header">
+        <div>
+          <h2 class="block-title">Daftar Kiriman LKPD Siswa ({submissions.length})</h2>
+          <p class="block-sub">Pilih tugas siswa untuk memberikan skor nilai dan umpan balik guru</p>
+        </div>
+      </div>
+
+      {submissions.length === 0 ? (
+        <div class="empty-state">
+          <p>Belum ada siswa yang mengirimkan LKPD Digital.</p>
+        </div>
+      ) : (
+        <div class="submissions-list">
+          {submissions.map((item) => (
+            <div class="submission-card glass-card">
+              <div class="sub-card-header">
+                <div>
+                  <span class="badge badge-cyan">{item.class_name || 'X RPL'}</span>
+                  <h3 class="sub-student-name">{item.student_name} ({item.student_email})</h3>
+                  <span class="sub-team-name">Tim: <strong>{item.team_name || 'Mandiri'}</strong> | Studi Kasus: <strong>{item.case_study_id.toUpperCase()}</strong></span>
+                </div>
+                <div class="sub-score-box">
+                  {item.score !== null ? (
+                    <span class="badge badge-green">NILAI: {item.score} / 100</span>
+                  ) : (
+                    <span class="badge badge-amber">BELUM DINILAI</span>
+                  )}
+                </div>
+              </div>
+
+              <!-- Content Summary -->
+              <div class="sub-content-preview">
+                <div class="preview-item">
+                  <strong>🧩 Dekomposisi &amp; Modul:</strong>
+                  <p>{item.decomposition_json.slice(0, 160)}...</p>
+                </div>
+                <div class="preview-item">
+                  <strong>⚙️ Algoritma &amp; Pseudocode:</strong>
+                  <pre class="font-mono">{item.algorithm_json.slice(0, 160)}...</pre>
+                </div>
+              </div>
+
+              <!-- Grading Form -->
+              <div class="grading-form-wrap">
+                <form class="grade-form" data-id={item.id}>
+                  <div class="grade-inputs-row">
+                    <div class="input-group">
+                      <label>Skor Nilai (0 - 100):</label>
+                      <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
+                    </div>
+                    <div class="input-group flex-1">
+                      <label>Umpan Balik / Catatan Guru:</label>
+                      <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Dekomposisi sangat tepat, perhatikan urutan Pseudocode." value={item.teacher_feedback || ''} />
+                    </div>
+                    <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
+                      💾 Simpan Nilai
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const forms = document.querySelectorAll('.grade-form');
+
+    forms.forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submissionId = form.getAttribute('data-id');
+        const score = form.querySelector('[name="score"]').value;
+        const teacherFeedback = form.querySelector('[name="feedback"]').value;
+        const btn = form.querySelector('.save-grade-btn');
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Menyimpan...';
+
+        try {
+          const res = await fetch('/api/admin/grade-lkpd', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submissionId, score, teacherFeedback })
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            alert('✅ ' + data.message);
+            window.location.reload();
+          } else {
+            alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan.'));
+          }
+        } catch (err) {
+          alert('❌ Error koneksi ke server.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan Nilai';
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .admin-lkpd-container {
+    max-width: 1100px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .admin-header {
+    padding: 2rem;
+  }
+
+  .header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .admin-sub {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .section-block {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .block-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .block-sub {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .submissions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .submission-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sub-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .sub-student-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-top: 0.25rem;
+  }
+
+  .sub-team-name {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.15rem;
+  }
+
+  .sub-content-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.825rem;
+  }
+
+  @media (max-width: 640px) {
+    .sub-content-preview {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .preview-item strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .preview-item p, .preview-item pre {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+  }
+
+  .grading-form-wrap {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+  }
+
+  .grade-inputs-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .input-group label {
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .flex-1 {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .grade-score-input {
+    width: 110px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .grade-feedback-input {
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .badge-green {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-amber {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+</style>
