@@ -1,0 +1,568 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+const searchOperators = [
+  {
+    op: 'filetype:pdf / filetype:docx',
+    function: 'Menyaring hasil pencarian khusus untuk tipe berkas tertentu.',
+    example: 'modul ajar rpl filetype:pdf',
+    desc: 'Hanya menampilkan berkas PDF berisi modul ajar RPL.'
+  },
+  {
+    op: 'site:domain.com / site:.go.id',
+    function: 'Membatasi pencarian hanya di dalam situs atau domain pemerintah/pendidikan.',
+    example: 'kurikulum merdeka rpl site:kemdikbud.go.id',
+    desc: 'Hanya mencari informasi resmi di website Kemendikbud.'
+  },
+  {
+    op: '"frasa kunci"',
+    function: 'Mencari kalimat atau frasa persis secara berurutan tanpa dipisah.',
+    example: '"Rekayasa Perangkat Lunak SMK"',
+    desc: 'Hanya hasil yang memiliki 4 kata tersebut secara persis.'
+  },
+  {
+    op: '-kata',
+    function: 'Mengecualikan kata tertentu yang tidak diinginkan dari hasil pencarian.',
+    example: 'tutorial javascript -jquery',
+    desc: 'Mencari tutorial JavaScript modern tanpa membahas jQuery.'
+  }
+];
+---
+
+<MainLayout
+  title="Elemen 2: Teknologi Informasi & Komunikasi (TIK) | Informatika SMK"
+  description="Integrasi Aplikasi Perkantoran (Mail Merge), Embedding Objects, & Simulator Advanced Search Operators."
+>
+  <div class="tik-page-container">
+    <!-- Top Nav -->
+    <div class="page-top-nav">
+      <a href="/belajar/informatika" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Katalog Informatika
+      </a>
+      <div class="top-nav-right">
+        <span class="badge badge-cyan">ELEMEN 2 — TIK</span>
+      </div>
+    </div>
+
+    <!-- Intro Banner -->
+    <div class="intro-card glass-card">
+      <div class="hero-badge">
+        <span class="badge badge-purple">INTEGRASI DIGITAL &amp; SEARCH EXPERT</span>
+      </div>
+      <h1 class="intro-title">Teknologi Informasi &amp; Komunikasi (TIK)</h1>
+      <p class="intro-desc">
+        Naik level dari sekadar pengguna biasa! Pelajari integrasi data tingkat lanjut antar-aplikasi perkantoran (Mail Merge &amp; Object Embedding) serta kuasai teknik pencarian informasi digital tingkat lanjut (*Advanced Search Operators*).
+      </p>
+    </div>
+
+    <!-- Topik 1: Integrasi Aplikasi Perkantoran -->
+    <div class="section-title">
+      <h2>1. Integrasi Aplikasi Perkantoran (Mail Merge &amp; OLE)</h2>
+      <p>Teknik menghubungkan data dari Spreadsheet (Excel/CSV) ke Dokumen Pengolah Kata (Word) atau Presentasi:</p>
+    </div>
+
+    <div class="mail-merge-sim-card glass-card">
+      <div class="sim-header-row">
+        <div>
+          <h3>🛠️ Simulator Interaktif: Mail Merge &amp; Certificate Generator</h3>
+          <p class="sim-sub">Uji coba bagaimana data penerima dari tabel otomatis diintegrasikan ke dalam template sertifikat/surat secara presisi.</p>
+        </div>
+      </div>
+
+      <div class="merge-grid">
+        <div class="merge-input-pane">
+          <label for="merge-template-select"><strong>1. Pilih Template Dokumen:</strong></label>
+          <select id="merge-template-select" class="sim-select">
+            <option value="cert">🎓 Sertifikat Kelulusan Praktikum RPL</option>
+            <option value="surat">✉️ Surat Undangan Orang Tua / Wali Siswa</option>
+            <option value="raport">📊 Slip Nilai Evaluasi Informatika</option>
+          </select>
+
+          <label for="merge-data-input" class="margin-top-sm"><strong>2. Data Penerima (CSV Data Table):</strong></label>
+          <textarea id="merge-data-input" class="sim-textarea font-mono" rows="5">nama,kelas,nilai_akhir,status
+Budi Santoso,X RPL 1,92,Lulus Tuntas
+Siti Nurhaliza,X RPL 2,88,Lulus Tuntas
+Rizky Pratama,X RPL 1,78,Lulus Tuntas
+Dewi Anggraini,X RPL 3,95,Lulus Tuntas</textarea>
+
+          <button id="run-merge-btn" class="btn btn-primary btn-sm margin-top-sm" type="button">
+            ⚡ Jalankan Integrasi Mail Merge
+          </button>
+        </div>
+
+        <div class="merge-preview-pane">
+          <div class="preview-header">
+            <span>📄 Hasil Live Preview Render (Penerima 1 dari 4)</span>
+            <div class="nav-controls">
+              <button id="prev-item-btn" class="btn btn-secondary btn-xs" type="button">&larr;</button>
+              <span id="current-page-num" class="page-num-badge">1 / 4</span>
+              <button id="next-item-btn" class="btn btn-secondary btn-xs" type="button">&rarr;</button>
+            </div>
+          </div>
+          <div id="rendered-doc-paper" class="rendered-paper">
+            <!-- Rendered Output by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topik 2: Advanced Search Operators -->
+    <div class="section-title margin-top-lg">
+      <h2>2. Advanced Search Operators (Pencarian Digital Efektif)</h2>
+      <p>Gunakan operator pencarian terstruktur untuk menemukan berkas dan data tanpa gangguan spam/hoax:</p>
+    </div>
+
+    <div class="operators-grid">
+      {searchOperators.map(s => (
+        <div class="op-card glass-card">
+          <code class="op-code">{s.op}</code>
+          <h4 class="op-func">{s.function}</h4>
+          <div class="op-example-box">
+            <span>Contoh Query:</span>
+            <code class="op-example-text">{s.example}</code>
+            <p>{s.desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Interactive Search Query Builder Simulator -->
+    <div class="search-sim-card glass-card">
+      <h3>🔍 Interactive Search Query Builder Simulator</h3>
+      <p>Rancang query pencarian presisi menggunakan tombol penyaring di bawah ini:</p>
+
+      <div class="builder-box">
+        <div class="builder-inputs-row">
+          <input type="text" id="sq-keyword" class="sim-input" placeholder="Kata Kunci (misal: Modul Pembelajaran SQL)" />
+          <input type="text" id="sq-domain" class="sim-input" placeholder="Situs spesifik (misal: kemdikbud.go.id)" />
+          <select id="sq-filetype" class="sim-select">
+            <option value="">Semua Format File</option>
+            <option value="pdf">PDF (.pdf)</option>
+            <option value="docx">Word (.docx)</option>
+            <option value="pptx">PowerPoint (.pptx)</option>
+          </select>
+        </div>
+
+        <div class="builder-result-box">
+          <span>Hasil Query Google / Engine:</span>
+          <code id="builder-output-code" class="result-code">modul pembelajaran SQL</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const templateSelect = document.getElementById('merge-template-select');
+    const dataInput = document.getElementById('merge-data-input');
+    const runBtn = document.getElementById('run-merge-btn');
+    const prevBtn = document.getElementById('prev-item-btn');
+    const nextBtn = document.getElementById('next-item-btn');
+    const pageNumSpan = document.getElementById('current-page-num');
+    const renderedPaper = document.getElementById('rendered-doc-paper');
+
+    let parsedData = [];
+    let currentIndex = 0;
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) return [];
+      const headers = lines[0].split(',').map(h => h.trim());
+      const rows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        let obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = values[idx] || '';
+        });
+        rows.push(obj);
+      }
+      return rows;
+    }
+
+    function renderCurrentDoc() {
+      if (!parsedData || parsedData.length === 0) {
+        renderedPaper.innerHTML = '<p class="text-muted">Data CSV kosong atau format tidak sesuai.</p>';
+        return;
+      }
+
+      const item = parsedData[currentIndex];
+      const tpl = templateSelect.value;
+
+      pageNumSpan.textContent = `${currentIndex + 1} / ${parsedData.length}`;
+
+      if (tpl === 'cert') {
+        renderedPaper.innerHTML = `
+          <div class="preview-cert">
+            <div class="cert-border">
+              <span class="cert-small-title">SERTIFIKAT KELULUSAN PRAKTIKUM</span>
+              <h2 class="cert-student">${item.nama || 'Nama Siswa'}</h2>
+              <p class="cert-class">Kelas: <strong>${item.kelas || 'X RPL'}</strong></p>
+              <div class="cert-score-wrap">
+                <span>Nilai Evaluasi: <strong>${item.nilai_akhir || '0'}</strong></span>
+                <span class="badge-status">${item.status || 'Kompeten'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (tpl === 'surat') {
+        renderedPaper.innerHTML = `
+          <div class="preview-surat">
+            <h4>SURAT UNDANGAN DUKUNGAN BELAJAR SISWA</h4>
+            <p>Kepada Yth. Orang Tua / Wali dari <strong>${item.nama || 'Siswa'}</strong> (${item.kelas || 'X RPL'}),</p>
+            <p>Diberitahukan bahwa putra/putri Bapak/Ibu meraih nilai evaluasi pembelajaran sebesar <strong>${item.nilai_akhir || '0'}</strong> dengan predikat <strong>${item.status || 'Kompeten'}</strong>.</p>
+            <p class="sig">Guru Pengampu: Suhendar Aryadi, S.Pd.,Gr.</p>
+          </div>
+        `;
+      } else {
+        renderedPaper.innerHTML = `
+          <div class="preview-raport">
+            <h4>SLIP HASIL EVALUASI INFORMATIKA TIK</h4>
+            <hr />
+            <p><strong>Nama:</strong> ${item.nama}</p>
+            <p><strong>Rombel:</strong> ${item.kelas}</p>
+            <p><strong>Nilai Akhir:</strong> ${item.nilai_akhir}</p>
+            <p><strong>Status Ketercapaian:</strong> ${item.status}</p>
+          </div>
+        `;
+      }
+    }
+
+    runBtn?.addEventListener('click', () => {
+      parsedData = parseCSV(dataInput.value);
+      currentIndex = 0;
+      renderCurrentDoc();
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderCurrentDoc();
+      }
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      if (currentIndex < parsedData.length - 1) {
+        currentIndex++;
+        renderCurrentDoc();
+      }
+    });
+
+    // Query Builder Logic
+    const kwInput = document.getElementById('sq-keyword');
+    const domainInput = document.getElementById('sq-domain');
+    const filetypeSelect = document.getElementById('sq-filetype');
+    const outputCode = document.getElementById('builder-output-code');
+
+    function updateQueryOutput() {
+      let query = kwInput.value.trim() || 'modul pembelajaran SQL';
+      if (domainInput.value.trim()) {
+        query += ` site:${domainInput.value.trim()}`;
+      }
+      if (filetypeSelect.value) {
+        query += ` filetype:${filetypeSelect.value}`;
+      }
+      outputCode.textContent = query;
+    }
+
+    kwInput?.addEventListener('input', updateQueryOutput);
+    domainInput?.addEventListener('input', updateQueryOutput);
+    filetypeSelect?.addEventListener('change', updateQueryOutput);
+
+    // Initial render
+    parsedData = parseCSV(dataInput.value);
+    renderCurrentDoc();
+  });
+</script>
+
+<style>
+  .tik-page-container {
+    max-width: 1080px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .intro-card {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .intro-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .intro-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .section-title h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .section-title p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  .mail-merge-sim-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .sim-sub {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .merge-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 768px) {
+    .merge-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .merge-input-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sim-select, .sim-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .sim-textarea {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: #0f172a;
+    color: #38bdf8;
+  }
+
+  .margin-top-sm {
+    margin-top: 0.5rem;
+  }
+
+  .margin-top-lg {
+    margin-top: 1.5rem;
+  }
+
+  .merge-preview-pane {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .preview-header {
+    background: var(--bg-tertiary);
+    padding: 0.6rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .page-num-badge {
+    font-size: 0.75rem;
+    background: var(--bg-primary);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .rendered-paper {
+    padding: 1.5rem;
+    background: #ffffff;
+    color: #0f172a;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-cert {
+    border: 2px double #0891b2;
+    padding: 1.25rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .cert-small-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #0891b2;
+    letter-spacing: 0.08em;
+  }
+
+  .cert-student {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0.5rem 0;
+  }
+
+  .cert-class {
+    font-size: 0.85rem;
+    color: #475569;
+  }
+
+  .cert-score-wrap {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.85rem;
+  }
+
+  .badge-status {
+    background: #10b981;
+    color: #ffffff;
+    padding: 0.15rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .preview-surat, .preview-raport {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    width: 100%;
+  }
+
+  .sig {
+    margin-top: 1rem;
+    font-weight: 700;
+  }
+
+  /* Operators Grid */
+  .operators-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .op-card {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .op-code {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    width: fit-content;
+  }
+
+  .op-func {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .op-example-box {
+    background: var(--bg-secondary);
+    padding: 0.65rem;
+    border-radius: var(--radius-md);
+    font-size: 0.775rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .op-example-text {
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .search-sim-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .builder-inputs-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .builder-result-box {
+    margin-top: 1rem;
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .result-code {
+    color: #4ade80;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+</style>
