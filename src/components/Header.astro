@@ -1,7 +1,18 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import { getSessionUser } from '../lib/auth';
 
 const pathname = new URL(Astro.request.url).pathname;
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+let user: any = null;
+try {
+  user = await getSessionUser(sessionId);
+} catch (e) {
+  // Ignore fallback during build
+}
+
+const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin' || (user?.email && user.email.toLowerCase().includes('suhendar'));
 
 const navItems = [
   { href: '/', label: 'Beranda' },
@@ -11,6 +22,10 @@ const navItems = [
   { href: '/portofolio', label: 'Portofolio' },
   { href: '/tentang', label: 'Tentang Guru' },
 ];
+
+if (isTeacherOrAdmin) {
+  navItems.splice(2, 0, { href: '/admin/dashboard', label: 'Portal Guru 👑' });
+}
 
 function isActive(href: string): boolean {
   if (href === '/') {
@@ -45,6 +60,21 @@ function isActive(href: string): boolean {
 
     <div class="header-actions">
       <ThemeToggle />
+      {user ? (
+        isTeacherOrAdmin ? (
+          <a href="/admin/dashboard" class="btn btn-primary btn-sm header-auth-btn">
+            <span>Portal Guru 👑</span>
+          </a>
+        ) : (
+          <a href="/dashboard" class="btn btn-outline btn-sm header-auth-btn">
+            <span>Dashboard Saya</span>
+          </a>
+        )
+      ) : (
+        <a href="/auth/login" class="btn btn-primary btn-sm header-auth-btn">
+          <span>Masuk Akun</span>
+        </a>
+      )}
       <button id="mobile-menu-toggle" class="mobile-toggle" aria-label="Buka Menu Navigasi" aria-expanded="false">
         <svg class="hamburger-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="4" y1="12" x2="20" y2="12"></line>

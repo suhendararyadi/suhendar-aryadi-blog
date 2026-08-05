@@ -92,6 +92,8 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
   const percentage = path.total > 0 ? Math.round((completed / path.total) * 100) : 0;
   return { ...path, completed, percentage };
 });
+
+const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (user.email && user.email.toLowerCase().includes('suhendar'));
 ---
 
 <MainLayout 
@@ -122,7 +124,17 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
           <p class="profile-email">{user.email}</p>
         </div>
         <div class="profile-actions">
-          <button id="open-edit-profile-btn" class="btn btn-primary btn-sm" type="button">
+          {isTeacherOrAdmin && (
+            <a href="/admin/dashboard" class="btn btn-primary btn-sm btn-teacher-portal">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <span>Portal Guru 👑</span>
+            </a>
+          )}
+          <button id="open-edit-profile-btn" class="btn btn-secondary btn-sm" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -144,6 +156,21 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
         </div>
       </div>
     </div>
+
+    {isTeacherOrAdmin && (
+      <div class="teacher-access-banner glass-card">
+        <div class="teacher-banner-left">
+          <span class="badge badge-purple">PORTAL AKSES GURU & ADMIN 👑</span>
+          <h2 class="teacher-banner-title">Rekap Nilai Siswa & Analitik Kelas</h2>
+          <p class="teacher-banner-desc">
+            Anda terautentikasi sebagai <strong>Guru / Admin</strong> ({user.email}). Akses dashboard guru untuk memantau progres seluruh siswa, melihat analitik modul tersulit, dan mengekspor rekap nilai ke Excel (CSV).
+          </p>
+        </div>
+        <a href="/admin/dashboard" class="btn btn-primary btn-teacher-cta">
+          <span>Buka Portal Guru & Admin &rarr;</span>
+        </a>
+      </div>
+    )}
 
     <!-- Stats row -->
     <div class="stats-row">
@@ -986,5 +1013,53 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
     justify-content: flex-end;
     gap: 0.75rem;
     margin-top: 0.5rem;
+  }
+
+  /* Teacher Access Banner */
+  .teacher-access-banner {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.1);
+    flex-wrap: wrap;
+  }
+
+  .teacher-banner-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .teacher-banner-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .teacher-banner-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .btn-teacher-portal {
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    border: none;
+    color: #ffffff;
+  }
+
+  .btn-teacher-cta {
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    white-space: nowrap;
   }
 </style>
