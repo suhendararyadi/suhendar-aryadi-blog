@@ -1,0 +1,283 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+const sampleSnippets = [
+  {
+    title: '1. Dasar Variabel & Input Output',
+    code: `nama = "Siswa RPL SMK"
+nilai = 88
+
+print(f"Selamat datang, {nama}!")
+print(f"Nilai Informatika Anda: {nilai}")
+
+if nilai >= 75:
+    print("Status: Lulus Tuntas (Kompeten)")
+else:
+    print("Status: Perlu Remedial")`
+  },
+  {
+    title: '2. Perulangan (For Loop & List)',
+    code: `modul_list = ["Berpikir Komputasional", "Sistem Komputer", "Jaringan & Internet", "Algoritma Pemrograman"]
+
+print("--- DAFTAR MODUL INFORMATIKA ---")
+for idx, modul in enumerate(modul_list, 1):
+    print(f"{idx}. Modul: {modul}")`
+  },
+  {
+    title: '3. Fungsi (Function)',
+    code: `def hitung_nilai_akhir(tugas, utspas):
+    akhir = (tugas * 0.4) + (utspas * 0.6)
+    return akhir
+
+score = hitung_nilai_akhir(90, 85)
+print(f"Nilai Akhir Rapor: {score:.1f}")`
+  }
+];
+---
+
+<MainLayout
+  title="Elemen 6: Algoritma & Pemrograman (Python Code Sandbox) | Informatika SMK"
+  description="Browser Code Editor & Playground Python Interaktif untuk Latihan Algoritma & Pemrograman."
+>
+  <div class="ap-page-container">
+    <!-- Top Nav -->
+    <div class="page-top-nav">
+      <a href="/belajar/informatika" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Katalog Informatika
+      </a>
+      <span class="badge badge-purple">ELEMEN 6 — ALGORITMA &amp; PEMROGRAMAN</span>
+    </div>
+
+    <!-- Intro Card -->
+    <div class="intro-card glass-card">
+      <h1 class="intro-title">Python WASM Code Sandbox</h1>
+      <p class="intro-desc">
+        Tulis dan jalankan kode Python secara langsung di browser Anda tanpa perlu mengunduh atau menginstal perangkat lunak tambahan di komputer lab.
+      </p>
+    </div>
+
+    <!-- Split Screen Code Editor & Output -->
+    <div class="workspace-grid glass-card">
+      <div class="editor-pane">
+        <div class="pane-header">
+          <span class="pane-title">✏️ Python Code Editor</span>
+          <div class="snippet-select-wrap">
+            <select id="snippet-select" class="snippet-select">
+              {sampleSnippets.map((s, idx) => (
+                <option value={idx}>{s.title}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <textarea id="python-code-input" class="code-textarea" spellcheck="false">{sampleSnippets[0].code}</textarea>
+        <div class="pane-footer">
+          <button id="run-python-btn" class="btn btn-primary btn-sm" type="button">
+            ▶️ Jalankan Kode Python
+          </button>
+        </div>
+      </div>
+
+      <div class="output-pane">
+        <div class="pane-header">
+          <span class="pane-title">🖥️ Output Konsol (stdout)</span>
+          <button id="clear-output-btn" class="btn btn-secondary btn-xs" type="button">Bersihkan Konsol</button>
+        </div>
+        <div id="python-output-console" class="output-console">
+          Klik <strong>"Jalankan Kode Python"</strong> untuk melihat hasil eksekusi program Anda...
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<!-- Load Pyodide Python WASM Engine -->
+<script is:inline src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+<script is:inline define:vars={{ sampleSnippets }}>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const codeInput = document.getElementById('python-code-input');
+    const snippetSelect = document.getElementById('snippet-select');
+    const runBtn = document.getElementById('run-python-btn');
+    const clearBtn = document.getElementById('clear-output-btn');
+    const outputConsole = document.getElementById('python-output-console');
+
+    let pyodide = null;
+
+    snippetSelect?.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.value, 10);
+      if (sampleSnippets[idx]) {
+        codeInput.value = sampleSnippets[idx].code;
+      }
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      outputConsole.innerHTML = '';
+    });
+
+    runBtn?.addEventListener('click', async () => {
+      const code = codeInput.value;
+      outputConsole.innerHTML = '⚡ <i>Memuat engine Python WASM & mengeksekusi...</i>';
+
+      try {
+        if (!pyodide) {
+          pyodide = await loadPyodide();
+        }
+
+        let logs = [];
+        pyodide.setStdout({
+          batched: (text) => {
+            logs.push(text);
+          }
+        });
+
+        await pyodide.runPythonAsync(code);
+
+        if (logs.length > 0) {
+          outputConsole.innerHTML = `<pre class="console-text">${logs.join('\n')}</pre>`;
+        } else {
+          outputConsole.innerHTML = '✅ <i>Program selesai dieksekusi tanpa output teks.</i>';
+        }
+      } catch (err) {
+        outputConsole.innerHTML = `<div class="console-error">❌ <strong>Python Execution Error:</strong><br>${err.message}</div>`;
+      }
+    });
+  });
+</script>
+
+<style>
+  .ap-page-container {
+    max-width: 1140px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .intro-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .intro-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .intro-desc {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1.25rem;
+    min-height: 480px;
+  }
+
+  @media (max-width: 768px) {
+    .workspace-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .editor-pane, .output-pane {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .pane-header {
+    background: var(--bg-tertiary);
+    padding: 0.65rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .pane-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .snippet-select {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .code-textarea {
+    flex: 1;
+    min-height: 340px;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    background: #0f172a;
+    color: #38bdf8;
+    border: none;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .code-textarea:focus {
+    outline: none;
+  }
+
+  .pane-footer {
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .output-console {
+    flex: 1;
+    min-height: 340px;
+    padding: 1rem;
+    background: #090d16;
+    color: #e2e8f0;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    overflow-y: auto;
+  }
+
+  .console-text {
+    white-space: pre-wrap;
+    color: #4ade80;
+  }
+
+  .console-error {
+    color: #f87171;
+  }
+
+  .btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+</style>

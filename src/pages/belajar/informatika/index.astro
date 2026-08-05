@@ -1,0 +1,346 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin' || (user?.email && user.email.toLowerCase().includes('suhendar'));
+
+const elements = [
+  {
+    code: 'BK',
+    num: '1',
+    title: 'Berpikir Komputasional',
+    subtitle: 'Searching, Sorting, Stack & Queue Visualizer',
+    description: 'Melatih pola pikir pemecahan masalah (problem solving), algoritma pencarian (Linear/Binary Search), algoritma pengurutan (Bubble/Selection Sort), serta struktur data Stack & Queue.',
+    badge: 'PRAKTIKUM VISUALIZER',
+    badgeClass: 'badge-purple',
+    labUrl: '/belajar/informatika/bk',
+    labStatus: 'active',
+    labBtn: 'Buka Visualizer Lab &rarr;',
+    topics: ['Konsep Data & Informasi', 'Linear vs Binary Search', 'Bubble & Selection Sort', 'Struktur Data Stack & Queue']
+  },
+  {
+    code: 'TIK',
+    num: '2',
+    title: 'Teknologi Informasi & Komunikasi',
+    subtitle: 'Integrasi Aplikasi Perkantoran & Digital Search',
+    description: 'Mengintegrasikan konten antar-aplikasi perkantoran (Mail Merge, Embedding Object/Chart), pencarian data tingkat lanjut, serta pengelolaan informasi digital.',
+    badge: 'MODUL & INTEGRASI DATA',
+    badgeClass: 'badge-cyan',
+    labUrl: '/belajar/informatika/tik',
+    labStatus: 'active',
+    labBtn: 'Buka Modul TIK &rarr;',
+    topics: ['Integrasi Office / Mail Merge', 'Advanced Search Operators', 'Pencarian & Pengolahan Data']
+  },
+  {
+    code: 'SK',
+    num: '3',
+    title: 'Sistem Komputer',
+    subtitle: 'Arsitektur Komputer & Peran Sistem Operasi',
+    description: 'Mengintip arsitektur internal komputer (CPU, RAM, ROM, Storage), interaksi perangkat keras (hardware), perangkat lunak (software), dan peran Sistem Operasi.',
+    badge: 'INTERAKTIF SIMULATOR',
+    badgeClass: 'badge-cyan',
+    labUrl: '/belajar/informatika/sk',
+    labStatus: 'active',
+    labBtn: 'Buka Explorer SK &rarr;',
+    topics: ['Komponen Utama CPU & Memori', 'Mekanisme Booting & OS', 'Interaksi Hardware & Software']
+  },
+  {
+    code: 'JKI',
+    num: '4',
+    title: 'Jaringan Komputer & Internet',
+    subtitle: 'Topologi, Subnetting & Enkripsi Data',
+    description: 'Memahami cara data mengalir lewat jaringan lokal & internet, pengalamatan IP Address, kalkulasi Subnetting, serta mekanisme enkripsi SSL/HTTPS.',
+    badge: 'KALKULATOR & ENKRIPSI',
+    badgeClass: 'badge-purple',
+    labUrl: '/belajar/informatika/jki',
+    labStatus: 'active',
+    labBtn: 'Buka Lab Jaringan &rarr;',
+    topics: ['Topologi & Media Transmisi', 'Kalkulator IP & Subnetting', 'Enkripsi & Hashing Security']
+  },
+  {
+    code: 'AD',
+    num: '5',
+    title: 'Analisis Data',
+    subtitle: 'Data Cleaning, Visualisasi & Chart Generator',
+    description: 'Mengumpulkan data mentah, pembersihan data (data cleaning), transformasi data, serta memvisualisasikannya menjadi grafik interaktif yang bermakna.',
+    badge: 'CHART PLAYGROUND',
+    badgeClass: 'badge-purple',
+    labUrl: '/belajar/informatika/ad',
+    labStatus: 'active',
+    labBtn: 'Buka Data Playground &rarr;',
+    topics: ['Siklus Pengolahan Data', 'Privasi & Keamanan Data', 'Visualisasi Grafik Interaktif']
+  },
+  {
+    code: 'AP',
+    num: '6',
+    title: 'Algoritma & Pemrograman',
+    subtitle: 'Python & JavaScript WASM Code Sandbox',
+    description: 'Menulis program komputer sungguhan! Memahami algoritma/flowchart, variabel, percabangan (if-else), perulangan (for/while), dan fungsi dengan browser code editor.',
+    badge: 'PYTHON CODE SANDBOX',
+    badgeClass: 'badge-purple',
+    labUrl: '/belajar/informatika/ap',
+    labStatus: 'active',
+    labBtn: 'Buka Python Sandbox &rarr;',
+    topics: ['Algoritma & Notasi Flowchart', 'Variabel & Tipe Data', 'Percabangan & Perulangan', 'Fungsi & Prosedur']
+  },
+  {
+    code: 'DSI',
+    num: '7',
+    title: 'Dampak Sosial Informatika',
+    subtitle: 'Sejarah, HAKI, Lisensi Software & Etika IT',
+    description: 'Mengenal sejarah perkembangan teknologi informasi, Hak Kekayaan Intelektual (HAKI), lisensi open-source vs proprietary, serta etika dan profesi industri IT.',
+    badge: 'MODUL & STUDY CASE',
+    badgeClass: 'badge-cyan',
+    labUrl: '/belajar/informatika/dsi',
+    labStatus: 'active',
+    labBtn: 'Buka Modul DSI &rarr;',
+    topics: ['Sejarah Perkembangan Komputer', 'HAKI & Lisensi Software', 'Etika Digital & Profesi IT']
+  },
+  {
+    code: 'PLB',
+    num: '8',
+    title: 'Praktik Lintas Bidang',
+    subtitle: 'Proyek Komputasional Kelompok & Portofolio',
+    description: 'Menggabungkan seluruh 7 elemen Informatika untuk menyelesaikan persoalan nyata di sekolah/masyarakat dalam bentuk proyek komputasional kelompok.',
+    badge: 'SHOWCASE PROYEK',
+    badgeClass: 'badge-gold',
+    labUrl: '/belajar/informatika/plb',
+    labStatus: 'active',
+    labBtn: 'Buka Ruang Proyek &rarr;',
+    topics: ['Identifikasi Masalah Nyata', 'Perancangan Solusi IT', 'Pengujian & Presentasi Tim']
+  }
+];
+---
+
+<MainLayout
+  title="Kurikulum Informatika (Fase E Kelas X SMK) | Suhendar Aryadi, S.Pd.,Gr."
+  description="Platform Pembelajaran & Praktikum Interaktif 8 Elemen Informatika Kelas X SMK Berbasis Kurikulum Merdeka."
+>
+  <div class="info-catalog-container">
+    <!-- Header Banner -->
+    <div class="catalog-hero glass-card">
+      <div class="hero-badge-wrap">
+        <span class="badge badge-purple">KURIKULUM MERDEKA SMK — FASE E</span>
+        <span class="badge badge-cyan">8 ELEMEN MATERI INTI</span>
+      </div>
+      <h1 class="catalog-title">
+        Mata Pelajaran <span class="text-gradient">Informatika</span>
+      </h1>
+      <p class="catalog-desc">
+        Selamat datang di pusat pembelajaran dan praktikum interaktif <strong>Informatika Kelas X SMK</strong> yang diampu oleh <strong>Suhendar Aryadi, S.Pd.,Gr.</strong> Pelajari konsep komputasi, analisis data, hingga praktik coding Python di browser.
+      </p>
+
+      {isTeacherOrAdmin && (
+        <div class="teacher-preview-pill">
+          <span>🔓 Mode Guru / Admin: Akses penuh ke seluruh lab praktikum &amp; simulator.</span>
+        </div>
+      )}
+    </div>
+
+    <!-- 8 Elements Grid -->
+    <div class="elements-grid-title">
+      <h2>8 Elemen Utama Pembelajaran Informatika</h2>
+      <p>Pilih elemen materi di bawah untuk membuka bahan ajar dan lab praktikum interaktif:</p>
+    </div>
+
+    <div class="elements-grid">
+      {elements.map((el) => (
+        <div class="element-card glass-card">
+          <div class="element-header">
+            <span class="element-num">ELEMEN {el.num}</span>
+            <span class={`badge ${el.badgeClass}`}>{el.badge}</span>
+          </div>
+
+          <h3 class="element-title">{el.title}</h3>
+          <p class="element-subtitle">{el.subtitle}</p>
+          <p class="element-desc">{el.description}</p>
+
+          <div class="topics-list">
+            <span class="topics-heading">Topik Utama:</span>
+            <ul>
+              {el.topics.map(t => (
+                <li>{t}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="element-footer">
+            <a href={el.labUrl} class="btn btn-primary btn-sm btn-lab">
+              <span>{el.labBtn}</span>
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .info-catalog-container {
+    max-width: 1140px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .catalog-hero {
+    padding: 2.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(99, 102, 241, 0.05) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: var(--radius-xl);
+  }
+
+  .hero-badge-wrap {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .catalog-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .catalog-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 780px;
+    line-height: 1.6;
+  }
+
+  .teacher-preview-pill {
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    color: var(--accent-primary);
+    font-weight: 600;
+    width: fit-content;
+  }
+
+  .elements-grid-title h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .elements-grid-title p {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  .elements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .element-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    transition: transform var(--transition-fast), border-color var(--transition-fast);
+  }
+
+  .element-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-primary);
+  }
+
+  .element-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .element-num {
+    font-family: var(--font-mono);
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    letter-spacing: 0.05em;
+  }
+
+  .element-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .element-subtitle {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .element-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .topics-list {
+    background: var(--bg-secondary);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    margin-top: auto;
+  }
+
+  .topics-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .topics-list ul {
+    list-style-type: disc;
+    padding-left: 1.15rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .topics-list li {
+    margin-bottom: 0.15rem;
+  }
+
+  .element-footer {
+    margin-top: 0.5rem;
+  }
+
+  .btn-lab {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .badge-gold {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  @media (max-width: 640px) {
+    .catalog-title {
+      font-size: 1.75rem;
+    }
+    .elements-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
