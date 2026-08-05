@@ -42,20 +42,20 @@
     transform: scale(1.05);
   }
 
-  /* Default state (dark mode): show sun icon, hide moon icon */
+  /* Default state (light mode): show moon icon, hide sun icon */
   .sun-icon {
-    display: block;
+    display: none;
   }
   .moon-icon {
-    display: none;
+    display: block;
   }
 
-  /* Light mode state: hide sun icon, show moon icon */
-  :global([data-theme="light"]) .sun-icon {
-    display: none;
-  }
-  :global([data-theme="light"]) .moon-icon {
+  /* Dark mode state: show sun icon, hide moon icon */
+  :global([data-theme="dark"]) .sun-icon {
     display: block;
+  }
+  :global([data-theme="dark"]) .moon-icon {
+    display: none;
   }
 </style>
 
@@ -65,7 +65,7 @@
     if (!toggleBtn) return;
 
     toggleBtn.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       
       document.documentElement.setAttribute('data-theme', newTheme);
