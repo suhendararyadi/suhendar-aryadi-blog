@@ -102,6 +102,9 @@ function getPathId(lesson: SQLLesson): 'basics' | 'aggregates' | 'joins' | 'grou
   return 'ddl_security';
 }
 
+const lessonsByOrder = new Map<number, SQLLesson>();
+lessons.forEach((l) => lessonsByOrder.set(l.order_index, l));
+
 const pathGroups = LEARNING_PATHS.map((path) => {
   const pathLessons = lessons.filter((l) => getPathId(l) === path.id);
   const total = pathLessons.length;
@@ -222,12 +225,16 @@ const pathGroups = LEARNING_PATHS.map((path) => {
           <div class="lessons-grid">
             {path.lessons.map((lesson) => {
               const isCompleted = completedLessonIds.has(lesson.id);
+              const prevLessonInOrder = lesson.order_index > 1 ? lessonsByOrder.get(lesson.order_index - 1) : null;
+              const isLocked = user ? (lesson.order_index > 1 && prevLessonInOrder ? !completedLessonIds.has(prevLessonInOrder.id) : false) : false;
               const evaluatorType = lesson.evaluator_type || 'data_match';
               return (
-                <div class:list={['lesson-card', 'glass-card', 'glass-card-interactive', { completed: isCompleted }]}>
+                <div class:list={['lesson-card', 'glass-card', 'glass-card-interactive', { completed: isCompleted, locked: isLocked }]}>
                   <div class="card-top">
                     <span class="module-number">Modul #{lesson.order_index}</span>
-                    {evaluatorType === 'schema_match' ? (
+                    {isLocked ? (
+                      <span class="badge badge-locked-sm" title="Selesaikan modul sebelumnya terlebih dahulu">🔒 Terkunci</span>
+                    ) : evaluatorType === 'schema_match' ? (
                       <span class="badge badge-purple" title="Evaluasi struktur tabel / skema DDL">Schema Match</span>
                     ) : (
                       <span class="badge badge-cyan" title="Evaluasi baris data SELECT">Data Match</span>
@@ -245,11 +252,18 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                         </svg>
                         Selesai
                       </span>
+                    ) : isLocked ? (
+                      <span class="status-locked" title={`Selesaikan Modul #${prevLessonInOrder?.order_index} terlebih dahulu`}>
+                        🔒 Terkunci
+                      </span>
                     ) : (
                       <span class="status-pending">Belum Dikerjakan</span>
                     )}
-                    <a href={`/belajar/sql/${lesson.slug}`} class="btn btn-primary btn-sm cta-btn">
-                      {isCompleted ? 'Ulangi Modul' : 'Mulai Latihan'}
+                    <a 
+                      href={`/belajar/sql/${lesson.slug}`} 
+                      class:list={['btn', 'btn-sm', 'cta-btn', isCompleted ? 'btn-primary' : isLocked ? 'btn-secondary btn-locked-cta' : 'btn-primary']}
+                    >
+                      {isCompleted ? 'Ulangi Modul' : isLocked ? '🔒 Buka Modul' : 'Mulai Latihan'}
                     </a>
                   </div>
                 </div>
@@ -581,6 +595,34 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     background: rgba(16, 185, 129, 0.12);
     color: #10b981;
     border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-locked-sm {
+    background: rgba(168, 85, 247, 0.12);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    font-size: 0.725rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .status-locked {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: #a855f7;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .btn-locked-cta {
+    opacity: 0.9;
+    border-color: rgba(168, 85, 247, 0.4);
+    color: #a855f7;
+  }
+
+  .lesson-card.locked {
+    border-color: rgba(168, 85, 247, 0.25);
+    background: rgba(168, 85, 247, 0.03);
   }
 
   .badge-amber {

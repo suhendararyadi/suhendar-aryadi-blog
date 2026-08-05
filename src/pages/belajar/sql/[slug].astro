@@ -47,6 +47,31 @@ if (!user) {
   return Astro.redirect(`/auth/login?redirect=/belajar/sql/${slug}`);
 }
 
+let completedLessonIds = new Set<number>();
+try {
+  const completedRes = await query(
+    `SELECT lesson_id FROM user_progress WHERE user_id = $1 AND status = 'completed'`,
+    [user.id]
+  );
+  if (completedRes.rows) {
+    completedRes.rows.forEach((r: any) => completedLessonIds.add(r.lesson_id));
+  }
+} catch (err) {
+  console.warn('Could not fetch user progress for locking check:', err);
+}
+
+// Sequential locking check: Module 1 (order_index === 1) is always unlocked.
+// For Module N > 1, Module N-1 must be completed by the user.
+let isLocked = false;
+let requiredPrevLesson: SQLLesson | null = null;
+
+if (lesson.order_index > 1) {
+  requiredPrevLesson = allLessons.find((l) => l.order_index === lesson.order_index - 1) || prevLesson;
+  if (requiredPrevLesson && !completedLessonIds.has(requiredPrevLesson.id)) {
+    isLocked = true;
+  }
+}
+
 // Simple markdown formatter helper for Astro template
 function formatMarkdown(text: string): string {
   if (!text) return '';
@@ -105,139 +130,172 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       </div>
     </div>
 
-    <div class="workspace-grid">
-      <!-- PANEL KIRI: Teori & Instruksi Tugas -->
-      <div class="panel panel-instructions glass-card">
-        <div class="panel-header">
-          <div class="badge-group">
-            <span class="badge badge-cyan">{lesson.category}</span>
-            <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
-              {lesson.evaluator_type === 'schema_match' ? 'Schema Match' : 'Data Match'}
-            </span>
+    {isLocked ? (
+      <div class="locked-container">
+        <div class="locked-card glass-card">
+          <div class="locked-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
           </div>
-          <span class="module-tag">Modul #{lesson.order_index}</span>
-        </div>
+          <div class="locked-badge-wrap">
+            <span class="badge badge-purple">MODUL TERKUNCI 🔒</span>
+          </div>
+          <h1 class="locked-title">Modul #{lesson.order_index}: {lesson.title}</h1>
+          <p class="locked-desc">
+            Untuk memastikan pemahaman materi yang runtut dan terstruktur, Anda harus menyelesaikan 
+            <strong>Modul #{requiredPrevLesson?.order_index} ({requiredPrevLesson?.title})</strong> 
+            dan melakukan <strong>Submit Answer</strong> dengan benar terlebih dahulu sebelum dapat membuka modul ini.
+          </p>
 
-        <h1 class="lesson-heading">{lesson.title}</h1>
-
-        <div class="panel-section">
-          <h2 class="section-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-            Teori & Penjelasan
-          </h2>
-          <div class="prose theory-content" set:html={formattedTheory} />
-        </div>
-
-        <div class="panel-section instruction-section">
-          <h2 class="section-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-            Instruksi Tugas
-          </h2>
-          <div class="instruction-box">
-            <div class="prose" set:html={formattedInstructions} />
+          <div class="locked-actions">
+            {requiredPrevLesson && (
+              <a href={`/belajar/sql/${requiredPrevLesson.slug}`} class="btn btn-primary">
+                <span>Buka Modul #{requiredPrevLesson.order_index}: {requiredPrevLesson.title} &rarr;</span>
+              </a>
+            )}
+            <a href="/belajar/sql" class="btn btn-outline">
+              <span>Kembali ke Katalog SQL</span>
+            </a>
           </div>
         </div>
-
-        <!-- Evaluation Banner Status -->
-        <div id="eval-status" class="eval-banner" style="display: none;"></div>
       </div>
-
-      <!-- PANEL KANAN: Editor SQL & Tabel Hasil Exec -->
-      <div class="panel panel-editor">
-        <!-- Header Controls Editor -->
-        <div class="editor-header glass-card">
-          <div class="editor-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
-            <strong>SQL Editor</strong>
-            <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
-              {lesson.evaluator_type === 'schema_match' ? 'Schema Match' : 'Data Match'}
-            </span>
-          </div>
-
-          <div class="editor-actions">
-            <div class="utility-btns">
-              <button id="reset-btn" class="btn btn-outline btn-sm" type="button" title="Kembalikan kode ke instruksi awal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-                <span>Reset</span>
-              </button>
-              <button id="hint-btn" class="btn btn-secondary btn-sm" type="button" title="Tampilkan petunjuk kunci">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <span>Hint</span>
-              </button>
+    ) : (
+      <div class="workspace-grid">
+        <!-- PANEL KIRI: Teori & Instruksi Tugas -->
+        <div class="panel panel-instructions glass-card">
+          <div class="panel-header">
+            <div class="badge-group">
+              <span class="badge badge-cyan">{lesson.category}</span>
+              <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
+                {lesson.evaluator_type === 'schema_match' ? 'Schema Match' : 'Data Match'}
+              </span>
             </div>
-
-            <div class="primary-btns">
-              <button id="run-btn" class="btn btn-secondary btn-sm" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <span>Run Query</span>
-              </button>
-              <button id="submit-btn" class="btn btn-primary btn-sm" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-                <span>Submit Answer</span>
-              </button>
-            </div>
+            <span class="module-tag">Modul #{lesson.order_index}</span>
           </div>
-        </div>
 
-        <!-- Editor Input Textarea -->
-        <div class="editor-container glass-card">
-          <div class="editor-wrapper">
-            <textarea 
-              id="sql-input" 
-              class="sql-code-editor" 
-              placeholder="-- Tulis query SQL Anda di sini..."
-              spellcheck="false"
-              autocomplete="off"
-              autocorrect="off"
-              autocapitalize="off"
-            >{lesson.initial_code}</textarea>
-          </div>
-        </div>
+          <h1 class="lesson-heading">{lesson.title}</h1>
 
-        <!-- Output Result Table Panel -->
-        <div class="result-panel glass-card">
-          <div class="result-header">
-            <span class="result-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
+          <div class="panel-section">
+            <h2 class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
               </svg>
-              Hasil Query (Result Set)
-            </span>
-            <span id="rows-count" class="rows-count"></span>
+              Teori & Penjelasan
+            </h2>
+            <div class="prose theory-content" set:html={formattedTheory} />
           </div>
 
-          <div id="output-table-container" class="output-container">
-            <p class="placeholder-text">
-              Klik <strong>Run Query</strong> untuk mengeksekusi sintaks SQL atau <strong>Submit Answer</strong> untuk menguji kebenaran jawaban Anda.
-            </p>
+          <div class="panel-section instruction-section">
+            <h2 class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              Instruksi Tugas
+            </h2>
+            <div class="instruction-box">
+              <div class="prose" set:html={formattedInstructions} />
+            </div>
+          </div>
+
+          <!-- Evaluation Banner Status -->
+          <div id="eval-status" class="eval-banner" style="display: none;"></div>
+        </div>
+
+        <!-- PANEL KANAN: Editor SQL & Tabel Hasil Exec -->
+        <div class="panel panel-editor">
+          <!-- Header Controls Editor -->
+          <div class="editor-header glass-card">
+            <div class="editor-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              <strong>SQL Editor</strong>
+              <span class={`badge ${lesson.evaluator_type === 'schema_match' ? 'badge-purple' : 'badge-cyan'}`}>
+                {lesson.evaluator_type === 'schema_match' ? 'Schema Match' : 'Data Match'}
+              </span>
+            </div>
+
+            <div class="editor-actions">
+              <div class="utility-btns">
+                <button id="reset-btn" class="btn btn-outline btn-sm" type="button" title="Kembalikan kode ke instruksi awal">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                  </svg>
+                  <span>Reset</span>
+                </button>
+                <button id="hint-btn" class="btn btn-secondary btn-sm" type="button" title="Tampilkan petunjuk kunci">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span>Hint</span>
+                </button>
+              </div>
+
+              <div class="primary-btns">
+                <button id="run-btn" class="btn btn-secondary btn-sm" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <span>Run Query</span>
+                </button>
+                <button id="submit-btn" class="btn btn-primary btn-sm" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                  <span>Submit Answer</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Editor Input Textarea -->
+          <div class="editor-container glass-card">
+            <div class="editor-wrapper">
+              <textarea 
+                id="sql-input" 
+                class="sql-code-editor" 
+                placeholder="-- Tulis query SQL Anda di sini..."
+                spellcheck="false"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+              >{lesson.initial_code}</textarea>
+            </div>
+          </div>
+
+          <!-- Output Result Table Panel -->
+          <div class="result-panel glass-card">
+            <div class="result-header">
+              <span class="result-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Hasil Query (Result Set)
+              </span>
+              <span id="rows-count" class="rows-count"></span>
+            </div>
+
+            <div id="output-table-container" class="output-container">
+              <p class="placeholder-text">
+                Klik <strong>Run Query</strong> untuk mengeksekusi sintaks SQL atau <strong>Submit Answer</strong> untuk menguji kebenaran jawaban Anda.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    )}
   </div>
 </MainLayout>
 
@@ -270,29 +328,43 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     }
   });
 
-  // Hint handler: Generates structured SQL clue without giving away full answer
+  // Hint handler: Generates structured SQL conceptual clue without giving away full answer code
   hintBtn?.addEventListener('click', () => {
     if (!evalStatus) return;
     evalStatus.style.display = 'block';
     evalStatus.className = 'eval-banner eval-hint';
     
-    // Create structured clue from expectedSql
     let clueText = '';
-    const uppercaseExpected = (expectedSql || '').trim();
-    if (uppercaseExpected.toUpperCase().startsWith('SELECT')) {
-      const match = uppercaseExpected.match(/SELECT\s+(.*?)\s+FROM\s+([^\s;]+)(?:\s+WHERE\s+([^\s;]+(?:\s+.*)?))?/i);
-      if (match) {
-        clueText = `Struktur Query: SELECT ${match[1]} FROM ${match[2]}${match[3] ? ' WHERE ...' : ''}`;
+    const upperExpected = (expectedSql || '').trim().toUpperCase();
+
+    if (upperExpected.startsWith('SELECT')) {
+      if (upperExpected.includes('WHERE')) {
+        clueText = 'Petunjuk: Gunakan klausa SELECT untuk mengambil nama kolom yang diminta, FROM untuk menentukan nama tabel sumber, dan WHERE untuk menyaring kondisi baris data.';
+      } else if (upperExpected.includes('DISTINCT')) {
+        clueText = 'Petunjuk: Gunakan kata kunci DISTINCT setelah SELECT untuk menyaring dan mengembalikan hanya nilai-nilai unik (tidak duplikat).';
+      } else if (upperExpected.includes('ORDER BY')) {
+        clueText = 'Petunjuk: Gunakan klausa ORDER BY di akhir query untuk mengurutkan hasil (gunakan ASC untuk pengurutan terkecil/A-Z atau DESC untuk terbesar/Z-A).';
+      } else if (upperExpected.includes('JOIN')) {
+        clueText = 'Petunjuk: Hubungkan dua tabel menggunakan klausa JOIN (misalnya INNER JOIN) berdasarkan kunci pembanding (ON tabel1.id = tabel2.foreign_key).';
+      } else if (upperExpected.includes('GROUP BY')) {
+        clueText = 'Petunjuk: Kelompokkan baris data menggunakan GROUP BY [nama_kolom] serta fungsi agregasi (seperti COUNT, SUM, atau AVG).';
       } else {
-        clueText = `Gunakan klausa SELECT dan FROM pada tabel target.`;
+        clueText = 'Petunjuk: Gunakan klausa SELECT [nama_kolom] FROM [nama_tabel]. Perhatikan nama kolom yang diminta pada instruksi soal di panel kiri.';
       }
-    } else if (uppercaseExpected.toUpperCase().startsWith('CREATE TABLE')) {
-      const match = uppercaseExpected.match(/CREATE TABLE\s+([^\s(]+)/i);
-      clueText = `Gunakan klausa CREATE TABLE ${match ? match[1] : 'nama_tabel'} (kolom tipe_data ...);`;
-    } else if (uppercaseExpected.toUpperCase().startsWith('INSERT')) {
-      clueText = `Gunakan klausa INSERT INTO nama_tabel VALUES (...);`;
+    } else if (upperExpected.startsWith('CREATE TABLE') || upperExpected.startsWith('CREATE VIEW')) {
+      clueText = 'Petunjuk: Gunakan perintah DDL CREATE TABLE atau CREATE VIEW diikuti nama objek dan spesifikasi kolom beserta tipe datanya.';
+    } else if (upperExpected.startsWith('INSERT')) {
+      clueText = 'Petunjuk: Gunakan klausa INSERT INTO [nama_tabel] (kolom1, ...) VALUES (nilai1, ...).';
+    } else if (upperExpected.startsWith('UPDATE')) {
+      clueText = 'Petunjuk: Gunakan klausa UPDATE [nama_tabel] SET kolom = nilai_baru WHERE kondisi_filter.';
+    } else if (upperExpected.startsWith('DELETE')) {
+      clueText = 'Petunjuk: Gunakan klausa DELETE FROM [nama_tabel] WHERE kondisi_filter.';
+    } else if (upperExpected.startsWith('ALTER')) {
+      clueText = 'Petunjuk: Gunakan perintah DDL ALTER TABLE [nama_tabel] ADD / DROP / MODIFY untuk mengubah struktur tabel.';
+    } else if (upperExpected.startsWith('DROP')) {
+      clueText = 'Petunjuk: Gunakan perintah DDL DROP TABLE / DROP VIEW [nama_tabel] untuk menghapus objek dari database.';
     } else {
-      clueText = `Perhatikan kata kunci utama pada teori dan instruksi di panel kiri.`;
+      clueText = 'Petunjuk: Baca kembali konsep teori dan petunjuk klausa SQL pada panel instruksi di sebelah kiri.';
     }
 
     evalStatus.innerHTML = `
@@ -303,7 +375,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
           <line x1="12" y1="8" x2="12.01" y2="8"></line>
         </svg>
         <div>
-          <strong style="color: #f59e0b;">Petunjuk Kunci (Hint)</strong>
+          <strong style="color: #f59e0b;">Petunjuk Konseptual (Hint)</strong>
           <p>${escapeHtml(clueText)}</p>
         </div>
       </div>
@@ -944,5 +1016,76 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     border-radius: 4px;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  /* Locked Module Container & Screen */
+  .locked-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1rem;
+    width: 100%;
+  }
+
+  .locked-card {
+    max-width: 600px;
+    width: 100%;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    border-radius: var(--radius-2xl);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    box-shadow: var(--shadow-lg), 0 0 25px rgba(168, 85, 247, 0.15);
+  }
+
+  .locked-icon-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #a855f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .badge-purple {
+    background: rgba(168, 85, 247, 0.12);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 0.25rem 0.75rem;
+    font-weight: 700;
+  }
+
+  .locked-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .locked-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 480px;
+  }
+
+  .locked-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 380px;
+    margin-top: 0.5rem;
+  }
+
+  .locked-actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 </style>
