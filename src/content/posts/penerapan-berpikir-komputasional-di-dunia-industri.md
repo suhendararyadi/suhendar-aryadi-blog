@@ -6,6 +6,7 @@ category: "Informatika"
 tags: ["Berpikir Komputasional", "Informatika", "Software Engineering", "SMK"]
 author: "Suhendar Aryadi, S.Pd.,Gr."
 featured: true
+image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80"
 ---
 
 # Penerapan Berpikir Komputasional dalam Pengembangan Perangkat Lunak Industri

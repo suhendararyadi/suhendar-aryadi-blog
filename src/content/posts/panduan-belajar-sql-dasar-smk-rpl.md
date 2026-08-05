@@ -6,6 +6,7 @@ category: "SQL & Database"
 tags: ["SQL", "Database", "RPL", "SMK", "Backend"]
 author: "Suhendar Aryadi, S.Pd.,Gr."
 featured: true
+image: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=1200&q=80"
 ---
 
 # Panduan Belajar Database SQL untuk Siswa SMK RPL
