@@ -6,7 +6,7 @@
 ![SQLite WASM](https://img.shields.io/badge/Sandbox-SQLite_WASM-003B57?style=flat-square&logo=sqlite)
 ![Vercel](https://img.shields.io/badge/Deployment-Vercel-black?style=flat-square&logo=vercel)
 
-Portal edukasi resmi dan platform pembelajaran interaktif yang dikembangkan oleh **Suhendar Aryadi, S.Kom.** (Guru Rekayasa Perangkat Lunak SMK). Platform ini memadukan materi vokasi IT, blog tutorial web development, serta **Platform Belajar SQL Interaktif 40 Modul** lengkap dengan sistem evaluasi dual-mode dan dashboard progres siswa.
+Portal edukasi resmi dan platform pembelajaran interaktif yang dikembangkan oleh **Suhendar Aryadi, S.Pd.,Gr.** (Guru Rekayasa Perangkat Lunak SMK). Platform ini memadukan materi vokasi IT, blog tutorial web development, serta **Platform Belajar SQL Interaktif 40 Modul** lengkap dengan sistem evaluasi dual-mode dan dashboard progres siswa.
 
 🌐 **Live Website**: [https://suhendar-aryadi-blog.vercel.app](https://suhendar-aryadi-blog.vercel.app)
 

@@ -2,7 +2,7 @@
 title: "Pengenalan Astro Framework untuk Siswa Rekayasa Perangkat Lunak"
 description: "Panduan praktis dan dasar memahami Astro Framework bagi siswa SMK Jurusan Rekayasa Perangkat Lunak (RPL) untuk membangun website modern dan cepat."
 pubDate: 2026-08-04
-author: "Suhendar Aryadi, S.Kom."
+author: "Suhendar Aryadi, S.Pd.,Gr."
 tags: ["Astro", "Web Development", "SMK RPL", "Frontend"]
 category: "Pemrograman Web"
 featured: true

@@ -17,7 +17,7 @@ Selamat datang di **Modul Pembelajaran Pemrograman Web Dasar** untuk siswa SMK K
 - **Mata Pelajaran:** Pemrograman Web dan Perangkat Bergerak
 - **Tingkat / Kelas:** X (Sepuluh) RPL
 - **Alokasi Waktu:** 12 Jam Pelajaran (3 Pertemuan)
-- **Penyusun:** Suhendar Aryadi, S.Kom.
+- **Penyusun:** Suhendar Aryadi, S.Pd.,Gr.
 
 ---
 
