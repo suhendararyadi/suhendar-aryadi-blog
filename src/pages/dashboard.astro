@@ -290,20 +290,32 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
           <label for="edit-class-select">Identitas Kelas (RPL / Vokasi)</label>
           <select id="edit-class-select" class="form-select">
             <option value="" disabled selected={!user.class_name}>-- Pilih Rombel / Kelas --</option>
-            <option value="X RPL 1" selected={user.class_name === 'X RPL 1'}>X RPL 1</option>
-            <option value="X RPL 2" selected={user.class_name === 'X RPL 2'}>X RPL 2</option>
-            <option value="XI RPL 1" selected={user.class_name === 'XI RPL 1'}>XI RPL 1</option>
-            <option value="XI RPL 2" selected={user.class_name === 'XI RPL 2'}>XI RPL 2</option>
-            <option value="XII RPL 1" selected={user.class_name === 'XII RPL 1'}>XII RPL 1</option>
-            <option value="XII RPL 2" selected={user.class_name === 'XII RPL 2'}>XII RPL 2</option>
-            <option value="CUSTOM" selected={!!user.class_name && !['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'].includes(user.class_name)}>Lainnya (Ketik Manual...)</option>
+            <optgroup label="Kelas X (Sepuluh)">
+              <option value="X RPL 1" selected={user.class_name === 'X RPL 1'}>X RPL 1</option>
+              <option value="X RPL 2" selected={user.class_name === 'X RPL 2'}>X RPL 2</option>
+              <option value="X RPL 3" selected={user.class_name === 'X RPL 3'}>X RPL 3</option>
+              <option value="X RPL 4" selected={user.class_name === 'X RPL 4'}>X RPL 4</option>
+            </optgroup>
+            <optgroup label="Kelas XI (Sebelas)">
+              <option value="XI RPL 1" selected={user.class_name === 'XI RPL 1'}>XI RPL 1</option>
+              <option value="XI RPL 2" selected={user.class_name === 'XI RPL 2'}>XI RPL 2</option>
+              <option value="XI RPL 3" selected={user.class_name === 'XI RPL 3'}>XI RPL 3</option>
+              <option value="XI RPL 4" selected={user.class_name === 'XI RPL 4'}>XI RPL 4</option>
+            </optgroup>
+            <optgroup label="Kelas XII (Dua Belas)">
+              <option value="XII RPL 1" selected={user.class_name === 'XII RPL 1'}>XII RPL 1</option>
+              <option value="XII RPL 2" selected={user.class_name === 'XII RPL 2'}>XII RPL 2</option>
+              <option value="XII RPL 3" selected={user.class_name === 'XII RPL 3'}>XII RPL 3</option>
+              <option value="XII RPL 4" selected={user.class_name === 'XII RPL 4'}>XII RPL 4</option>
+            </optgroup>
+            <option value="CUSTOM" selected={!!user.class_name && !['X RPL 1', 'X RPL 2', 'X RPL 3', 'X RPL 4', 'XI RPL 1', 'XI RPL 2', 'XI RPL 3', 'XI RPL 4', 'XII RPL 1', 'XII RPL 2', 'XII RPL 3', 'XII RPL 4'].includes(user.class_name)}>Lainnya (Ketik Manual...)</option>
           </select>
           <input
             type="text"
             id="edit-class-custom"
             name="class_name_custom"
             value={user.class_name || ''}
-            placeholder="Contoh: XI PPLG 3 / Kelas Khusus"
+            placeholder="Contoh: XI PPLG 5 / Kelas Khusus"
             style="display: none; margin-top: 0.5rem;"
           />
         </div>
