@@ -202,6 +202,28 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
               <p class="block-sub">Rincian pencapaian 40 Modul SQL per siswa terdaftar</p>
             </div>
             <div class="search-filter-wrap">
+              <select id="class-filter-select" class="class-filter-select">
+                <option value="ALL">Semua Kelas (Rombel)</option>
+                <optgroup label="Kelas X (Sepuluh)">
+                  <option value="X RPL 1">X RPL 1</option>
+                  <option value="X RPL 2">X RPL 2</option>
+                  <option value="X RPL 3">X RPL 3</option>
+                  <option value="X RPL 4">X RPL 4</option>
+                </optgroup>
+                <optgroup label="Kelas XI (Sebelas)">
+                  <option value="XI RPL 1">XI RPL 1</option>
+                  <option value="XI RPL 2">XI RPL 2</option>
+                  <option value="XI RPL 3">XI RPL 3</option>
+                  <option value="XI RPL 4">XI RPL 4</option>
+                </optgroup>
+                <optgroup label="Kelas XII (Dua Belas)">
+                  <option value="XII RPL 1">XII RPL 1</option>
+                  <option value="XII RPL 2">XII RPL 2</option>
+                  <option value="XII RPL 3">XII RPL 3</option>
+                  <option value="XII RPL 4">XII RPL 4</option>
+                </optgroup>
+                <option value="UNASSIGNED">Belum Mengisi Kelas</option>
+              </select>
               <input 
                 type="text" 
                 id="student-search" 
@@ -213,11 +235,14 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
           </div>
 
           <div class="table-wrapper">
-            <div class="mobile-table-hint">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-              <span>Geser tabel ke samping untuk melihat data lengkap</span>
+            <div class="table-info-bar">
+              <div class="mobile-table-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span>Geser tabel ke samping untuk melihat data lengkap</span>
+              </div>
+              <span id="filtered-student-count" class="filtered-count-badge">Menampilkan {students.length} siswa</span>
             </div>
             <table class="admin-table" id="students-table">
               <thead>
@@ -235,7 +260,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
               </thead>
               <tbody>
                 {students.map((item, idx) => (
-                  <tr class="student-row">
+                  <tr class="student-row" data-class={item.class_name || 'UNASSIGNED'} data-email={item.email} data-name={item.name}>
                     <td class="num-col text-center">{idx + 1}</td>
                     <td>
                       <div class="user-cell">
@@ -287,25 +312,58 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
   document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('export-csv-btn');
     const searchInput = document.getElementById('student-search');
+    const classSelect = document.getElementById('class-filter-select');
+    const countBadge = document.getElementById('filtered-student-count');
     const tableRows = document.querySelectorAll('.student-row');
 
-    // Filter table by name/email
-    searchInput?.addEventListener('input', (e) => {
-      const term = e.target.value.toLowerCase().trim();
+    function applyFilters() {
+      const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const selectedClass = classSelect ? classSelect.value : 'ALL';
+      let visibleCount = 0;
+
       tableRows.forEach((row) => {
         const text = row.textContent.toLowerCase();
-        if (!term || text.includes(term)) {
+        const rowClass = row.getAttribute('data-class') || 'UNASSIGNED';
+
+        const matchesSearch = !term || text.includes(term);
+        const matchesClass = selectedClass === 'ALL' || rowClass === selectedClass;
+
+        if (matchesSearch && matchesClass) {
           row.style.display = '';
+          visibleCount++;
         } else {
           row.style.display = 'none';
         }
       });
-    });
 
-    // CSV Exporter for Raport Record
+      if (countBadge) {
+        countBadge.textContent = `Menampilkan ${visibleCount} dari ${studentsData.length} siswa`;
+      }
+    }
+
+    searchInput?.addEventListener('input', applyFilters);
+    classSelect?.addEventListener('change', applyFilters);
+
+    // CSV Exporter for Filtered Class Record
     exportBtn?.addEventListener('click', () => {
       if (!studentsData || studentsData.length === 0) {
         alert('Tidak ada data siswa untuk diekspor.');
+        return;
+      }
+
+      const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const selectedClass = classSelect ? classSelect.value : 'ALL';
+
+      const filtered = studentsData.filter((s) => {
+        const sClass = s.class_name || 'UNASSIGNED';
+        const sText = `${s.name} ${s.email} ${s.class_name}`.toLowerCase();
+        const matchesSearch = !term || sText.includes(term);
+        const matchesClass = selectedClass === 'ALL' || sClass === selectedClass;
+        return matchesSearch && matchesClass;
+      });
+
+      if (filtered.length === 0) {
+        alert('Tidak ada data siswa yang cocok dengan filter saat ini.');
         return;
       }
 
@@ -313,7 +371,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
       let csv = '\uFEFF';
       csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase,Peringkat Rank,Tanggal Terdaftar\n';
 
-      studentsData.forEach((s, idx) => {
+      filtered.forEach((s, idx) => {
         const name = `"${(s.name || '').replace(/"/g, '""')}"`;
         const className = `"${(s.class_name || '-').replace(/"/g, '""')}"`;
         const email = `"${(s.email || '').replace(/"/g, '""')}"`;
@@ -330,7 +388,8 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `rekap-nilai-sql-siswa-${new Date().toISOString().slice(0, 10)}.csv`);
+      const sanitizedClass = selectedClass.replace(/\s+/g, '-').toLowerCase();
+      link.setAttribute('download', `rekap-nilai-sql-${sanitizedClass}-${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -449,6 +508,29 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
     margin-top: 0.2rem;
   }
 
+  .search-filter-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .class-filter-select {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .class-filter-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+  }
+
   .search-input {
     padding: 0.5rem 0.85rem;
     font-size: 0.875rem;
@@ -456,12 +538,30 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
     border: 1px solid var(--border-color);
     background: var(--bg-secondary);
     color: var(--text-primary);
-    width: 260px;
+    width: 240px;
   }
 
   .search-input:focus {
     outline: none;
     border-color: var(--accent-primary);
+  }
+
+  .table-info-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .filtered-count-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-subtle);
   }
 
   /* Difficult modules grid */
