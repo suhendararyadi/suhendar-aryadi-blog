@@ -105,6 +105,8 @@ function getPathId(lesson: SQLLesson): 'basics' | 'aggregates' | 'joins' | 'grou
 const lessonsByOrder = new Map<number, SQLLesson>();
 lessons.forEach((l) => lessonsByOrder.set(l.order_index, l));
 
+const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin' || (user?.email && user.email.toLowerCase().includes('suhendar'));
+
 const pathGroups = LEARNING_PATHS.map((path) => {
   const pathLessons = lessons.filter((l) => getPathId(l) === path.id);
   const total = pathLessons.length;
@@ -226,7 +228,11 @@ const pathGroups = LEARNING_PATHS.map((path) => {
             {path.lessons.map((lesson) => {
               const isCompleted = completedLessonIds.has(lesson.id);
               const prevLessonInOrder = lesson.order_index > 1 ? lessonsByOrder.get(lesson.order_index - 1) : null;
-              const isLocked = user ? (lesson.order_index > 1 && prevLessonInOrder ? !completedLessonIds.has(prevLessonInOrder.id) : false) : false;
+              const isLocked = isTeacherOrAdmin 
+                ? false 
+                : user 
+                  ? (lesson.order_index > 1 && prevLessonInOrder ? !completedLessonIds.has(prevLessonInOrder.id) : false) 
+                  : false;
               const evaluatorType = lesson.evaluator_type || 'data_match';
               return (
                 <div class:list={['lesson-card', 'glass-card', 'glass-card-interactive', { completed: isCompleted, locked: isLocked }]}>
@@ -252,6 +258,8 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                         </svg>
                         Selesai
                       </span>
+                    ) : isTeacherOrAdmin ? (
+                      <span class="status-teacher-access">🔓 Full Access Guru</span>
                     ) : isLocked ? (
                       <span class="status-locked" title={`Selesaikan Modul #${prevLessonInOrder?.order_index} terlebih dahulu`}>
                         🔒 Terkunci
@@ -263,7 +271,7 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                       href={`/belajar/sql/${lesson.slug}`} 
                       class:list={['btn', 'btn-sm', 'cta-btn', isCompleted ? 'btn-primary' : isLocked ? 'btn-secondary btn-locked-cta' : 'btn-primary']}
                     >
-                      {isCompleted ? 'Ulangi Modul' : isLocked ? '🔒 Buka Modul' : 'Mulai Latihan'}
+                      {isCompleted ? 'Ulangi Modul' : isTeacherOrAdmin ? 'Pratinjau Modul →' : isLocked ? '🔒 Terkunci' : 'Mulai Latihan'}
                     </a>
                   </div>
                 </div>
@@ -612,6 +620,12 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  .status-teacher-access {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--accent-cyan);
   }
 
   .btn-locked-cta {
