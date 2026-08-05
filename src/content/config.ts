@@ -10,6 +10,7 @@ const postsCollection = defineCollection({
     tags: z.array(z.string()),
     category: z.string(),
     featured: z.boolean().default(false),
+    image: z.string().optional(),
   }),
 });
 
@@ -21,6 +22,7 @@ const modulesCollection = defineCollection({
     grade: z.string(),
     downloadUrl: z.string(),
     tags: z.array(z.string()),
+    image: z.string().optional(),
   }),
 });
 

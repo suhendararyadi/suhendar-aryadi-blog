@@ -27,31 +27,53 @@ const { Content } = await module.render();
       </a>
     </div>
 
-    <header class="module-header glass-card">
-      <div class="header-badges">
-        <span class="badge badge-cyan">{module.data.subject}</span>
-        <span class="badge">{module.data.grade}</span>
+    <!-- Module Hero Banner with Feature Image -->
+    <header class="module-hero-card glass-card">
+      <div class="feature-image-wrapper">
+        {module.data.image ? (
+          <img src={module.data.image} alt={module.data.title} class="feature-img" />
+        ) : (
+          <div class="feature-placeholder">
+            <div class="feature-pattern"></div>
+            <div class="feature-placeholder-content">
+              <div class="feature-icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+              </div>
+              <span class="feature-topic-tag">{module.data.subject}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      <h1 class="module-title">{module.data.title}</h1>
-
-      <div class="header-footer">
-        <div class="module-tags">
-          {module.data.tags.map((tag) => (
-            <span class="tag">#{tag}</span>
-          ))}
+      <div class="hero-body">
+        <div class="header-badges">
+          <span class="badge badge-cyan">{module.data.subject}</span>
+          <span class="badge">{module.data.grade}</span>
         </div>
 
-        {module.data.downloadUrl && (
-          <a 
-            href={module.data.downloadUrl} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            class="btn btn-primary"
-          >
-            <span>Unduh Berkas PDF</span>
-          </a>
-        )}
+        <h1 class="module-title">{module.data.title}</h1>
+
+        <div class="header-footer">
+          <div class="module-tags">
+            {module.data.tags.map((tag) => (
+              <span class="tag">#{tag}</span>
+            ))}
+          </div>
+
+          {module.data.downloadUrl && (
+            <a 
+              href={module.data.downloadUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="btn btn-primary"
+            >
+              <span>Unduh Berkas PDF</span>
+            </a>
+          )}
+        </div>
       </div>
     </header>
 
@@ -69,12 +91,12 @@ const { Content } = await module.render();
 
 <style>
   .module-container {
-    max-width: 840px;
-    margin: 0 auto;
+    max-width: 880px;
+    margin: 0 auto 4rem;
   }
 
   .back-navigation {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
   }
 
   .back-link {
@@ -90,13 +112,90 @@ const { Content } = await module.render();
     color: var(--accent-primary);
   }
 
-  .module-header {
-    padding: 2.5rem;
+  .module-hero-card {
+    padding: 0;
+    overflow: hidden;
     margin-bottom: 2rem;
+    border-radius: var(--radius-xl);
+  }
+
+  /* Feature Image Hero Banner */
+  .feature-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    overflow: hidden;
+    background: var(--bg-tertiary);
   }
 
   @media (max-width: 640px) {
-    .module-header {
+    .feature-image-wrapper {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  .feature-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .feature-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0f172a 0%, #06b6d4 50%, #6366f1 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .feature-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    background-image: radial-gradient(#ffffff 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .feature-placeholder-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: #ffffff;
+  }
+
+  .feature-icon-box {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-xl);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .feature-topic-tag {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .hero-body {
+    padding: 2.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero-body {
       padding: 1.5rem;
     }
   }
@@ -142,6 +241,9 @@ const { Content } = await module.render();
   .tag {
     font-size: 0.8125rem;
     color: var(--text-muted);
+    background: var(--bg-tertiary);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
   }
 
   .module-content {
@@ -160,3 +262,4 @@ const { Content } = await module.render();
     justify-content: center;
   }
 </style>
+
