@@ -43,6 +43,10 @@ const prevLesson = currentIdx > 0 ? allLessons[currentIdx - 1] : null;
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
+if (!user) {
+  return Astro.redirect(`/auth/login?redirect=/belajar/sql/${slug}`);
+}
+
 // Simple markdown formatter helper for Astro template
 function formatMarkdown(text: string): string {
   if (!text) return '';

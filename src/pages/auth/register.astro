@@ -149,7 +149,9 @@ if (sessionId) {
         successBanner.style.display = 'block';
 
         setTimeout(() => {
-          window.location.href = '/sql';
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTarget = urlParams.get('redirect') || '/belajar/sql';
+          window.location.href = redirectTarget;
         }, 1000);
       } catch (err: any) {
         errorBanner.innerText = err.message || 'Terjadi kesalahan. Silakan coba lagi.';
