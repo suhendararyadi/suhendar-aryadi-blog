@@ -35,8 +35,11 @@ async function migrate() {
       email VARCHAR(150) UNIQUE NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
       role VARCHAR(20) DEFAULT 'student',
+      class_name VARCHAR(50) DEFAULT '',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS class_name VARCHAR(50) DEFAULT '';
 
     CREATE TABLE IF NOT EXISTS sessions (
       id VARCHAR(255) PRIMARY KEY,

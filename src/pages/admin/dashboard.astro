@@ -24,12 +24,12 @@ if (isTeacherOrAdmin) {
   try {
     // 1. Fetch all registered students & completion metrics
     const studentsRes = await query(
-      `SELECT u.id, u.name, u.email, u.role, u.created_at,
+      `SELECT u.id, u.name, u.email, u.role, u.class_name, u.created_at,
               COUNT(up.id) as completed_count,
               MAX(up.completed_at) as last_completed_at
        FROM users u
        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
-       GROUP BY u.id, u.name, u.email, u.role, u.created_at
+       GROUP BY u.id, u.name, u.email, u.role, u.class_name, u.created_at
        ORDER BY u.created_at DESC`
     );
 
@@ -211,6 +211,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                 <tr>
                   <th>No</th>
                   <th>Nama Siswa</th>
+                  <th>Kelas (RPL)</th>
                   <th>Email</th>
                   <th>Role</th>
                   <th>Modul Selesai</th>
@@ -228,6 +229,13 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                         <span class="user-avatar-sm">{item.name.charAt(0).toUpperCase()}</span>
                         <strong class="user-name">{item.name}</strong>
                       </div>
+                    </td>
+                    <td>
+                      {item.class_name ? (
+                        <span class="badge badge-cyan">{item.class_name}</span>
+                      ) : (
+                        <span class="badge badge-muted">-</span>
+                      )}
                     </td>
                     <td class="email-col">{item.email}</td>
                     <td>
@@ -290,10 +298,11 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
 
       // UTF-8 BOM for Excel compatibility
       let csv = '\uFEFF';
-      csv += 'No,Nama Siswa,Email,Role,Modul Selesai,Total Modul,Persentase,Peringkat Rank,Tanggal Terdaftar\n';
+      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase,Peringkat Rank,Tanggal Terdaftar\n';
 
       studentsData.forEach((s, idx) => {
         const name = `"${(s.name || '').replace(/"/g, '""')}"`;
+        const className = `"${(s.class_name || '-').replace(/"/g, '""')}"`;
         const email = `"${(s.email || '').replace(/"/g, '""')}"`;
         const role = s.role || 'student';
         const completed = s.completed_count || 0;
@@ -301,7 +310,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
         const rank = `"${s.rankTitle || ''}"`;
         const date = new Date(s.created_at).toLocaleDateString('id-ID');
 
-        csv += `${idx + 1},${name},${email},${role},${completed},${totalLessonsCount},${pct},${rank},${date}\n`;
+        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${rank},${date}\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

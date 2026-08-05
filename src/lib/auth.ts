@@ -7,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  class_name?: string;
   created_at?: Date;
 }
 
@@ -31,7 +32,7 @@ export async function createSession(userId: number): Promise<string> {
 export async function getSessionUser(sessionId?: string): Promise<User | null> {
   if (!sessionId) return null;
   const res = await query(
-    `SELECT users.id, users.name, users.email, users.role, users.created_at
+    `SELECT users.id, users.name, users.email, users.role, users.class_name, users.created_at
      FROM sessions
      JOIN users ON sessions.user_id = users.id
      WHERE sessions.id = $1 AND sessions.expires_at > NOW()`,

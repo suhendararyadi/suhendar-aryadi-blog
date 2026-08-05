@@ -111,12 +111,24 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
         <div class="profile-info">
           <div class="profile-badges">
             <span class="badge badge-role">{user.role.toUpperCase()}</span>
+            {user.class_name ? (
+              <span class="badge badge-cyan">{user.class_name}</span>
+            ) : (
+              <span class="badge badge-muted">Kelas Belum Diisi</span>
+            )}
             <span class={`badge ${rankInfo.badgeClass}`}>{rankInfo.title}</span>
           </div>
           <h1 class="profile-name">{user.name}</h1>
           <p class="profile-email">{user.email}</p>
         </div>
         <div class="profile-actions">
+          <button id="open-edit-profile-btn" class="btn btn-primary btn-sm" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Edit Profil</span>
+          </button>
           <a href="/belajar/sql/leaderboard" class="btn btn-outline btn-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
@@ -239,6 +251,84 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
       )}
     </div>
 
+  <!-- Modal Edit Profil Siswa -->
+  <div id="edit-profile-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div>
+            <h2 class="modal-title">Edit Profil Pengguna</h2>
+            <p class="modal-sub">Perbarui nama lengkap, identitas kelas, atau password Anda.</p>
+          </div>
+        </div>
+        <button id="close-modal-btn" class="modal-close" type="button" aria-label="Tutup Modal">&times;</button>
+      </div>
+
+      <div id="profile-error-banner" class="alert alert-error" style="display: none;"></div>
+      <div id="profile-success-banner" class="alert alert-success" style="display: none;"></div>
+
+      <form id="edit-profile-form" class="modal-form">
+        <div class="form-group">
+          <label for="edit-name">Nama Lengkap Siswa / Pengguna</label>
+          <input
+            type="text"
+            id="edit-name"
+            name="name"
+            value={user.name}
+            required
+            placeholder="Contoh: Budi Santoso"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="edit-class-select">Identitas Kelas (RPL / Vokasi)</label>
+          <select id="edit-class-select" class="form-select">
+            <option value="" disabled selected={!user.class_name}>-- Pilih Rombel / Kelas --</option>
+            <option value="X RPL 1" selected={user.class_name === 'X RPL 1'}>X RPL 1</option>
+            <option value="X RPL 2" selected={user.class_name === 'X RPL 2'}>X RPL 2</option>
+            <option value="XI RPL 1" selected={user.class_name === 'XI RPL 1'}>XI RPL 1</option>
+            <option value="XI RPL 2" selected={user.class_name === 'XI RPL 2'}>XI RPL 2</option>
+            <option value="XII RPL 1" selected={user.class_name === 'XII RPL 1'}>XII RPL 1</option>
+            <option value="XII RPL 2" selected={user.class_name === 'XII RPL 2'}>XII RPL 2</option>
+            <option value="CUSTOM" selected={!!user.class_name && !['X RPL 1', 'X RPL 2', 'XI RPL 1', 'XI RPL 2', 'XII RPL 1', 'XII RPL 2'].includes(user.class_name)}>Lainnya (Ketik Manual...)</option>
+          </select>
+          <input
+            type="text"
+            id="edit-class-custom"
+            name="class_name_custom"
+            value={user.class_name || ''}
+            placeholder="Contoh: XI PPLG 3 / Kelas Khusus"
+            style="display: none; margin-top: 0.5rem;"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="edit-password">Password Baru (Opsional)</label>
+          <input
+            type="password"
+            id="edit-password"
+            name="password"
+            placeholder="Biarkan kosong jika tidak ingin mengubah password"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button id="cancel-modal-btn" class="btn btn-secondary" type="button">Batal</button>
+          <button type="submit" id="save-profile-btn" class="btn btn-primary">
+            <span class="btn-text">Simpan Perubahan</span>
+            <span class="btn-spinner" style="display: none;">Memproses...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
   </div>
 </MainLayout>
 
@@ -250,6 +340,95 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
       window.location.href = '/auth/login';
     } catch (err) {
       console.error('Logout error:', err);
+    }
+  });
+
+  // Modal Edit Profil Handlers
+  const openModalBtn = document.getElementById('open-edit-profile-btn');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const cancelModalBtn = document.getElementById('cancel-modal-btn');
+  const editProfileModal = document.getElementById('edit-profile-modal');
+  const editProfileForm = document.getElementById('edit-profile-form') as HTMLFormElement | null;
+  const classSelect = document.getElementById('edit-class-select') as HTMLSelectElement | null;
+  const classCustomInput = document.getElementById('edit-class-custom') as HTMLInputElement | null;
+
+  if (classSelect && classCustomInput) {
+    function checkCustomClass() {
+      if (classSelect && classCustomInput) {
+        if (classSelect.value === 'CUSTOM') {
+          classCustomInput.style.display = 'block';
+        } else {
+          classCustomInput.style.display = 'none';
+        }
+      }
+    }
+    classSelect.addEventListener('change', checkCustomClass);
+    checkCustomClass();
+  }
+
+  function toggleModal(show: boolean) {
+    if (editProfileModal) {
+      editProfileModal.style.display = show ? 'flex' : 'none';
+    }
+  }
+
+  openModalBtn?.addEventListener('click', () => toggleModal(true));
+  closeModalBtn?.addEventListener('click', () => toggleModal(false));
+  cancelModalBtn?.addEventListener('click', () => toggleModal(false));
+
+  editProfileModal?.addEventListener('click', (e) => {
+    if (e.target === editProfileModal) {
+      toggleModal(false);
+    }
+  });
+
+  editProfileForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorBanner = document.getElementById('profile-error-banner');
+    const successBanner = document.getElementById('profile-success-banner');
+    const saveBtn = document.getElementById('save-profile-btn') as HTMLButtonElement | null;
+    const nameInput = document.getElementById('edit-name') as HTMLInputElement | null;
+    const passwordInput = document.getElementById('edit-password') as HTMLInputElement | null;
+
+    if (errorBanner) errorBanner.style.display = 'none';
+    if (successBanner) successBanner.style.display = 'none';
+
+    let finalClassName = classSelect?.value || '';
+    if (finalClassName === 'CUSTOM') {
+      finalClassName = classCustomInput?.value.trim() || '';
+    }
+
+    const payload = {
+      name: nameInput?.value.trim(),
+      class_name: finalClassName,
+      password: passwordInput?.value || ''
+    };
+
+    if (saveBtn) saveBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal menyimpan profil.');
+
+      if (successBanner) {
+        successBanner.innerText = data.message || 'Profil berhasil diperbarui!';
+        successBanner.style.display = 'block';
+      }
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    } catch (err: any) {
+      if (errorBanner) {
+        errorBanner.innerText = err.message || 'Terjadi kesalahan.';
+        errorBanner.style.display = 'block';
+      }
+      if (saveBtn) saveBtn.disabled = false;
     }
   });
 </script>
@@ -677,5 +856,123 @@ const pathAnalytics = LEARNING_PATHS.map((path) => {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
+  }
+
+  /* Modal Backdrop & Form */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 2rem;
+    border-radius: var(--radius-2xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(99, 102, 241, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .modal-title-group {
+    display: flex;
+    gap: 0.875rem;
+    align-items: flex-start;
+  }
+
+  .modal-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--accent-gradient);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .modal-sub {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .modal-close:hover {
+    color: var(--text-primary);
+  }
+
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .form-group input, .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+
+  .form-group input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
   }
 </style>
