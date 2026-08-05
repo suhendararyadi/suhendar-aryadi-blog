@@ -1,0 +1,899 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+let user: any = null;
+try {
+  user = await getSessionUser(sessionId);
+} catch (e) {
+  // Ignore fallback
+}
+
+const hardwareComponents = [
+  {
+    name: 'Central Processing Unit (CPU)',
+    category: 'Pemrosesan Utama',
+    desc: 'Otak komputer yang melakukan perhitungan aritmatika (ALU) dan mengendalikan alur instruksi (CU).',
+    specs: ['Clock Speed (GHz)', 'Core & Thread Count', 'Cache L1/L2/L3', 'Arsitektur x86/ARM'],
+    icon: '⚡'
+  },
+  {
+    name: 'Random Access Memory (RAM)',
+    category: 'Memori Utama (Volatile)',
+    desc: 'Penyimpanan sementara berkecepatan sangat tinggi tempat data program yang sedang berjalan dimuat.',
+    specs: ['Kapasitas (GB)', 'Kecepatan (MHz/MT/s)', 'Tipe (DDR4/DDR5)', 'Bandwidth Data'],
+    icon: '💾'
+  },
+  {
+    name: 'Non-Volatile Storage (SSD NVMe / HDD)',
+    category: 'Penyimpanan Sekunder',
+    desc: 'Menyimpan berkas sistem operasi, aplikasi, dan data pengguna secara permanen bahkan saat daya mati.',
+    specs: ['Read/Write Speed (MB/s)', 'Kapasitas (GB/TB)', 'Interface PCIe Gen4', 'Form Factor M.2'],
+    icon: '💽'
+  },
+  {
+    name: 'Motherboard & Bus System',
+    category: 'Jalur Komunikasi Hardware',
+    desc: 'Papan sirkuit utama tempat seluruh komponen terhubung via Address Bus, Data Bus, dan Control Bus.',
+    specs: ['Chipset MoBo', 'PCIe Slots', 'Socket Processor', 'Bus Width (64-bit)'],
+    icon: '🎛️'
+  }
+];
+---
+
+<MainLayout
+  title="Elemen 3: Sistem Komputer (SK) | Informatika SMK Class X"
+  description="Modul & Simulator Interaktif Sistem Komputer: Arsitektur von Neumann, Siklus Instruksi CPU (Fetch-Decode-Execute), Hardware, Software, & Process Scheduler OS."
+>
+  <div class="sk-container">
+    <!-- Top Nav -->
+    <div class="page-top-nav">
+      <a href="/belajar/informatika" class="btn btn-outline btn-sm">
+        ← Kembali ke Katalog Informatika
+      </a>
+      <div class="top-nav-right">
+        <span class="badge badge-cyan">ELEMEN 3 - SISTEM KOMPUTER (SK)</span>
+      </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="sk-hero glass-card">
+      <div class="hero-badge">
+        <span class="badge badge-purple">FASE E KELAS X SMK</span>
+      </div>
+      <h1 class="hero-title">Sistem Komputer: Arsitektur &amp; Sistem Operasi</h1>
+      <p class="hero-subtitle">
+        Pelajari bagaimana perangkat keras (Hardware) dan perangkat lunak (Software) berkolaborasi mengolah instruksi program melalui <strong>Arsitektur von Neumann</strong> dan manajemen memori <strong>Sistem Operasi</strong>.
+      </p>
+    </div>
+
+    <!-- Section 1: Von Neumann Architecture -->
+    <div class="section-block">
+      <div class="section-header-badge">
+        <h2>1. Arsitektur Komputer von Neumann &amp; Komponen Utama</h2>
+        <p>Hampir seluruh komputer modern dirancang berdasarkan model arsitektur von Neumann yang terdiri dari Unit Pemrosesan (CPU), Memori Utama, Input/Output, dan Penyimpanan Sekunder.</p>
+      </div>
+
+      <div class="hardware-grid">
+        {hardwareComponents.map(item => (
+          <div class="hardware-card glass-card">
+            <div class="hardware-top">
+              <span class="hardware-icon">{item.icon}</span>
+              <div>
+                <h3 class="hardware-name">{item.name}</h3>
+                <span class="hardware-cat">{item.category}</span>
+              </div>
+            </div>
+            <p class="hardware-desc">{item.desc}</p>
+            <div class="hardware-specs">
+              <strong>Spesifikasi Penting:</strong>
+              <ul>
+                {item.specs.map(spec => (
+                  <li>{spec}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Simulator 1: CPU Instruction Cycle (Fetch - Decode - Execute - Store) -->
+    <div class="section-block margin-top-lg">
+      <div class="section-header-badge">
+        <h2>2. Simulator Interaktif: Siklus Instruksi CPU (Fetch - Decode - Execute)</h2>
+        <p>Lihat bagaimana CPU mengeksekusi instruksi program dari RAM selangkah demi selangkah melalui Unit Kontrol (CU), Register, dan ALU.</p>
+      </div>
+
+      <div class="simulator-card glass-card">
+        <div class="sim-controls">
+          <div class="sim-select-group">
+            <label for="instruction-select"><strong>Pilih Instruksi Program:</strong></label>
+            <select id="instruction-select" class="form-select">
+              <option value="add">LOAD R1, [100] ; ADD R1, #5 (Penjumlahan Aritmatika)</option>
+              <option value="sub">LOAD R1, [104] ; SUB R1, #2 (Pengurangan ALU)</option>
+              <option value="store">STORE R1, [108] (Simpan Hasil ke RAM)</option>
+            </select>
+          </div>
+
+          <div class="sim-btn-group">
+            <button id="step-btn" class="btn btn-primary btn-sm" type="button">
+              <span>Langkah Berikutnya (Next Step) →</span>
+            </button>
+            <button id="auto-btn" class="btn btn-secondary btn-sm" type="button">
+              <span>Jalankan Otomatis</span>
+            </button>
+            <button id="reset-sim-btn" class="btn btn-outline btn-sm" type="button">
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Architecture Diagram -->
+        <div class="architecture-diagram">
+          <!-- CPU Box -->
+          <div class="diagram-box cpu-box">
+            <div class="box-title">Central Processing Unit (CPU)</div>
+            <div class="cpu-subgrid">
+              <div id="cu-node" class="cpu-node">
+                <div class="node-title">Control Unit (CU)</div>
+                <div id="cu-state" class="node-state">IDLE</div>
+              </div>
+              <div id="alu-node" class="cpu-node">
+                <div class="node-title">ALU (Aritmatika)</div>
+                <div id="alu-state" class="node-state">ALU: 0</div>
+              </div>
+              <div id="reg-node" class="cpu-node">
+                <div class="node-title">Registers</div>
+                <div id="reg-state" class="node-state">PC: 0x00 | R1: 0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bus System Connector -->
+          <div class="bus-connector">
+            <div id="bus-data" class="bus-line">Control &amp; Data Bus (64-bit)</div>
+          </div>
+
+          <!-- RAM Box -->
+          <div class="diagram-box ram-box">
+            <div class="box-title">Main Memory (RAM)</div>
+            <div class="ram-cells">
+              <div id="ram-cell-100" class="ram-cell">
+                <span class="cell-addr">0x100</span>
+                <span class="cell-val">Data: 15</span>
+              </div>
+              <div id="ram-cell-104" class="ram-cell">
+                <span class="cell-addr">0x104</span>
+                <span class="cell-val">Data: 8</span>
+              </div>
+              <div id="ram-cell-108" class="ram-cell">
+                <span class="cell-addr">0x108</span>
+                <span class="cell-val">Hasil: --</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Explanation Log -->
+        <div class="step-log-card">
+          <div class="log-header">
+            <strong>Log Eksekusi CPU Status:</strong>
+            <span id="current-phase-badge" class="badge badge-cyan">FASE: READY</span>
+          </div>
+          <div id="log-content" class="log-text">
+            Klik tombol "Langkah Berikutnya" untuk memulai eksekusi instruksi CPU dari RAM.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simulator 2: CPU Process Scheduler (Sistem Operasi) -->
+    <div class="section-block margin-top-lg">
+      <div class="section-header-badge">
+        <h2>3. Simulator Interaktif: Process Scheduler &amp; CPU Time-Sharing OS</h2>
+        <p>Sistem Operasi mengelola eksekusi banyak proses secara bersamaan (*Multitasking*). Uji algoritma penjadwalan CPU <strong>First-Come-First-Served (FCFS)</strong> vs <strong>Round Robin (RR)</strong>.</p>
+      </div>
+
+      <div class="scheduler-card glass-card">
+        <div class="scheduler-controls">
+          <div class="algo-select">
+            <label><strong>Algoritma Penjadwalan:</strong></label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="algo" value="fcfs" checked /> FCFS (Non-Preemptive)
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="algo" value="rr" /> Round Robin (Time Quantum = 2s)
+              </label>
+            </div>
+          </div>
+
+          <div class="scheduler-actions">
+            <button id="run-scheduler-btn" class="btn btn-primary btn-sm" type="button">
+              <span>Simulasikan CPU Scheduler →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Process Queue & Execution Timeline -->
+        <div class="scheduler-grid">
+          <div class="queue-list">
+            <h4>Daftar Antrean Proses (Ready Queue)</h4>
+            <div class="process-item">
+              <span class="p-id p-chrome">P1: Browser Chrome</span>
+              <span class="p-burst">Burst Time: 6 detik</span>
+            </div>
+            <div class="process-item">
+              <span class="p-id p-vscode">P2: VS Code Editor</span>
+              <span class="p-burst">Burst Time: 4 detik</span>
+            </div>
+            <div class="process-item">
+              <span class="p-id p-spotify">P3: Music Player</span>
+              <span class="p-burst">Burst Time: 2 detik</span>
+            </div>
+          </div>
+
+          <div class="timeline-box">
+            <h4>Gantt Chart Eksekusi CPU (Timeline)</h4>
+            <div id="gantt-timeline" class="gantt-chart">
+              <p class="placeholder-text">Klik "Simulasikan CPU Scheduler" untuk melihat alokasi waktu CPU.</p>
+            </div>
+            <div id="scheduler-stats" class="scheduler-stats">
+              <!-- Stats output -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  // Simulator 1: CPU Instruction Cycle Logic
+  let currentStep = 0;
+  let autoInterval: any = null;
+
+  const stepBtn = document.getElementById('step-btn');
+  const autoBtn = document.getElementById('auto-btn');
+  const resetBtn = document.getElementById('reset-sim-btn');
+  const instrSelect = document.getElementById('instruction-select') as HTMLSelectElement;
+
+  const cuNode = document.getElementById('cu-node');
+  const aluNode = document.getElementById('alu-node');
+  const regNode = document.getElementById('reg-node');
+  const cuState = document.getElementById('cu-state');
+  const aluState = document.getElementById('alu-state');
+  const regState = document.getElementById('reg-state');
+  const phaseBadge = document.getElementById('current-phase-badge');
+  const logContent = document.getElementById('log-content');
+  const busData = document.getElementById('bus-data');
+  const ramCell108 = document.getElementById('ram-cell-108');
+
+  const stepsData = {
+    add: [
+      {
+        phase: '1. FETCH (Mengambil Instruksi)',
+        cu: 'FETCHING @ 0x100',
+        alu: 'ALU: 0',
+        reg: 'PC: 0x100 | R1: 0',
+        log: 'CU (Control Unit) mengambil data nilai 15 dari memori RAM alamat 0x100 melalui Data Bus.',
+        highlight: 'fetch'
+      },
+      {
+        phase: '2. DECODE (Menerjemahkan)',
+        cu: 'DECODING: LOAD & ADD',
+        alu: 'ALU: 0',
+        reg: 'PC: 0x100 | R1: 15',
+        log: 'Instruksi diterjemahkan: Muat nilai 15 ke Register R1. Siapkan operasi penjumlahan + 5.',
+        highlight: 'decode'
+      },
+      {
+        phase: '3. EXECUTE (Mengeksekusi Aritmatika)',
+        cu: 'EXECUTING ALU ADD',
+        alu: 'ALU RESULT: 20',
+        reg: 'PC: 0x104 | R1: 20',
+        log: 'ALU (Arithmetic Logic Unit) menjumlahkan data R1 (15) + 5 = 20. Hasil disimpan di Register.',
+        highlight: 'execute'
+      },
+      {
+        phase: '4. STORE (Menyimpan)',
+        cu: 'STORE COMPLETE',
+        alu: 'ALU RESULT: 20',
+        reg: 'PC: 0x108 | R1: 20',
+        log: 'Siklus selesai. Nilai 20 siap digunakan untuk instruksi program berikutnya.',
+        highlight: 'store'
+      }
+    ],
+    sub: [
+      {
+        phase: '1. FETCH (Mengambil Data)',
+        cu: 'FETCHING @ 0x104',
+        alu: 'ALU: 0',
+        reg: 'PC: 0x104 | R1: 0',
+        log: 'CU mengambil nilai 8 dari RAM alamat 0x104.',
+        highlight: 'fetch'
+      },
+      {
+        phase: '2. DECODE (Menerjemahkan SUB)',
+        cu: 'DECODING: SUB',
+        alu: 'ALU: 0',
+        reg: 'PC: 0x104 | R1: 8',
+        log: 'Instruksi diterjemahkan: Pengurangan R1 (8) - 2.',
+        highlight: 'decode'
+      },
+      {
+        phase: '3. EXECUTE (ALU Subtraction)',
+        cu: 'EXECUTING SUB',
+        alu: 'ALU RESULT: 6',
+        reg: 'PC: 0x108 | R1: 6',
+        log: 'ALU menghitung 8 - 2 = 6.',
+        highlight: 'execute'
+      },
+      {
+        phase: '4. STORE (Selesai)',
+        cu: 'SUB COMPLETE',
+        alu: 'ALU RESULT: 6',
+        reg: 'PC: 0x108 | R1: 6',
+        log: 'Siklus instruksi pengurangan selesai.',
+        highlight: 'store'
+      }
+    ],
+    store: [
+      {
+        phase: '1. FETCH (Fetch Store Cmd)',
+        cu: 'FETCHING STORE CMD',
+        alu: 'ALU: 20',
+        reg: 'PC: 0x108 | R1: 20',
+        log: 'CU mengambil instruksi penyimpan data ke RAM 0x108.',
+        highlight: 'fetch'
+      },
+      {
+        phase: '2. DECODE (Decode Store)',
+        cu: 'DECODING STORE',
+        alu: 'ALU: 20',
+        reg: 'PC: 0x108 | R1: 20',
+        log: 'Memilih alamat memori tujuan RAM 0x108.',
+        highlight: 'decode'
+      },
+      {
+        phase: '3. EXECUTE & STORE (Menulis ke RAM)',
+        cu: 'WRITING TO RAM 0x108',
+        alu: 'ALU: 20',
+        reg: 'PC: 0x108 | R1: 20',
+        log: 'Data 20 dikirim via Data Bus dan ditulis secara permanen di sel RAM 0x108!',
+        highlight: 'execute'
+      },
+      {
+        phase: '4. COMPLETE (Memory Updated)',
+        cu: 'WRITE SUCCESS',
+        alu: 'ALU: 20',
+        reg: 'PC: 0x10C | R1: 20',
+        log: 'Sel RAM 0x108 kini berisi nilai 20.',
+        highlight: 'store'
+      }
+    ]
+  };
+
+  function updateStepUI() {
+    const selectedMode = instrSelect.value as keyof typeof stepsData;
+    const currentSteps = stepsData[selectedMode];
+    const data = currentSteps[currentStep];
+
+    if (phaseBadge) phaseBadge.textContent = data.phase;
+    if (cuState) cuState.textContent = data.cu;
+    if (aluState) aluState.textContent = data.alu;
+    if (regState) regState.textContent = data.reg;
+    if (logContent) logContent.textContent = data.log;
+
+    // Highlight bus
+    if (busData) {
+      busData.classList.add('active-bus');
+      setTimeout(() => busData.classList.remove('active-bus'), 600);
+    }
+
+    if (selectedMode === 'store' && currentStep >= 2 && ramCell108) {
+      ramCell108.innerHTML = `<span class="cell-addr">0x108</span><span class="cell-val cell-updated">Hasil: 20</span>`;
+    }
+  }
+
+  function resetSim() {
+    currentStep = 0;
+    if (autoInterval) clearInterval(autoInterval);
+    autoInterval = null;
+    if (phaseBadge) phaseBadge.textContent = 'FASE: READY';
+    if (cuState) cuState.textContent = 'IDLE';
+    if (aluState) aluState.textContent = 'ALU: 0';
+    if (regState) regState.textContent = 'PC: 0x00 | R1: 0';
+    if (logContent) logContent.textContent = 'Klik "Langkah Berikutnya" untuk memulai eksekusi.';
+    if (ramCell108) ramCell108.innerHTML = `<span class="cell-addr">0x108</span><span class="cell-val">Hasil: --</span>`;
+  }
+
+  stepBtn?.addEventListener('click', () => {
+    const selectedMode = instrSelect.value as keyof typeof stepsData;
+    const maxSteps = stepsData[selectedMode].length;
+    updateStepUI();
+    currentStep = (currentStep + 1) % maxSteps;
+  });
+
+  autoBtn?.addEventListener('click', () => {
+    resetSim();
+    const selectedMode = instrSelect.value as keyof typeof stepsData;
+    const maxSteps = stepsData[selectedMode].length;
+    autoInterval = setInterval(() => {
+      updateStepUI();
+      currentStep++;
+      if (currentStep >= maxSteps) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+      }
+    }, 1200);
+  });
+
+  resetBtn?.addEventListener('click', resetSim);
+  instrSelect?.addEventListener('change', resetSim);
+
+  // Simulator 2: CPU Scheduler Logic
+  const runSchedulerBtn = document.getElementById('run-scheduler-btn');
+  const ganttTimeline = document.getElementById('gantt-timeline');
+  const schedulerStats = document.getElementById('scheduler-stats');
+
+  runSchedulerBtn?.addEventListener('click', () => {
+    const algo = (document.querySelector('input[name="algo"]:checked') as HTMLInputElement)?.value;
+
+    if (!ganttTimeline || !schedulerStats) return;
+
+    if (algo === 'fcfs') {
+      ganttTimeline.innerHTML = `
+        <div class="gantt-block g-p1" style="flex: 6;">P1 (Chrome 0-6s)</div>
+        <div class="gantt-block g-p2" style="flex: 4;">P2 (VSCode 6-10s)</div>
+        <div class="gantt-block g-p3" style="flex: 2;">P3 (Spotify 10-12s)</div>
+      `;
+      schedulerStats.innerHTML = `
+        <div class="stat-badge">Rata-rata Waktu Tunggu (Avg Waiting Time): <strong>5.33 detik</strong></div>
+        <div class="stat-badge">Efisiensi CPU Utilization: <strong>100%</strong></div>
+      `;
+    } else {
+      // Round Robin Time Quantum = 2s
+      ganttTimeline.innerHTML = `
+        <div class="gantt-block g-p1" style="flex: 2;">P1 (0-2s)</div>
+        <div class="gantt-block g-p2" style="flex: 2;">P2 (2-4s)</div>
+        <div class="gantt-block g-p3" style="flex: 2;">P3 (4-6s Finish)</div>
+        <div class="gantt-block g-p1" style="flex: 2;">P1 (6-8s)</div>
+        <div class="gantt-block g-p2" style="flex: 2;">P2 (8-10s Finish)</div>
+        <div class="gantt-block g-p1" style="flex: 2;">P1 (10-12s Finish)</div>
+      `;
+      schedulerStats.innerHTML = `
+        <div class="stat-badge">Rata-rata Waktu Tunggu (Avg Waiting Time): <strong>4.00 detik</strong></div>
+        <div class="stat-badge">Respon Time Interaktif: <strong>Sangat Cepat (Tidak ada starvation)</strong></div>
+      `;
+    }
+  });
+</script>
+
+<style>
+  .sk-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .sk-hero {
+    padding: 2.5rem 2rem;
+    margin-bottom: 2.5rem;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border: 1px solid var(--border-color);
+  }
+
+  .hero-badge {
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    max-width: 800px;
+  }
+
+  .section-block {
+    margin-top: 2rem;
+  }
+
+  .margin-top-lg {
+    margin-top: 3.5rem;
+  }
+
+  .section-header-badge h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-header-badge p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Hardware Grid */
+  .hardware-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 768px) {
+    .hardware-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .hardware-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .hardware-top {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .hardware-icon {
+    font-size: 2rem;
+  }
+
+  .hardware-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .hardware-cat {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hardware-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .hardware-specs {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .hardware-specs ul {
+    margin-top: 0.35rem;
+    padding-left: 1.25rem;
+    color: var(--text-muted);
+  }
+
+  /* Simulator Card Styling */
+  .simulator-card, .scheduler-card {
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+  }
+
+  .sim-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+  }
+
+  .sim-select-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .form-select {
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-weight: 500;
+
+  }
+
+  .sim-btn-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* Architecture Diagram */
+  .architecture-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .diagram-box {
+    flex: 1;
+    min-width: 280px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+  }
+
+  .box-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .cpu-subgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .cpu-node {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 0.5rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .node-title {
+    font-size: 0.725rem;
+    font-weight: 600;
+    color: var(--text-muted);
+
+  }
+
+  .node-state {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.25rem;
+    font-family: var(--font-mono);
+  }
+
+  .bus-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+  }
+
+  .bus-line {
+    background: var(--bg-tertiary);
+    border: 1px dashed var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+
+    transition: all 0.3s ease;
+  }
+
+  .active-bus {
+    border-color: #84cc16 !important;
+    background: rgba(132, 204, 22, 0.15) !important;
+    color: #84cc16 !important;
+    box-shadow: 0 0 12px rgba(132, 204, 22, 0.4);
+  }
+
+  .ram-cells {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .ram-cell {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0.85rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .cell-addr {
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  .cell-val {
+    color: var(--text-primary);
+  }
+
+  .cell-updated {
+    color: #84cc16 !important;
+    font-weight: 700;
+  }
+
+  /* Log Box */
+  .step-log-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+  }
+
+  .log-text {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Scheduler Card */
+  .scheduler-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+
+  .radio-group {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .scheduler-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 840px) {
+    .scheduler-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .queue-list h4, .timeline-box h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.85rem;
+  }
+
+  .process-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.6rem;
+  }
+
+  .p-id {
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .p-chrome { color: #6366f1; }
+  .p-vscode { color: #06b6d4; }
+  .p-spotify { color: #84cc16; }
+
+  .p-burst {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+  }
+
+  .gantt-chart {
+    display: flex;
+    height: 3rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .placeholder-text {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .gantt-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.775rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .g-p1 { background: #4f46e5; }
+  .g-p2 { background: #0891b2; }
+  .g-p3 { background: #65a30d; }
+
+  .scheduler-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-badge {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .stat-badge strong {
+    color: var(--text-primary);
+  }
+</style>
