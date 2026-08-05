@@ -4,14 +4,66 @@ import { getSessionUser } from '../../../lib/auth';
 
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
+
+const pillars = [
+  {
+    icon: '🧩',
+    title: '1. Dekomposisi (Decomposition)',
+    subtitle: 'Memecah Masalah Kompleks',
+    desc: 'Kemampuan memecah satu masalah besar atau sistem perangkat lunak yang rumit menjadi komponen-komponen kecil yang lebih mudah dipahami dan dikelola.',
+    example: 'Contoh RPL: Memecah aplikasi E-Kantin menjadi modul Katalog Produk, Keranjang Belanja, Gateway Pembayaran, dan Sistem Antrean.'
+  },
+  {
+    icon: '🔍',
+    title: '2. Pengenalan Pola (Pattern Recognition)',
+    subtitle: 'Menemukan Kesamaan & Keselarasan',
+    desc: 'Kemampuan mengenali kemiripan, pola berulang, atau tren di antara berbagai masalah yang pernah diselesaikan sebelumnya.',
+    example: 'Contoh RPL: Mengenali bahwa fitur Login Siswa, Login Guru, dan Login Admin memiliki alur autentikasi dan validasi formulir yang serupa.'
+  },
+  {
+    icon: '💡',
+    title: '3. Abstraksi (Abstraction)',
+    subtitle: 'Fokus pada Hal Penting',
+    desc: 'Kemampuan menyaring dan memfokuskan perhatian pada informasi penting saja, serta mengabaikan detail-detail yang tidak relevan.',
+    example: 'Contoh RPL: Saat merancang tabel database Siswa, kita hanya menyimpan Nama, NIS, dan Kelas, serta mengabaikan warna sepatu atau hobi siswa.'
+  },
+  {
+    icon: '⚙️',
+    title: '4. Perancangan Algoritma (Algorithm Design)',
+    subtitle: 'Merancang Langkah Sistematis',
+    desc: 'Kemampuan menyusun urutan langkah-langkah logis dan sistematis untuk menyelesaikan masalah atau menjalankan perintah komputer.',
+    example: 'Contoh RPL: Menyusun pseudocode/flowchart alur checkout belanja: Cek Stok -> Hitung Total -> Potong Saldo -> Buat Struk.'
+  }
+];
+
+const caseStudies = [
+  {
+    id: 'kiosk',
+    title: '📱 Studi Kasus A: Sistem Self-Service Restoran',
+    desc: 'Penerapan 4 Pilar BK dalam merancang sistem kasir mandiri restoran cepat saji.',
+    deco: 'Sub-Sistem: Katalog Menu, Order Cart, Payment Gateway, Display Antrean Dapur.',
+    pola: 'Pola Autentikasi Kasir & Validasi Input Pembayaran.',
+    abstraksi: 'Data Utama: ID Transaksi, Nama Menu, Harga, No Antrean. (Abaikan warna baju pembeli).',
+    algoritma: 'Algoritma Queue (FIFO) untuk nomor urut antrean pesanan di dapur.'
+  },
+  {
+    id: 'ekantin',
+    title: '🛍️ Studi Kasus B: Marketplace E-Kantin Sekolah',
+    desc: 'Penerapan 4 Pilar BK untuk mengatasi desakan siswa saat jam istirahat sekolah.',
+    deco: 'Sub-Sistem: Profil Merchant, Pre-Order Menu, Saldo Digital, Notifikasi Siap Ambil.',
+    pola: 'Pola Pencarian Menu & Pengurutan Harga Termurah.',
+    abstraksi: 'Data Utama: ID Siswa, Saldo, Status Pesanan (Pending/Proses/Selesai).',
+    algoritma: 'Algoritma Binary Search untuk pencarian cepat menu makanan.'
+  }
+];
 ---
 
 <MainLayout
-  title="Elemen 1: Berpikir Komputasional Visualizer | Informatika SMK"
-  description="Simulator Visual Interaktif untuk Algoritma Searching, Sorting, Stack, dan Queue."
+  title="Elemen 1: Berpikir Komputasional (Computational Thinking) | Informatika SMK"
+  description="Kuasai 4 Fondasi Berpikir Komputasional (Dekomposisi, Pengenalan Pola, Abstraksi, Algoritma) & Simulator Visualizer Interaktif."
 >
   <div class="bk-page-container">
-    <!-- Header Navigation -->
+    <!-- Top Nav -->
     <div class="page-top-nav">
       <a href="/belajar/informatika" class="btn btn-outline btn-sm">
         &larr; Kembali ke Katalog Informatika
@@ -19,15 +71,75 @@ const user = await getSessionUser(sessionId);
       <span class="badge badge-purple">ELEMEN 1 — BERPIKIR KOMPUTASIONAL</span>
     </div>
 
-    <!-- Intro Card -->
+    <!-- Hero Intro -->
     <div class="intro-card glass-card">
-      <h1 class="intro-title">Visualizer Simulator: Algoritma &amp; Struktur Data</h1>
+      <div class="hero-badge">
+        <span class="badge badge-cyan">SUPERPOWER PEMECAHAN MASALAH</span>
+      </div>
+      <h1 class="intro-title">Berpikir Komputasional: 4 Fondasi Utamanya</h1>
       <p class="intro-desc">
-        Pahami bagaimana algoritma <strong>Searching (Linear &amp; Binary)</strong>, <strong>Sorting (Bubble &amp; Selection Sort)</strong>, serta <strong>Struktur Data (Stack &amp; Queue)</strong> bekerja di dalam memori komputer melalui simulasi visual interaktif di bawah ini.
+        <strong>Berpikir Komputasional (Computational Thinking)</strong> bukan sekadar tentang cara menulis program komputer, melainkan kerangka berpikir (*mindset*) untuk memecahkan persoalan kompleks secara logis, efisien, dan terstruktur.
       </p>
     </div>
 
-    <!-- Simulator Controls Tabs -->
+    <!-- 4 Pillars Section -->
+    <div class="section-title">
+      <h2>4 Fondasi Utama Berpikir Komputasional</h2>
+      <p>Setiap solusi perangkat lunak hebat selalu dibangun di atas 4 pilar dasar ini:</p>
+    </div>
+
+    <div class="pillars-grid">
+      {pillars.map(p => (
+        <div class="pillar-card glass-card">
+          <div class="pillar-top">
+            <span class="pillar-icon">{p.icon}</span>
+            <div>
+              <h3 class="pillar-title">{p.title}</h3>
+              <span class="pillar-sub">{p.subtitle}</span>
+            </div>
+          </div>
+          <p class="pillar-desc">{p.desc}</p>
+          <div class="pillar-example">
+            <strong>💡 Penerapan di Dunia RPL:</strong>
+            <p>{p.example}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Data vs Informasi Section -->
+    <div class="data-info-card glass-card">
+      <h2>📊 Konsep Siklus Data &amp; Informasi (Input &rarr; Proses &rarr; Output)</h2>
+      <p>
+        Data adalah fakta/nilai mentah (misal: angka <code>37</code> atau <code>85</code>). Ketika data diolah menggunakan <strong>Algoritma</strong> yang tepat dan diberi konteks, data berubah menjadi <strong>Informasi</strong> bermakna untuk pengambilan keputusan (misal: <code>"Suhu Budi 37°C = Normal"</code>).
+      </p>
+      <div class="cycle-grid">
+        <div class="cycle-step">
+          <span class="step-num">1. INPUT</span>
+          <strong>Data Mentah</strong>
+          <span>Angka, Teks, Simbol, Gambar Mentah</span>
+        </div>
+        <div class="cycle-arrow">&rarr;</div>
+        <div class="cycle-step">
+          <span class="step-num">2. PROSES</span>
+          <strong>Algoritma Pengolahan</strong>
+          <span>Searching, Sorting, Formulasi Logika</span>
+        </div>
+        <div class="cycle-arrow">&rarr;</div>
+        <div class="cycle-step">
+          <span class="step-num">3. OUTPUT</span>
+          <strong>Informasi Bermakna</strong>
+          <span>Rekap Nilai, Keputusan &amp; Laporan</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualizer Simulator Section -->
+    <div class="sim-section-header">
+      <h2>🛠️ Interactive Visualizer: Searching, Sorting, Stack &amp; Queue</h2>
+      <p>Simulasikan cara kerja algoritma dan struktur data di dalam memori komputer secara langsung:</p>
+    </div>
+
     <div class="sim-wrapper glass-card">
       <div class="sim-tabs">
         <button class="sim-tab active" data-mode="bubble">Bubble Sort</button>
@@ -41,7 +153,7 @@ const user = await getSessionUser(sessionId);
       <!-- Action & Control Bar -->
       <div class="sim-control-bar">
         <div class="control-left">
-          <label for="array-size-input">Data (Array):</label>
+          <label for="array-data-input">Data (Array):</label>
           <input type="text" id="array-data-input" class="sim-input" value="45, 12, 89, 34, 67, 23, 90" />
           <button id="reset-sim-btn" class="btn btn-secondary btn-sm" type="button">Reset Data</button>
         </div>
@@ -61,22 +173,26 @@ const user = await getSessionUser(sessionId);
       </div>
     </div>
 
-    <!-- Concept Theory & Explanation -->
-    <div class="theory-grid">
-      <div class="theory-card glass-card">
-        <h3>🔍 Searching (Pencarian Data)</h3>
-        <p><strong>Linear Search:</strong> Memeriksa data satu per satu dari awal sampai ketemu. Cocok untuk data tidak terurut.</p>
-        <p><strong>Binary Search:</strong> Membagi data menjadi 2 bagian secara berulang. <em>Syarat wajib: data harus sudah terurut!</em></p>
+    <!-- Case Studies Explorer -->
+    <div class="case-studies-section">
+      <div class="section-title">
+        <h2>📁 Case Study Explorer: Analisis Kasus Perangkat Lunak RPL</h2>
+        <p>Lihat contoh bagaimana 4 Pilar BK diterapkan pada proyek sistem industri nyata:</p>
       </div>
-      <div class="theory-card glass-card">
-        <h3>📊 Sorting (Pengurutan Data)</h3>
-        <p><strong>Bubble Sort:</strong> Membandingkan dua elemen berdampingan dan menukarnya jika urutannya salah sampai gelembung data terbesar berada di posisi akhir.</p>
-        <p><strong>Selection Sort:</strong> Mencari nilai terkecil dari sisa array, lalu menukarnya ke posisi paling depan secara berurutan.</p>
-      </div>
-      <div class="theory-card glass-card">
-        <h3>📦 Stack &amp; Queue (Struktur Data)</h3>
-        <p><strong>Stack (LIFO - Last In First Out):</strong> Elemen terakhir yang masuk adalah yang pertama kali keluar (seperti tumpukan piring).</p>
-        <p><strong>Queue (FIFO - First In First Out):</strong> Elemen pertama yang masuk adalah yang pertama kali keluar (seperti antrean kantin).</p>
+
+      <div class="cases-grid">
+        {caseStudies.map(c => (
+          <div class="case-card glass-card">
+            <h3>{c.title}</h3>
+            <p class="case-desc">{c.desc}</p>
+            <ul class="case-details">
+              <li><strong>🧩 Dekomposisi:</strong> {c.deco}</li>
+              <li><strong>🔍 Pengenalan Pola:</strong> {c.pola}</li>
+              <li><strong>💡 Abstraksi:</strong> {c.abstraksi}</li>
+              <li><strong>⚙️ Algoritma:</strong> {c.algoritma}</li>
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   </div>
@@ -318,12 +434,12 @@ const user = await getSessionUser(sessionId);
 
 <style>
   .bk-page-container {
-    max-width: 1040px;
+    max-width: 1080px;
     margin: 1.5rem auto 4rem;
     padding: 0 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 
   .page-top-nav {
@@ -333,22 +449,169 @@ const user = await getSessionUser(sessionId);
   }
 
   .intro-card {
-    padding: 1.75rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .intro-title {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 800;
     color: var(--text-primary);
   }
 
   .intro-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .section-title h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .section-title p {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  /* 4 Pillars Grid */
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .pillars-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pillar-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pillar-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .pillar-icon {
+    font-size: 2rem;
+  }
+
+  .pillar-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .pillar-sub {
+    font-size: 0.8rem;
+    color: var(--accent-primary);
+    font-weight: 600;
+  }
+
+  .pillar-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .pillar-example {
+    background: var(--bg-secondary);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  /* Data vs Info Section */
+  .data-info-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .data-info-card h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .data-info-card p {
     font-size: 0.9375rem;
     color: var(--text-secondary);
     line-height: 1.6;
+  }
+
+  .cycle-grid {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: var(--bg-secondary);
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+  }
+
+  .cycle-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .step-num {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    letter-spacing: 0.05em;
+  }
+
+  .cycle-step strong {
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .cycle-step span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .cycle-arrow {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    font-weight: 800;
+  }
+
+  /* Simulator */
+  .sim-section-header h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .sim-section-header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
   }
 
   .sim-wrapper {
@@ -475,7 +738,6 @@ const user = await getSessionUser(sessionId);
     color: var(--text-primary);
   }
 
-  /* Stack & Queue visualizer */
   .stack-container, .queue-container {
     display: flex;
     gap: 0.75rem;
@@ -514,28 +776,48 @@ const user = await getSessionUser(sessionId);
     color: var(--text-primary);
   }
 
-  .theory-grid {
+  /* Case Studies */
+  .cases-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
     gap: 1.25rem;
+    margin-top: 1rem;
   }
 
-  .theory-card {
+  @media (max-width: 640px) {
+    .cases-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .case-card {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
   }
 
-  .theory-card h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
+  .case-card h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
     color: var(--text-primary);
   }
 
-  .theory-card p {
+  .case-desc {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+  }
+
+  .case-details {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
   }
 </style>
