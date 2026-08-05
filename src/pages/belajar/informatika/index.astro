@@ -122,22 +122,46 @@ const elements = [
   <div class="info-catalog-container">
     <!-- Header Banner -->
     <div class="catalog-hero glass-card">
-      <div class="hero-badge-wrap">
-        <span class="badge badge-purple">KURIKULUM MERDEKA SMK — FASE E</span>
-        <span class="badge badge-cyan">8 ELEMEN MATERI INTI</span>
-      </div>
-      <h1 class="catalog-title">
-        Mata Pelajaran <span class="text-gradient">Informatika</span>
-      </h1>
-      <p class="catalog-desc">
-        Selamat datang di pusat pembelajaran dan praktikum interaktif <strong>Informatika Kelas X SMK</strong> yang diampu oleh <strong>Suhendar Aryadi, S.Pd.,Gr.</strong> Pelajari konsep komputasi, analisis data, hingga praktik coding Python di browser.
-      </p>
-
-      {isTeacherOrAdmin && (
-        <div class="teacher-preview-pill">
-          <span>🔓 Mode Guru / Admin: Akses penuh ke seluruh lab praktikum &amp; simulator.</span>
+      <div class="hero-content">
+        <div class="hero-badge-wrap">
+          <span class="badge badge-purple">KURIKULUM MERDEKA SMK — FASE E</span>
+          <span class="badge badge-cyan">8 ELEMEN MATERI INTI</span>
         </div>
-      )}
+        <h1 class="catalog-title">
+          Mata Pelajaran <span class="text-gradient">Informatika</span>
+        </h1>
+        <p class="catalog-desc">
+          Selamat datang di pusat pembelajaran dan praktikum interaktif <strong>Informatika Kelas X SMK</strong> yang diampu oleh <strong>Suhendar Aryadi, S.Pd.,Gr.</strong> Pelajari konsep komputasi, analisis data, hingga praktik coding Python di browser.
+        </p>
+
+        {user ? (
+          <div class="user-status-card margin-top">
+            <div class="user-info">
+              <div class="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
+              <div>
+                <div class="user-name">Selamat datang kembali, <strong>{user.name}</strong></div>
+                <div class="user-progress-text">Kelas / Rombel: <strong>{user.class_name || 'X RPL'}</strong></div>
+              </div>
+            </div>
+            <div class="status-actions">
+              <a href="/dashboard" class="btn btn-secondary btn-sm">Dashboard Siswa</a>
+            </div>
+          </div>
+        ) : (
+          <div class="auth-prompt-card margin-top">
+            <div class="auth-prompt-text">
+              <div>
+                <strong>Simpan Progres Belajar Anda</strong>
+                <p>Login atau daftar akun siswa untuk mengerjakan LKPD Digital dan memantau progres 8 Elemen Informatika.</p>
+              </div>
+            </div>
+            <div class="auth-prompt-buttons">
+              <a href="/auth/login" class="btn btn-primary btn-sm">Login Siswa</a>
+              <a href="/auth/register" class="btn btn-outline btn-sm">Daftar Akun Baru</a>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
 
     <!-- 8 Elements Grid -->
