@@ -23,10 +23,6 @@ const navItems = [
   { href: '/tentang', label: 'Tentang Guru' },
 ];
 
-if (isTeacherOrAdmin) {
-  navItems.splice(2, 0, { href: '/admin/dashboard', label: 'Portal Guru 👑' });
-}
-
 function isActive(href: string): boolean {
   if (href === '/') {
     return pathname === '/';
@@ -63,7 +59,7 @@ function isActive(href: string): boolean {
       {user ? (
         isTeacherOrAdmin ? (
           <a href="/admin/dashboard" class="btn btn-primary btn-sm header-auth-btn">
-            <span>Portal Guru 👑</span>
+            <span>Portal Guru</span>
           </a>
         ) : (
           <a href="/dashboard" class="btn btn-outline btn-sm header-auth-btn">

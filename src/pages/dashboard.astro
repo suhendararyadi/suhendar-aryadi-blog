@@ -126,12 +126,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
         <div class="profile-actions">
           {isTeacherOrAdmin && (
             <a href="/admin/dashboard" class="btn btn-primary btn-sm btn-teacher-portal">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-              <span>Portal Guru 👑</span>
+              <span>Portal Guru</span>
             </a>
           )}
           <button id="open-edit-profile-btn" class="btn btn-secondary btn-sm" type="button">
@@ -160,7 +155,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     {isTeacherOrAdmin && (
       <div class="teacher-access-banner glass-card">
         <div class="teacher-banner-left">
-          <span class="badge badge-purple">PORTAL AKSES GURU & ADMIN 👑</span>
+          <span class="badge badge-purple">PORTAL AKSES GURU & ADMIN</span>
           <h2 class="teacher-banner-title">Rekap Nilai Siswa & Analitik Kelas</h2>
           <p class="teacher-banner-desc">
             Anda terautentikasi sebagai <strong>Guru / Admin</strong> ({user.email}). Akses dashboard guru untuk memantau progres seluruh siswa, melihat analitik modul tersulit, dan mengekspor rekap nilai ke Excel (CSV).
