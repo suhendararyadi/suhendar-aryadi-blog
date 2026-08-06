@@ -7,28 +7,28 @@ const user = await getSessionUser(sessionId);
 
 const pillars = [
   {
-    icon: '🧩',
+    icon: '01',
     title: '1. Dekomposisi (Decomposition)',
     subtitle: 'Memecah Masalah Kompleks',
     desc: 'Kemampuan memecah satu masalah besar atau sistem perangkat lunak yang rumit menjadi komponen-komponen kecil yang lebih mudah dipahami dan dikelola.',
     example: 'Contoh RPL: Memecah aplikasi E-Kantin menjadi modul Katalog Produk, Keranjang Belanja, Gateway Pembayaran, dan Sistem Antrean.'
   },
   {
-    icon: '🔍',
+    icon: '02',
     title: '2. Pengenalan Pola (Pattern Recognition)',
     subtitle: 'Menemukan Kesamaan & Keselarasan',
     desc: 'Kemampuan mengenali kemiripan, pola berulang, atau tren di antara berbagai masalah yang pernah diselesaikan sebelumnya.',
     example: 'Contoh RPL: Mengenali bahwa fitur Login Siswa, Login Guru, dan Login Admin memiliki alur autentikasi dan validasi formulir yang serupa.'
   },
   {
-    icon: '💡',
+    icon: '03',
     title: '3. Abstraksi (Abstraction)',
     subtitle: 'Fokus pada Hal Penting',
     desc: 'Kemampuan menyaring dan memfokuskan perhatian pada informasi penting saja, serta mengabaikan detail-detail yang tidak relevan.',
     example: 'Contoh RPL: Saat merancang tabel database Siswa, kita hanya menyimpan Nama, NIS, dan Kelas, serta mengabaikan warna sepatu atau hobi siswa.'
   },
   {
-    icon: '⚙️',
+    icon: '04',
     title: '4. Perancangan Algoritma (Algorithm Design)',
     subtitle: 'Merancang Langkah Sistematis',
     desc: 'Kemampuan menyusun urutan langkah-langkah logis dan sistematis untuk menyelesaikan masalah atau menjalankan perintah komputer.',
@@ -39,7 +39,7 @@ const pillars = [
 const caseStudies = [
   {
     id: 'kiosk',
-    title: '📱 Studi Kasus A: Sistem Self-Service Restoran',
+    title: 'Studi Kasus A: Sistem Self-Service Restoran',
     desc: 'Penerapan 4 Pilar BK dalam merancang sistem kasir mandiri restoran cepat saji.',
     deco: 'Sub-Sistem: Katalog Menu, Order Cart, Payment Gateway, Display Antrean Dapur.',
     pola: 'Pola Autentikasi Kasir & Validasi Input Pembayaran.',
@@ -48,7 +48,7 @@ const caseStudies = [
   },
   {
     id: 'ekantin',
-    title: '🛍️ Studi Kasus B: Marketplace E-Kantin Sekolah',
+    title: 'Studi Kasus B: Marketplace E-Kantin Sekolah',
     desc: 'Penerapan 4 Pilar BK untuk mengatasi desakan siswa saat jam istirahat sekolah.',
     deco: 'Sub-Sistem: Profil Merchant, Pre-Order Menu, Saldo Digital, Notifikasi Siap Ambil.',
     pola: 'Pola Pencarian Menu & Pengurutan Harga Termurah.',
@@ -227,16 +227,11 @@ const caseStudies = [
           <!-- 1. Identitas -->
           <div class="sample-section">
             <h4 class="sample-sec-title">1. Identitas Tim &amp; Studi Kasus</h4>
-            <div class="sample-grid-2">
-              <div><strong>Nama Tim / Kelompok:</strong> Tim Cypher RPL 1</div>
-              <div><strong>Kelas &amp; Rombel:</strong> X RPL 1</div>
               <div class="full-width"><strong>Studi Kasus Dipilih:</strong> Kiosk Self-Service Restoran (FoodExpress)</div>
             </div>
           </div>
-
-          <!-- 2. Dekomposisi -->
           <div class="sample-section">
-            <h4 class="sample-sec-title">🧩 2.1 Dekomposisi (Memecah Sistem)</h4>
+            <h4 class="sample-sec-title">2.1 Dekomposisi (Memecah Sistem)</h4>
             <table class="sample-table">
               <thead>
                 <tr>
@@ -272,7 +267,7 @@ const caseStudies = [
 
           <!-- 2.2 Pengenalan Pola -->
           <div class="sample-section">
-            <h4 class="sample-sec-title">🔍 2.2 Pengenalan Pola (Pattern Recognition)</h4>
+            <h4 class="sample-sec-title">2.2 Pengenalan Pola (Pattern Recognition)</h4>
             <table class="sample-table">
               <thead>
                 <tr>
@@ -298,20 +293,18 @@ const caseStudies = [
 
           <!-- 2.3 Abstraksi -->
           <div class="sample-section">
-            <h4 class="sample-sec-title">💡 2.3 Abstraksi (Abstraction)</h4>
+            <h4 class="sample-sec-title">2.3 Abstraksi (Abstraction)</h4>
             <div class="sample-box sample-box-kept">
-              <strong>✅ Data Utama yang WAJIB Disimpan dalam Database:</strong>
+              <strong>Data Utama yang WAJIB Disimpan dalam Database:</strong>
               <p>ID Transaksi, ID Siswa/Pelanggan, Kode Menu, Jumlah Porsi, Total Bayar, Metode Pembayaran, Waktu Transaksi, No Antrean.</p>
             </div>
             <div class="sample-box sample-box-ignored">
-              <strong>🚫 Detail Informasi yang DIABSTRAKSIKAN (Diabaikan):</strong>
+              <strong>Detail Informasi yang DIABSTRAKSIKAN (Diabaikan):</strong>
               <p>Warna pakaian pelanggan saat memesan, suasana hati pembeli, jenis ponsel yang dipakai saat memindai QRIS, aroma makanan di meja.</p>
             </div>
           </div>
 
-          <!-- 2.4 Perancangan Algoritma -->
-          <div class="sample-section">
-            <h4 class="sample-sec-title">⚙️ 2.4 Perancangan Algoritma &amp; Pseudocode</h4>
+            <h4 class="sample-sec-title">2.4 Perancangan Algoritma &amp; Pseudocode</h4>
             <div class="sample-grid-2 margin-bottom">
               <div><strong>Algoritma Searching:</strong> Linear Search (Pencarian Kata Kunci Menu)</div>
               <div><strong>Algoritma Sorting:</strong> Bubble Sort (Pengurutan Harga Terendah)</div>
