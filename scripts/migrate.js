@@ -90,6 +90,21 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS lkpd_tik_submissions (
+      id SERIAL PRIMARY KEY,
+      user_id INT REFERENCES users(id) ON DELETE CASCADE,
+      case_study_id VARCHAR(50) NOT NULL,
+      team_name VARCHAR(150) DEFAULT '',
+      team_members TEXT DEFAULT '[]',
+      mail_merge_json TEXT DEFAULT '{}',
+      search_operators_json TEXT DEFAULT '{}',
+      reflection_json TEXT DEFAULT '{}',
+      score INT DEFAULT NULL,
+      teacher_feedback TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   console.log('Seeding sql_lessons table on Neon Postgres...');
