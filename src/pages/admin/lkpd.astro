@@ -12,7 +12,7 @@ if (!user || !isTeacherOrAdmin) {
   return Astro.redirect('/dashboard');
 }
 
-let submissions: any[] = [];
+let bkSubmissions: any[] = [];
 try {
   const res = await query(
     `SELECT s.*, u.name as student_name, u.email as student_email, u.class_name
@@ -21,19 +21,20 @@ try {
      ORDER BY s.updated_at DESC`
   );
   if (res.rows) {
-    submissions = res.rows.map(row => {
+    bkSubmissions = res.rows.map(row => {
       let deco: any[] = [];
       let patt: any[] = [];
       let abs: any = {};
       let alg: any = {};
 
-      try { deco = JSON.parse(row.decomposition_json || '[]'); } catch (e) {}
-      try { patt = JSON.parse(row.pattern_json || '[]'); } catch (e) {}
-      try { abs = JSON.parse(row.abstraction_json || '{}'); } catch (e) {}
-      try { alg = JSON.parse(row.algorithm_json || '{}'); } catch (e) {}
+      try { deco = typeof row.decomposition_json === 'string' ? JSON.parse(row.decomposition_json || '[]') : (row.decomposition_json || []); } catch (e) {}
+      try { patt = typeof row.pattern_json === 'string' ? JSON.parse(row.pattern_json || '[]') : (row.pattern_json || []); } catch (e) {}
+      try { abs = typeof row.abstraction_json === 'string' ? JSON.parse(row.abstraction_json || '{}') : (row.abstraction_json || {}); } catch (e) {}
+      try { alg = typeof row.algorithm_json === 'string' ? JSON.parse(row.algorithm_json || '{}') : (row.algorithm_json || {}); } catch (e) {}
 
       return {
         ...row,
+        moduleType: 'BK',
         parsedDeco: deco,
         parsedPatt: patt,
         parsedAbs: abs,
@@ -42,11 +43,47 @@ try {
     });
   }
 } catch (err) {
-  console.warn('Error fetching LKPD submissions:', err);
+  console.warn('Error fetching BK LKPD submissions:', err);
 }
 
+let tikSubmissions: any[] = [];
+try {
+  const res = await query(
+    `SELECT s.*, u.name as student_name, u.email as student_email, u.class_name
+     FROM lkpd_tik_submissions s
+     JOIN users u ON s.user_id = u.id
+     ORDER BY s.updated_at DESC`
+  );
+  if (res.rows) {
+    tikSubmissions = res.rows.map(row => {
+      let mailMerge: any = {};
+      let searchOperators: any = {};
+      let reflection: any = {};
+      let teamMembers: any = [];
+
+      try { mailMerge = typeof row.mail_merge_json === 'string' ? JSON.parse(row.mail_merge_json || '{}') : (row.mail_merge_json || {}); } catch (e) {}
+      try { searchOperators = typeof row.search_operators_json === 'string' ? JSON.parse(row.search_operators_json || '{}') : (row.search_operators_json || {}); } catch (e) {}
+      try { reflection = typeof row.reflection_json === 'string' ? JSON.parse(row.reflection_json || '{}') : (row.reflection_json || {}); } catch (e) {}
+      try { teamMembers = typeof row.team_members === 'string' ? JSON.parse(row.team_members || '[]') : (row.team_members || []); } catch (e) {}
+
+      return {
+        ...row,
+        moduleType: 'TIK',
+        parsedMailMerge: mailMerge,
+        parsedSearchOperators: searchOperators,
+        parsedReflection: reflection,
+        parsedTeamMembers: Array.isArray(teamMembers) ? teamMembers : []
+      };
+    });
+  }
+} catch (err) {
+  console.warn('Error fetching TIK LKPD submissions:', err);
+}
+
+const allSubmissions = [...bkSubmissions, ...tikSubmissions];
+
 // Get unique classes for filter dropdown
-const uniqueClasses = Array.from(new Set(submissions.map(s => s.class_name || 'X RPL'))).sort();
+const uniqueClasses = Array.from(new Set(allSubmissions.map(s => s.class_name || 'X RPL'))).sort();
 
 let currentDeadline = '';
 try {
@@ -61,7 +98,7 @@ try {
 
 <MainLayout
   title="Portal Penilaian LKPD Digital | Suhendar Aryadi, S.Pd.,Gr."
-  description="Portal evaluasi dan penilaian Lembar Kerja Peserta Didik (LKPD) Berpikir Komputasional oleh Guru."
+  description="Portal evaluasi dan penilaian Lembar Kerja Peserta Didik (LKPD) Informatika (BK & TIK) oleh Guru."
 >
   <div class="admin-lkpd-container">
     <!-- Header Banner -->
@@ -71,7 +108,7 @@ try {
           <span class="badge badge-purple">PORTAL GURU &amp; ADMIN</span>
           <h1 class="admin-title">Penilaian LKPD Digital Informatika</h1>
           <p class="admin-sub">
-            Evaluasi dan berikan umpan balik tugas Lembar Kerja Peserta Didik (LKPD) Berpikir Komputasional per rombel kelas.
+            Evaluasi dan berikan umpan balik tugas Lembar Kerja Peserta Didik (LKPD) Berpikir Komputasional (BK) &amp; TIK per rombel kelas.
           </p>
         </div>
         <div class="header-actions">
@@ -118,6 +155,22 @@ try {
       </div>
     </div>
 
+    <!-- Module Tab Switcher Bar -->
+    <div class="tab-switcher-card glass-card">
+      <div class="tab-switcher-nav">
+        <button id="tab-btn-bk" class="tab-nav-item active" type="button" data-module="BK">
+          <span class="tab-badge badge badge-purple">LKPD 1</span>
+          <span class="tab-title">Berpikir Komputasional (BK)</span>
+          <span class="tab-count-pill" id="bk-count-pill">{bkSubmissions.length}</span>
+        </button>
+        <button id="tab-btn-tik" class="tab-nav-item" type="button" data-module="TIK">
+          <span class="tab-badge badge badge-cyan">LKPD 2</span>
+          <span class="tab-title">Teknologi Informasi &amp; Komunikasi (TIK)</span>
+          <span class="tab-count-pill" id="tik-count-pill">{tikSubmissions.length}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Filter & Toolbar Block -->
     <div class="toolbar-card glass-card">
       <div class="toolbar-grid">
@@ -151,167 +204,335 @@ try {
     <div class="section-block glass-card">
       <div class="block-header">
         <div>
-          <h2 class="block-title">Daftar Kiriman LKPD Siswa (<span id="count-display">{submissions.length}</span>)</h2>
-          <p class="block-sub">Pilih tugas siswa untuk memeriksa 4 pilar analisis dan memberikan skor nilai</p>
+          <h2 class="block-title">
+            Daftar Kiriman <span id="module-title-display">LKPD 1 (BK)</span> Siswa (<span id="count-display">{bkSubmissions.length}</span>)
+          </h2>
+          <p class="block-sub" id="module-sub-display">Pilih tugas siswa untuk memeriksa 4 pilar analisis dan memberikan skor nilai</p>
         </div>
       </div>
 
-      {submissions.length === 0 ? (
-        <div class="empty-state">
-          <p>Belum ada siswa yang mengirimkan LKPD Digital.</p>
-        </div>
-      ) : (
-        <div class="submissions-list" id="submissions-list">
-          {submissions.map((item) => (
-            <div 
-              class="submission-card glass-card"
-              data-class={item.class_name || 'X RPL'}
-              data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
-              data-search={`${item.student_name} ${item.student_email} ${item.team_name || ''}`.toLowerCase()}
-            >
-              <div class="sub-card-header">
-                <div>
-                  <span class="badge badge-cyan">{item.class_name || 'X RPL'}</span>
-                  <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
-                  <span class="sub-team-name">Tim: <strong>{item.team_name || 'Mandiri'}</strong> | Studi Kasus: <strong>{item.case_study_id.toUpperCase()}</strong></span>
-                </div>
-                <div class="sub-score-box">
-                  {item.score !== null ? (
-                    <span class="badge badge-green">NILAI: {item.score} / 100</span>
-                  ) : (
-                    <span class="badge badge-amber">BELUM DINILAI</span>
-                  )}
-                </div>
+      <div class="submissions-list" id="submissions-list">
+        <!-- Render BK Submissions -->
+        {bkSubmissions.map((item) => (
+          <div 
+            class="submission-card glass-card module-card-bk"
+            data-module="BK"
+            data-class={item.class_name || 'X RPL'}
+            data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
+            data-search={`${item.student_name} ${item.student_email} ${item.team_name || ''}`.toLowerCase()}
+          >
+            <div class="sub-card-header">
+              <div>
+                <span class="badge badge-purple">LKPD 1 BK</span>
+                <span class="badge badge-cyan">{item.class_name || 'X RPL'}</span>
+                <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
+                <span class="sub-team-name">Tim: <strong>{item.team_name || 'Mandiri'}</strong> | Studi Kasus: <strong>{item.case_study_id.toUpperCase()}</strong></span>
               </div>
-
-              <!-- Quick Answers Overview -->
-              <div class="sub-quick-preview">
-                <div class="quick-item">
-                  <strong>Struktur Modul Dekomposisi:</strong>
-                  <span>{item.parsedDeco.map((d: any) => d.mod).filter(Boolean).join(', ') || 'Belum diisi'}</span>
-                </div>
-                <div class="quick-item">
-                  <strong>Algoritma &amp; Search:</strong>
-                  <span>{item.parsedAlg.search || '-'} / {item.parsedAlg.sort || '-'}</span>
-                </div>
-              </div>
-
-              <!-- Collapsible Full Detail Drawer Button -->
-              <div class="detail-toggle-bar">
-                <button class="btn-toggle-detail" type="button" data-target={`detail-${item.id}`}>
-                  <span>Tampilkan Detail Jawaban Lengkap 4 Pilar</span>
-                  <span class="arrow-icon">&darr;</span>
-                </button>
-              </div>
-
-              <!-- Full Detail Answer Drawer (Hidden by default) -->
-              <div id={`detail-${item.id}`} class="detail-drawer" style="display: none;">
-                <!-- 1. Dekomposisi -->
-                <div class="detail-section">
-                  <h4 class="detail-sec-title">1. Dekomposisi System (4 Sub-Sistem)</h4>
-                  <table class="detail-table">
-                    <thead>
-                      <tr>
-                        <th style="width: 40px;">No</th>
-                        <th style="width: 220px;">Modul / Sub-Sistem</th>
-                        <th>Fungsi Utama &amp; Fitur</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {item.parsedDeco.map((d: any, idx: number) => (
-                        <tr>
-                          <td class="text-center">{idx + 1}</td>
-                          <td><strong>{d.mod || '-'}</strong></td>
-                          <td>{d.func || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- 2. Pengenalan Pola -->
-                <div class="detail-section margin-top-sm">
-                  <h4 class="detail-sec-title">2. Pengenalan Pola (Pattern Recognition)</h4>
-                  <table class="detail-table">
-                    <thead>
-                      <tr>
-                        <th style="width: 40px;">No</th>
-                        <th style="width: 240px;">Pola Ditemukan</th>
-                        <th>Rencana Solusi Berulang</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {item.parsedPatt.map((p: any, idx: number) => (
-                        <tr>
-                          <td class="text-center">{idx + 1}</td>
-                          <td><strong>{p.name || '-'}</strong></td>
-                          <td>{p.sol || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- 3. Abstraksi -->
-                <div class="detail-section margin-top-sm">
-                  <h4 class="detail-sec-title">3. Abstraksi (Abstraction)</h4>
-                  <div class="detail-grid-2">
-                    <div class="detail-box box-kept">
-                      <strong>Data Utama Wajib Disimpan:</strong>
-                      <p>{item.parsedAbs.kept || 'Belum diisi'}</p>
-                    </div>
-                    <div class="detail-box box-ignored">
-                      <strong>Detail Informasi Diabaikan:</strong>
-                      <p>{item.parsedAbs.ignored || 'Belum diisi'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 4. Algoritma & Pseudocode -->
-                <div class="detail-section margin-top-sm">
-                  <h4 class="detail-sec-title">4. Algoritma &amp; Pseudocode</h4>
-                  <div class="detail-grid-2 margin-bottom-xs">
-                    <div><strong>Algoritma Search:</strong> {item.parsedAlg.search || '-'}</div>
-                    <div><strong>Algoritma Sort:</strong> {item.parsedAlg.sort || '-'}</div>
-                    <div><strong>Penggunaan Queue:</strong> {item.parsedAlg.queue || '-'}</div>
-                    <div><strong>Penggunaan Stack:</strong> {item.parsedAlg.stack || '-'}</div>
-                  </div>
-                  <div class="pseudocode-preview-box">
-                    <strong>Pseudocode Alur Utama:</strong>
-                    <pre class="font-mono">{item.parsedAlg.pseudocode || '// Belum diisi'}</pre>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Grading Form -->
-              <div class="grading-form-wrap">
-                <form class="grade-form" data-id={item.id}>
-                  <div class="grade-inputs-row">
-                    <div class="input-group">
-                      <label>Skor Nilai (0 - 100):</label>
-                      <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
-                    </div>
-                    <div class="input-group flex-1">
-                      <label>Umpan Balik / Catatan Guru:</label>
-                      <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Dekomposisi sangat tepat, perhatikan urutan Pseudocode." value={item.teacher_feedback || ''} />
-                    </div>
-                    <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
-                      Simpan Nilai
-                    </button>
-                  </div>
-                </form>
+              <div class="sub-score-box">
+                {item.score !== null ? (
+                  <span class="badge badge-green">NILAI: {item.score} / 100</span>
+                ) : (
+                  <span class="badge badge-amber">BELUM DINILAI</span>
+                )}
               </div>
             </div>
-          ))}
+
+            <!-- Quick Answers Overview -->
+            <div class="sub-quick-preview">
+              <div class="quick-item">
+                <strong>Struktur Modul Dekomposisi:</strong>
+                <span>{item.parsedDeco.map((d: any) => d.mod).filter(Boolean).join(', ') || 'Belum diisi'}</span>
+              </div>
+              <div class="quick-item">
+                <strong>Algoritma &amp; Search:</strong>
+                <span>{item.parsedAlg.search || '-'} / {item.parsedAlg.sort || '-'}</span>
+              </div>
+            </div>
+
+            <!-- Collapsible Full Detail Drawer Button -->
+            <div class="detail-toggle-bar">
+              <button class="btn-toggle-detail" type="button" data-target={`detail-bk-${item.id}`}>
+                <span>Tampilkan Detail Jawaban Lengkap 4 Pilar</span>
+                <span class="arrow-icon">&darr;</span>
+              </button>
+            </div>
+
+            <!-- Full Detail Answer Drawer (Hidden by default) -->
+            <div id={`detail-bk-${item.id}`} class="detail-drawer" style="display: none;">
+              <!-- 1. Dekomposisi -->
+              <div class="detail-section">
+                <h4 class="detail-sec-title">1. Dekomposisi System (4 Sub-Sistem)</h4>
+                <table class="detail-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 40px;">No</th>
+                      <th style="width: 220px;">Modul / Sub-Sistem</th>
+                      <th>Fungsi Utama &amp; Fitur</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.parsedDeco.map((d: any, idx: number) => (
+                      <tr>
+                        <td class="text-center">{idx + 1}</td>
+                        <td><strong>{d.mod || '-'}</strong></td>
+                        <td>{d.func || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- 2. Pengenalan Pola -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">2. Pengenalan Pola (Pattern Recognition)</h4>
+                <table class="detail-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 40px;">No</th>
+                      <th style="width: 240px;">Pola Ditemukan</th>
+                      <th>Rencana Solusi Berulang</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.parsedPatt.map((p: any, idx: number) => (
+                      <tr>
+                        <td class="text-center">{idx + 1}</td>
+                        <td><strong>{p.name || '-'}</strong></td>
+                        <td>{p.sol || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- 3. Abstraksi -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">3. Abstraksi (Abstraction)</h4>
+                <div class="detail-grid-2">
+                  <div class="detail-box box-kept">
+                    <strong>Data Utama Wajib Disimpan:</strong>
+                    <p>{item.parsedAbs.kept || 'Belum diisi'}</p>
+                  </div>
+                  <div class="detail-box box-ignored">
+                    <strong>Detail Informasi Diabaikan:</strong>
+                    <p>{item.parsedAbs.ignored || 'Belum diisi'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Algoritma & Pseudocode -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">4. Algoritma &amp; Pseudocode</h4>
+                <div class="detail-grid-2 margin-bottom-xs">
+                  <div><strong>Algoritma Search:</strong> {item.parsedAlg.search || '-'}</div>
+                  <div><strong>Algoritma Sort:</strong> {item.parsedAlg.sort || '-'}</div>
+                  <div><strong>Penggunaan Queue:</strong> {item.parsedAlg.queue || '-'}</div>
+                  <div><strong>Penggunaan Stack:</strong> {item.parsedAlg.stack || '-'}</div>
+                </div>
+                <div class="pseudocode-preview-box">
+                  <strong>Pseudocode Alur Utama:</strong>
+                  <pre class="font-mono">{item.parsedAlg.pseudocode || '// Belum diisi'}</pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grading Form -->
+            <div class="grading-form-wrap">
+              <form class="grade-form" data-id={item.id} data-endpoint="/api/admin/grade-lkpd">
+                <div class="grade-inputs-row">
+                  <div class="input-group">
+                    <label>Skor Nilai (0 - 100):</label>
+                    <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
+                  </div>
+                  <div class="input-group flex-1">
+                    <label>Umpan Balik / Catatan Guru (BK):</label>
+                    <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Dekomposisi sangat tepat, perhatikan urutan Pseudocode." value={item.teacher_feedback || ''} />
+                  </div>
+                  <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
+                    Simpan Nilai BK
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ))}
+
+        <!-- Render TIK Submissions -->
+        {tikSubmissions.map((item) => (
+          <div 
+            class="submission-card glass-card module-card-tik"
+            data-module="TIK"
+            data-class={item.class_name || 'X RPL'}
+            data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
+            data-search={`${item.student_name} ${item.student_email} ${item.team_name || ''} ${item.parsedTeamMembers.join(' ')}`.toLowerCase()}
+            style="display: none;"
+          >
+            <div class="sub-card-header">
+              <div>
+                <span class="badge badge-cyan">LKPD 2 TIK</span>
+                <span class="badge badge-purple">{item.class_name || 'X RPL'}</span>
+                <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
+                <span class="sub-team-name">
+                  Tim: <strong>{item.team_name || 'Mandiri'}</strong> 
+                  {item.parsedTeamMembers.length > 0 && <> ({item.parsedTeamMembers.join(', ')})</>}
+                  | Studi Kasus: <strong>{item.case_study_id.toUpperCase()}</strong>
+                </span>
+              </div>
+              <div class="sub-score-box">
+                {item.score !== null ? (
+                  <span class="badge badge-green">NILAI: {item.score} / 100</span>
+                ) : (
+                  <span class="badge badge-amber">BELUM DINILAI</span>
+                )}
+              </div>
+            </div>
+
+            <!-- Quick Answers Overview TIK -->
+            <div class="sub-quick-preview">
+              <div class="quick-item">
+                <strong>Mail Merge Kolom:</strong>
+                <span>{item.parsedMailMerge.headers || 'Belum diisi'}</span>
+              </div>
+              <div class="quick-item">
+                <strong>Query Search Operator:</strong>
+                <span class="font-mono">{item.parsedSearchOperators.query || item.parsedSearchOperators.query_string || 'Belum diisi'}</span>
+              </div>
+            </div>
+
+            <!-- Collapsible Full Detail Drawer Button -->
+            <div class="detail-toggle-bar">
+              <button class="btn-toggle-detail" type="button" data-target={`detail-tik-${item.id}`}>
+                <span>Tampilkan Detail Jawaban Lengkap LKPD TIK</span>
+                <span class="arrow-icon">&darr;</span>
+              </button>
+            </div>
+
+            <!-- Full Detail Answer Drawer TIK (Hidden by default) -->
+            <div id={`detail-tik-${item.id}`} class="detail-drawer" style="display: none;">
+              <!-- 1. Identitas Kelompok & Studi Kasus -->
+              <div class="detail-section">
+                <h4 class="detail-sec-title">1. Identitas Kelompok &amp; Studi Kasus TIK</h4>
+                <div class="detail-grid-2">
+                  <div class="detail-box">
+                    <strong>Nama Tim / Kelompok:</strong>
+                    <p>{item.team_name || 'Mandiri'}</p>
+                  </div>
+                  <div class="detail-box">
+                    <strong>Anggota Tim:</strong>
+                    <p>{item.parsedTeamMembers.join(', ') || 'Mandiri'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Integrasi Perkantoran (Mail Merge & OLE) -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">2. Integrasi Perkantoran (Mail Merge &amp; OLE)</h4>
+                <div class="detail-box margin-bottom-xs">
+                  <strong>Struktur Header Kolom Data (CSV / Excel):</strong>
+                  <p class="font-mono">{item.parsedMailMerge.headers || '-'}</p>
+                </div>
+                <div class="detail-box margin-bottom-xs">
+                  <strong>Template Tag / Placeholder (Word):</strong>
+                  <p class="font-mono">{item.parsedMailMerge.template || '-'}</p>
+                </div>
+                <div class="detail-box">
+                  <strong>Analisis Alur Kerja Object Linking &amp; Embedding (OLE):</strong>
+                  <p>{item.parsedMailMerge.ole_workflow || 'Belum diisi'}</p>
+                </div>
+              </div>
+
+              <!-- 3. Advanced Search Operators -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">3. Advanced Search Operators (Pencarian Digital Efektif)</h4>
+                <div class="detail-grid-2 margin-bottom-xs">
+                  <div class="detail-box">
+                    <strong>Topik Target Pencarian:</strong>
+                    <p>{item.parsedSearchOperators.topic || item.parsedSearchOperators.target_topic || '-'}</p>
+                  </div>
+                  <div class="detail-box">
+                    <strong>Sintaks Query Operator:</strong>
+                    <p class="font-mono">{item.parsedSearchOperators.query || item.parsedSearchOperators.query_string || '-'}</p>
+                  </div>
+                </div>
+                <div class="detail-box">
+                  <strong>Evaluasi Efektivitas Query &amp; Validasi Kredibilitas Sumber:</strong>
+                  <p>{item.parsedSearchOperators.evaluation || item.parsedSearchOperators.source_eval || 'Belum diisi'}</p>
+                </div>
+              </div>
+
+              <!-- 4. Refleksi Tim -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">4. Refleksi Tim &amp; Pembelajaran TIK</h4>
+                <div class="detail-box">
+                  <strong>Kesimpulan &amp; Refleksi Efisiensi Kerja Tim:</strong>
+                  <p>{item.parsedReflection.efficiency || item.parsedReflection.reflection || 'Belum diisi'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grading Form TIK -->
+            <div class="grading-form-wrap">
+              <form class="grade-form" data-id={item.id} data-endpoint="/api/admin/grade-lkpd-tik">
+                <div class="grade-inputs-row">
+                  <div class="input-group">
+                    <label>Skor Nilai TIK (0 - 100):</label>
+                    <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
+                  </div>
+                  <div class="input-group flex-1">
+                    <label>Umpan Balik / Catatan Guru (TIK):</label>
+                    <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Sintaks query operator sangat tepat dan analisis Mail Merge runtut." value={item.teacher_feedback || ''} />
+                  </div>
+                  <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
+                    Simpan Nilai TIK
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ))}
+
+        <!-- Empty State Container -->
+        <div class="empty-state" id="empty-state-display" style="display: none;">
+          <p>Belum ada siswa yang mengirimkan LKPD pada kategori ini.</p>
         </div>
-      )}
+      </div>
     </div>
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ submissionsData: submissions }}>
+<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions }}>
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. Toggle Detail Drawers
+    let currentModule = 'BK'; // 'BK' or 'TIK'
+
+    // 1. Tab Switcher Logic
+    const tabBk = document.getElementById('tab-btn-bk');
+    const tabTik = document.getElementById('tab-btn-tik');
+    const moduleTitleDisplay = document.getElementById('module-title-display');
+    const moduleSubDisplay = document.getElementById('module-sub-display');
+    const exportBtn = document.getElementById('export-csv-btn');
+
+    function setModuleTab(module) {
+      currentModule = module;
+      if (module === 'BK') {
+        tabBk?.classList.add('active');
+        tabTik?.classList.remove('active');
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 1 (BK)';
+        if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa 4 pilar analisis dan memberikan skor nilai';
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 1 (BK)';
+      } else {
+        tabTik?.classList.add('active');
+        tabBk?.classList.remove('active');
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 2 (TIK)';
+        if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa Mail Merge & Advanced Search Operators dan memberikan skor nilai';
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 2 (TIK)';
+      }
+      applyFilters();
+    }
+
+    tabBk?.addEventListener('click', () => setModuleTab('BK'));
+    tabTik?.addEventListener('click', () => setModuleTab('TIK'));
+
+    // 2. Toggle Detail Drawers
     const toggleBtns = document.querySelectorAll('.btn-toggle-detail');
     toggleBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -332,11 +553,12 @@ try {
       });
     });
 
-    // 2. Filter & Search Logic
+    // 3. Filter & Search Logic
     const filterClass = document.getElementById('filter-class');
     const filterStatus = document.getElementById('filter-status');
     const searchInput = document.getElementById('search-input');
     const countDisplay = document.getElementById('count-display');
+    const emptyStateDisplay = document.getElementById('empty-state-display');
     const cards = document.querySelectorAll('.submission-card');
 
     function applyFilters() {
@@ -347,15 +569,17 @@ try {
       let visibleCount = 0;
 
       cards.forEach(card => {
+        const cardModule = card.getAttribute('data-module') || 'BK';
         const cardClass = card.getAttribute('data-class') || '';
         const cardStatus = card.getAttribute('data-status') || '';
         const cardSearch = card.getAttribute('data-search') || '';
 
+        const moduleMatch = cardModule === currentModule;
         const classMatch = selectedClass === 'ALL' || cardClass === selectedClass;
         const statusMatch = selectedStatus === 'ALL' || cardStatus === selectedStatus;
         const searchMatch = !searchQuery || cardSearch.includes(searchQuery);
 
-        if (classMatch && statusMatch && searchMatch) {
+        if (moduleMatch && classMatch && statusMatch && searchMatch) {
           card.style.display = 'flex';
           visibleCount++;
         } else {
@@ -364,27 +588,35 @@ try {
       });
 
       if (countDisplay) countDisplay.textContent = String(visibleCount);
+      if (emptyStateDisplay) {
+        emptyStateDisplay.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
     }
 
     filterClass?.addEventListener('change', applyFilters);
     filterStatus?.addEventListener('change', applyFilters);
     searchInput?.addEventListener('input', applyFilters);
 
-    // 3. Save Grade Form Submit
+    // Initial filter run
+    applyFilters();
+
+    // 4. Save Grade Form Submit
     const forms = document.querySelectorAll('.grade-form');
     forms.forEach(form => {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submissionId = form.getAttribute('data-id');
+        const endpoint = form.getAttribute('data-endpoint') || '/api/admin/grade-lkpd';
         const score = form.querySelector('[name="score"]').value;
         const teacherFeedback = form.querySelector('[name="feedback"]').value;
         const btn = form.querySelector('.save-grade-btn');
 
         btn.disabled = true;
+        const origBtnText = btn.textContent;
         btn.textContent = 'Menyimpan...';
 
         try {
-          const res = await fetch('/api/admin/grade-lkpd', {
+          const res = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ submissionId, score, teacherFeedback })
@@ -401,22 +633,25 @@ try {
           alert('❌ Error koneksi ke server.');
         } finally {
           btn.disabled = false;
-          btn.textContent = 'Simpan Nilai';
+          btn.textContent = origBtnText;
         }
       });
     });
 
-    // 4. Export CSV Handler
-    const exportBtn = document.getElementById('export-csv-btn');
+    // 5. Export CSV Handler
     exportBtn?.addEventListener('click', () => {
-      if (!submissionsData || submissionsData.length === 0) {
-        alert('Tidak ada data kiriman LKPD untuk di-export.');
+      const activeData = currentModule === 'BK' ? bkSubmissionsData : tikSubmissionsData;
+
+      if (!activeData || activeData.length === 0) {
+        alert(`Tidak ada data kiriman LKPD ${currentModule} untuk di-export.`);
         return;
       }
 
-      let csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      let csv = currentModule === 'BK' 
+        ? 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n'
+        : 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Anggota Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
 
-      submissionsData.forEach((row, index) => {
+      activeData.forEach((row, index) => {
         const studentName = `"${(row.student_name || '').replace(/"/g, '""')}"`;
         const studentEmail = `"${(row.student_email || '').replace(/"/g, '""')}"`;
         const className = `"${(row.class_name || 'X RPL').replace(/"/g, '""')}"`;
@@ -426,20 +661,25 @@ try {
         const feedback = `"${(row.teacher_feedback || '').replace(/"/g, '""')}"`;
         const date = `"${new Date(row.updated_at).toLocaleString('id-ID')}"`;
 
-        csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${score},${feedback},${date}\n`;
+        if (currentModule === 'BK') {
+          csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${score},${feedback},${date}\n`;
+        } else {
+          const teamMembers = `"${(Array.isArray(row.parsedTeamMembers) ? row.parsedTeamMembers.join('; ') : '').replace(/"/g, '""')}"`;
+          csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${teamMembers},${caseStudy},${score},${feedback},${date}\n`;
+        }
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `rekap_lkpd_informatika_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `rekap_lkpd_${currentModule.toLowerCase()}_informatika_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     });
 
-    // 5. Deadline Setting Form Handler
+    // 6. Deadline Setting Form Handler
     const deadlineForm = document.getElementById('deadline-form');
     const deadlineInput = document.getElementById('deadline-datetime-input');
     const removeDeadlineBtn = document.getElementById('remove-deadline-btn');
@@ -503,6 +743,37 @@ try {
     gap: 1.5rem;
   }
 
+  /* Header Banner */
+  .admin-header {
+    padding: 2rem;
+  }
+
+  .header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .admin-title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .admin-sub {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
   /* Deadline Setting Card */
   .deadline-card {
     padding: 1.25rem 1.5rem;
@@ -542,34 +813,59 @@ try {
     font-weight: 600;
   }
 
-  .admin-header {
-    padding: 2rem;
+  /* Tab Switcher Card */
+  .tab-switcher-card {
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
   }
 
-  .header-main {
+  .tab-switcher-nav {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1.5rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
   }
 
-  .header-actions {
+  .tab-nav-item {
     display: flex;
-    gap: 0.75rem;
     align-items: center;
-  }
-
-  .admin-title {
-    font-size: 1.85rem;
-    font-weight: 800;
-    color: var(--text-primary);
-  }
-
-  .admin-sub {
-    font-size: 0.925rem;
+    gap: 0.65rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
     color: var(--text-secondary);
-    margin-top: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .tab-nav-item:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--text-primary);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .tab-nav-item.active {
+    background: var(--accent-primary, #6366f1);
+    color: #ffffff;
+    border-color: var(--accent-primary, #6366f1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .tab-nav-item.active .badge-purple,
+  .tab-nav-item.active .badge-cyan {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .tab-count-pill {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
   }
 
   /* Toolbar Filter */
@@ -783,6 +1079,7 @@ try {
     padding: 0.85rem;
     border-radius: 0.375rem;
     border: 1px solid #cbd5e1;
+    background: #f8fafc;
   }
 
   .box-kept {
