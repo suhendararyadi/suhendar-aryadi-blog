@@ -24,6 +24,20 @@ try {
 }
 
 const isGraded = existingSubmission && existingSubmission.score !== null;
+
+let lkpdDeadlineStr = '';
+let isPastDeadline = false;
+try {
+  const dRes = await query(`SELECT setting_value FROM system_settings WHERE setting_key = 'lkpd_deadline'`);
+  if (dRes.rows && dRes.rows.length > 0 && dRes.rows[0].setting_value) {
+    lkpdDeadlineStr = dRes.rows[0].setting_value;
+    if (new Date() > new Date(lkpdDeadlineStr)) {
+      isPastDeadline = true;
+    }
+  }
+} catch (err) {
+  console.warn('Error fetching lkpd_deadline setting:', err);
+}
 ---
 
 <MainLayout
@@ -43,6 +57,34 @@ const isGraded = existingSubmission && existingSubmission.score !== null;
         <span class="badge badge-purple">LKPD DIGITAL VOKASI</span>
       </div>
     </div>
+
+    <!-- Deadline Notice Banner -->
+    {lkpdDeadlineStr && (
+      <div class={`deadline-notice-card glass-card no-print ${isPastDeadline ? 'banner-expired' : 'banner-active'}`}>
+        {isPastDeadline ? (
+          <div class="deadline-notice-flex">
+            <span class="badge badge-red">PENGUMPULAN DITUTUP</span>
+            <div>
+              <strong class="notice-title">Tenggat Waktu Pengumpulan LKPD Telah Berakhir</strong>
+              <p class="notice-desc">
+                Batas pengumpulan: {new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB.
+                {!existingSubmission && ' Pengajuan formulir LKPD baru telah ditutup oleh Guru.'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div class="deadline-notice-flex">
+            <span class="badge badge-cyan">TENGGAT PENGUMPULAN</span>
+            <div>
+              <strong class="notice-title">Batas Waktu Pengumpulan Tugas</strong>
+              <p class="notice-desc">
+                Kumpulkan LKPD sebelum: <strong>{new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
 
     <!-- Teacher Evaluation Banner (If Graded) -->
     {isGraded && (
@@ -234,16 +276,22 @@ END"></textarea>
 
         <!-- Submit Button (Hidden on print) -->
         <div class="doc-actions no-print">
-          <button id="submit-lkpd-btn" class="btn btn-primary btn-lg" type="submit">
-            Kirim Tugas LKPD ke LMS Guru
-          </button>
+          {isPastDeadline ? (
+            <button id="submit-lkpd-btn" class="btn btn-secondary btn-lg btn-disabled" type="button" disabled>
+              Pengumpulan Ditutup (Batas Waktu Berakhir)
+            </button>
+          ) : (
+            <button id="submit-lkpd-btn" class="btn btn-primary btn-lg" type="submit">
+              Kirim Tugas LKPD ke LMS Guru
+            </button>
+          )}
         </div>
       </form>
     </div>
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ existingSubmission }}>
+<script is:inline define:vars={{ existingSubmission, isPastDeadline }}>
   document.addEventListener('DOMContentLoaded', () => {
     const printBtn = document.getElementById('print-lkpd-btn');
     const form = document.getElementById('lkpd-form');
@@ -296,6 +344,11 @@ END"></textarea>
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      if (isPastDeadline) {
+        alert('❌ Pengumpulan Ditutup! Batas waktu (deadline) pengumpulan LKPD dari Guru telah berakhir.');
+        return;
+      }
 
       const caseStudyId = document.getElementById('case-study-select').value;
       const teamName = document.getElementById('team-name').value;
@@ -381,6 +434,51 @@ END"></textarea>
     display: flex;
     align-items: center;
     gap: 0.75rem;
+  }
+
+  /* Deadline Notice Banner */
+  .deadline-notice-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-xl);
+  }
+
+  .banner-active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+  }
+
+  .banner-expired {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.12) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .deadline-notice-flex {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .notice-title {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    display: block;
+  }
+
+  .notice-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+
+  .badge-red {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
   }
 
   /* Grade Banner */

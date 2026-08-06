@@ -14,6 +14,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
+    // Check if LKPD assignment deadline has expired
+    try {
+      const deadlineRes = await query(`SELECT setting_value FROM system_settings WHERE setting_key = 'lkpd_deadline'`);
+      if (deadlineRes.rows && deadlineRes.rows.length > 0 && deadlineRes.rows[0].setting_value) {
+        const deadlineDate = new Date(deadlineRes.rows[0].setting_value);
+        if (new Date() > deadlineDate) {
+          return new Response(JSON.stringify({
+            error: `Pengumpulan LKPD telah ditutup oleh Guru (Tenggat Waktu: ${deadlineDate.toLocaleString('id-ID')}).`
+          }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Deadline check error:', e);
+    }
+
     const body = await request.json();
     const {
       caseStudyId,

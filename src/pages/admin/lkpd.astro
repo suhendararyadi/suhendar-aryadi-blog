@@ -47,6 +47,16 @@ try {
 
 // Get unique classes for filter dropdown
 const uniqueClasses = Array.from(new Set(submissions.map(s => s.class_name || 'X RPL'))).sort();
+
+let currentDeadline = '';
+try {
+  const dRes = await query(`SELECT setting_value FROM system_settings WHERE setting_key = 'lkpd_deadline'`);
+  if (dRes.rows && dRes.rows.length > 0) {
+    currentDeadline = dRes.rows[0].setting_value || '';
+  }
+} catch (e) {
+  console.warn('Error fetching lkpd_deadline setting:', e);
+}
 ---
 
 <MainLayout
@@ -72,6 +82,39 @@ const uniqueClasses = Array.from(new Set(submissions.map(s => s.class_name || 'X
             &larr; Dashboard Rekap Nilai
           </a>
         </div>
+      </div>
+    </div>
+
+    <!-- LKPD Deadline Setting Card -->
+    <div class="deadline-card glass-card">
+      <div class="deadline-flex">
+        <div class="deadline-info">
+          <h3 class="deadline-title">Pengaturan Tenggat Waktu (Deadline) Pengumpulan LKPD</h3>
+          <p class="deadline-sub">
+            {currentDeadline ? (
+              <>Tenggat Pengumpulan Aktif: <strong class="text-accent">{new Date(currentDeadline).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong></>
+            ) : (
+              <>Status Pengumpulan: <span class="text-muted">Tidak Ada Tenggat Waktu (Bebas Mengirim)</span></>
+            )}
+          </p>
+        </div>
+        <form id="deadline-form" class="deadline-form">
+          <input 
+            type="datetime-local" 
+            id="deadline-datetime-input" 
+            class="tool-input deadline-input"
+            value={currentDeadline ? new Date(new Date(currentDeadline).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''} 
+            required
+          />
+          <button type="submit" class="btn btn-primary btn-sm" id="save-deadline-btn">
+            Simpan Deadline
+          </button>
+          {currentDeadline && (
+            <button type="button" class="btn btn-outline btn-sm" id="remove-deadline-btn">
+              Hapus Deadline
+            </button>
+          )}
+        </form>
       </div>
     </div>
 
@@ -395,6 +438,58 @@ const uniqueClasses = Array.from(new Set(submissions.map(s => s.class_name || 'X
       link.click();
       document.body.removeChild(link);
     });
+
+    // 5. Deadline Setting Form Handler
+    const deadlineForm = document.getElementById('deadline-form');
+    const deadlineInput = document.getElementById('deadline-datetime-input');
+    const removeDeadlineBtn = document.getElementById('remove-deadline-btn');
+
+    deadlineForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const val = deadlineInput.value;
+      if (!val) {
+        alert('Pilih tanggal dan jam tenggat waktu terlebih dahulu.');
+        return;
+      }
+      const isoVal = new Date(val).toISOString();
+
+      try {
+        const res = await fetch('/api/admin/set-lkpd-deadline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deadline: isoVal })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('✅ ' + data.message);
+          window.location.reload();
+        } else {
+          alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan.'));
+        }
+      } catch (err) {
+        alert('❌ Error koneksi ke server.');
+      }
+    });
+
+    removeDeadlineBtn?.addEventListener('click', async () => {
+      if (!confirm('Apakah Anda yakin ingin menghapus tenggat waktu pengumpulan LKPD? Siswa akan bebas mengirimkan tugas tanpa batasan jam.')) return;
+      try {
+        const res = await fetch('/api/admin/set-lkpd-deadline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deadline: '' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('✅ ' + data.message);
+          window.location.reload();
+        } else {
+          alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan.'));
+        }
+      } catch (err) {
+        alert('❌ Error koneksi ke server.');
+      }
+    });
   });
 </script>
 
@@ -406,6 +501,45 @@ const uniqueClasses = Array.from(new Set(submissions.map(s => s.class_name || 'X
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+  }
+
+  /* Deadline Setting Card */
+  .deadline-card {
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+  }
+
+  .deadline-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .deadline-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .deadline-sub {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+
+  .deadline-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .deadline-input {
+    width: auto;
+    font-weight: 600;
   }
 
   .admin-header {
