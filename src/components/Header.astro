@@ -108,6 +108,41 @@ function isActive(href: string): boolean {
     transition: all 0.2s ease;
   }
 
+  :global([data-theme="light"]) .header {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  :global([data-theme="light"]) .logo-spine-text,
+  :global([data-theme="light"]) .logo-spine-bold {
+    color: #0f172a;
+  }
+
+  :global([data-theme="light"]) .nav-link {
+    color: #475569;
+  }
+
+  :global([data-theme="light"]) .nav-link:hover {
+    color: #0f172a;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  :global([data-theme="light"]) .nav-link.active {
+    color: #65a30d;
+    background-color: rgba(101, 163, 13, 0.12);
+  }
+
+  :global([data-theme="light"]) .header-auth-btn {
+    background: #f1f5f9 !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: #0f172a !important;
+  }
+
+  :global([data-theme="light"]) .header-auth-btn:hover {
+    background: #e2e8f0 !important;
+    border-color: rgba(101, 163, 13, 0.5) !important;
+  }
+
   .header-container {
     display: flex;
     align-items: center;

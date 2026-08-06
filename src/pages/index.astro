@@ -517,6 +517,83 @@ function formatDate(date: Date) {
     font-size: 0.85rem;
     color: #94a3b8;
     line-height: 1.5;
+  /* Light Mode Theme Overrides for Hero Banner */
+  :global([data-theme="light"]) .hero-spine-section {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    color: #0f172a;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  :global([data-theme="light"]) .pill-announcement {
+    background: #f1f5f9;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  :global([data-theme="light"]) .pill-announcement:hover {
+    border-color: rgba(101, 163, 13, 0.5);
+    background: rgba(101, 163, 13, 0.08);
+  }
+
+  :global([data-theme="light"]) .pill-text {
+    color: #475569;
+  }
+
+  :global([data-theme="light"]) .spine-hero-title {
+    color: #0f172a;
+  }
+
+  :global([data-theme="light"]) .spine-hero-subtitle {
+    color: #475569;
+  }
+
+  :global([data-theme="light"]) .spine-hero-subtitle strong {
+    color: #0f172a;
+  }
+
+  :global([data-theme="light"]) .btn-dark-pill {
+    background: #f1f5f9;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    color: #0f172a;
+  }
+
+  :global([data-theme="light"]) .btn-dark-pill:hover {
+    background: #e2e8f0;
+    border-color: rgba(0, 0, 0, 0.25);
+    color: #0f172a;
+  }
+
+  :global([data-theme="light"]) .tech-trust-bar {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  :global([data-theme="light"]) .trust-label {
+    color: #64748b;
+  }
+
+  :global([data-theme="light"]) .tech-tag {
+    background: #f1f5f9;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #334155;
+  }
+
+  :global([data-theme="light"]) .spine-feature-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  :global([data-theme="light"]) .spine-feature-card:hover {
+    border-color: rgba(101, 163, 13, 0.4) !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 24px rgba(101, 163, 13, 0.12);
+  }
+
+  :global([data-theme="light"]) .feature-card-title {
+    color: #0f172a;
+  }
+
+  :global([data-theme="light"]) .feature-card-desc {
+    color: #475569;
   }
 
   /* Section Styling */
