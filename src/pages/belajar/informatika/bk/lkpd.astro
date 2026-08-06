@@ -248,6 +248,20 @@ END"></textarea>
     const printBtn = document.getElementById('print-lkpd-btn');
     const form = document.getElementById('lkpd-form');
 
+    // Anti-Paste & Anti-Drop Protection for all LKPD answer inputs & textareas
+    const lkpdFields = document.querySelectorAll('#lkpd-form input, #lkpd-form textarea');
+    lkpdFields.forEach((field) => {
+      field.addEventListener('paste', (e) => {
+        e.preventDefault();
+        alert('⚠️ Fitur Paste Dinonaktifkan! Siswa diwajibkan mengetik hasil analisis LKPD secara langsung untuk melatih pemahaman mendalam.');
+        return false;
+      });
+      field.addEventListener('drop', (e) => {
+        e.preventDefault();
+        return false;
+      });
+    });
+
     // Populate existing fields if available
     if (existingSubmission) {
       try {
