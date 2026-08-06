@@ -1,0 +1,699 @@
+---
+import MainLayout from '../../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../../lib/auth';
+import { query } from '../../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect('/auth/login?redirect=/belajar/informatika/tik/lkpd');
+}
+
+let existingSubmission: any = null;
+try {
+  const res = await query(
+    `SELECT * FROM lkpd_tik_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+  if (res.rows && res.rows.length > 0) {
+    existingSubmission = res.rows[0];
+  }
+} catch (err) {
+  console.warn('Error fetching student TIK submission:', err);
+}
+
+const isGraded = existingSubmission && existingSubmission.score !== null;
+
+let lkpdDeadlineStr = '';
+let isPastDeadline = false;
+try {
+  const dRes = await query(`SELECT setting_value FROM system_settings WHERE setting_key = 'lkpd_deadline'`);
+  if (dRes.rows && dRes.rows.length > 0 && dRes.rows[0].setting_value) {
+    lkpdDeadlineStr = dRes.rows[0].setting_value;
+    if (new Date() > new Date(lkpdDeadlineStr)) {
+      isPastDeadline = true;
+    }
+  }
+} catch (err) {
+  console.warn('Error fetching lkpd_deadline setting:', err);
+}
+
+let mailMergeData: any = {};
+let searchOperatorsData: any = {};
+let reflectionData: any = {};
+let teamMembersData: any = [];
+
+if (existingSubmission) {
+  try {
+    mailMergeData = typeof existingSubmission.mail_merge_json === 'string' ? JSON.parse(existingSubmission.mail_merge_json) : (existingSubmission.mail_merge_json || {});
+  } catch (e) {}
+  try {
+    searchOperatorsData = typeof existingSubmission.search_operators_json === 'string' ? JSON.parse(existingSubmission.search_operators_json) : (existingSubmission.search_operators_json || {});
+  } catch (e) {}
+  try {
+    reflectionData = typeof existingSubmission.reflection_json === 'string' ? JSON.parse(existingSubmission.reflection_json) : (existingSubmission.reflection_json || {});
+  } catch (e) {}
+  try {
+    teamMembersData = typeof existingSubmission.team_members === 'string' ? JSON.parse(existingSubmission.team_members) : (existingSubmission.team_members || []);
+  } catch (e) {}
+}
+---
+
+<MainLayout
+  title="LKPD Digital: TIK | Informatika SMK"
+  description="Lembar Kerja Peserta Didik (LKPD) Interaktif TIK - Mail Merge, Object Embedding (OLE), & Advanced Search Operators."
+>
+  <div class="lkpd-page-container">
+    <!-- Top Nav Controls (Hidden on print) -->
+    <div class="page-top-nav no-print">
+      <a href="/belajar/informatika/tik" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Elemen 2 TIK
+      </a>
+      <div class="top-nav-actions">
+        <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
+          Cetak / Unduh PDF
+        </button>
+        <span class="badge badge-cyan">LKPD DIGITAL TIK</span>
+      </div>
+    </div>
+
+    <!-- Deadline Notice Banner -->
+    {lkpdDeadlineStr && (
+      <div class={`deadline-notice-card glass-card no-print ${isPastDeadline ? 'banner-expired' : 'banner-active'}`}>
+        {isPastDeadline ? (
+          <div class="deadline-notice-flex">
+            <span class="badge badge-red">PENGUMPULAN DITUTUP</span>
+            <div>
+              <strong class="notice-title">Tenggat Waktu Pengumpulan LKPD TIK Telah Berakhir</strong>
+              <p class="notice-desc">
+                Batas pengumpulan: {new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB.
+                {!existingSubmission && ' Pengajuan formulir LKPD TIK baru telah ditutup oleh Guru.'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div class="deadline-notice-flex">
+            <span class="badge badge-cyan">TENGGAT PENGUMPULAN</span>
+            <div>
+              <strong class="notice-title">Batas Waktu Pengumpulan Tugas TIK</strong>
+              <p class="notice-desc">
+                Kumpulkan LKPD sebelum: <strong>{new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    <!-- Teacher Evaluation Banner (If Graded) -->
+    {isGraded && (
+      <div class="grade-banner glass-card no-print">
+        <div class="grade-badge-box">
+          <span class="grade-label">NILAI AKHIR LKPD TIK</span>
+          <span class="grade-score">{existingSubmission.score} / 100</span>
+        </div>
+        <div class="grade-feedback-box">
+          <strong>Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
+          <p>{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan analisis Mail Merge, OLE, dan efisiensi pencarian digital tim kalian.'}</p>
+        </div>
+      </div>
+    )}
+
+    <!-- LKPD Document Body -->
+    <div class="lkpd-document-paper" id="lkpd-document">
+      <div class="doc-header">
+        <div class="header-logo-wrap">
+          <div class="doc-badge">SMK RPL</div>
+          <div>
+            <h1 class="doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL TIK</h1>
+            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 2: Teknologi Informasi &amp; Komunikasi (TIK)</p>
+          </div>
+        </div>
+        <div class="doc-meta-right">
+          <span>Pengampu: <strong>Suhendar Aryadi, S.Pd.,Gr.</strong></span>
+          <span>Siswa Login: <strong>{user.name}</strong></span>
+        </div>
+      </div>
+
+      <form id="lkpd-tik-form">
+        <!-- Part 1: Team & Class Identity -->
+        <section class="doc-section">
+          <h2 class="section-title">1. IDENTITAS TIM &amp; PEMILIHAN STUDI KASUS TIK</h2>
+          <div class="identity-grid">
+            <div class="form-group">
+              <label for="team-name">Nama Kelompok / Tim:</label>
+              <input type="text" id="team-name" class="doc-input" placeholder="Misal: Tim Digital Innovators RPL 1" value={existingSubmission?.team_name || ''} required />
+            </div>
+            <div class="form-group">
+              <label for="team-members">Nama Anggota Tim (Pisahkan dengan koma):</label>
+              <input type="text" id="team-members" class="doc-input" placeholder="Misal: Budi Santoso, Siti Nurhaliza, Rizky Pratama" value={Array.isArray(teamMembersData) ? teamMembersData.join(', ') : (teamMembersData || '')} />
+            </div>
+            <div class="form-group">
+              <label for="class-identity">Kelas &amp; Rombel:</label>
+              <input type="text" id="class-identity" class="doc-input" value={user.class_name || 'X RPL'} readonly />
+            </div>
+          </div>
+
+          <div class="form-group margin-top">
+            <label for="case-study-select">Pilih Studi Kasus Integrasi &amp; Pencarian TIK:</label>
+            <select id="case-study-select" class="doc-select">
+              <option value="cert_inv" selected={existingSubmission?.case_study_id === 'cert_inv'}>Studi Kasus 1: Mail Merge Sertifikat &amp; Undangan Orang Tua (Otomatisasi Dokumen)</option>
+              <option value="ekantin" selected={existingSubmission?.case_study_id === 'ekantin'}>Studi Kasus 2: Integrasi Keuangan E-Kantin Sekolah (Excel &amp; Word OLE)</option>
+              <option value="data_gov" selected={existingSubmission?.case_study_id === 'data_gov'}>Studi Kasus 3: Advanced Search Data Resmi &amp; Jurnal Pendidikan</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Part 2: Mail Merge & OLE Office Integration -->
+        <section class="doc-section">
+          <h2 class="section-title">2. INTEGRASI APLIKASI PERKANTORAN (MAIL MERGE &amp; OLE)</h2>
+          
+          <div class="pillar-box margin-bottom-sm">
+            <h3 class="pillar-heading">2.1 Stuktur Data Sumber &amp; Pemetaan Mail Merge</h3>
+            <p class="pillar-instruction">Tentukan struktur kolom data (CSV / Spreadsheet) dan placeholder tag yang digunakan pada template Word/Pengolah Kata.</p>
+            
+            <div class="grid-2col">
+              <div class="form-group">
+                <label for="mail-merge-headers">Nama Kolom Data (CSV / Excel Header):</label>
+                <input type="text" id="mail-merge-headers" class="doc-input font-mono" placeholder="nama, kelas, nomor_sertifikat, status, nilai_akhir" value={mailMergeData.headers || 'nama, kelas, nomor_sertifikat, status, nilai_akhir'} />
+              </div>
+              <div class="form-group">
+                <label for="mail-merge-template">Struktur Tag Placeholder Dokumen Template (Word):</label>
+                <textarea id="mail-merge-template" class="doc-textarea font-mono" rows="3" placeholder="Sertifikat diberikan kepada: «nama» (Kelas: «kelas») dengan predikat «status»...">{mailMergeData.template || 'Diberikan kepada: «nama» | Kelas: «kelas» | Predikat: «status»'}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="pillar-box">
+            <h3 class="pillar-heading">2.2 Analisis Alur Kerja Object Linking &amp; Embedding (OLE)</h3>
+            <p class="pillar-instruction">Jelaskan bagaimana tabel/grafik dari Spreadsheet dapat di-embed secara dinamis ke dalam dokumen Word atau Slide Presentasi agar pembaruan data terjadi secara otomatis.</p>
+            <div class="form-group">
+              <label for="ole-workflow">Deskripsi Alur Kerja OLE:</label>
+              <textarea id="ole-workflow" class="doc-textarea" rows="4" placeholder="Jelaskan langkah demi langkah integrasi OLE (Paste Special -> Paste Link) serta keuntungannya dibanding Copy-Paste biasa...">{mailMergeData.ole_workflow || ''}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Part 3: Advanced Search Operators -->
+        <section class="doc-section">
+          <h2 class="section-title">3. ADVANCED SEARCH OPERATORS (PENCARIAN DIGITAL EFEKTIF)</h2>
+
+          <div class="pillar-box">
+            <h3 class="pillar-heading">Rancangan Query Pencarian Terstruktur &amp; Evaluasi Sumber</h3>
+            <p class="pillar-instruction">Gunakan kombinasi operator pencarian presisi (misal: <code>"kata kunci"</code>, <code>filetype:pdf</code>, <code>site:.go.id</code>, <code>-spam</code>) untuk menemukan dokumen terverifikasi.</p>
+
+            <div class="grid-2col margin-bottom-sm">
+              <div class="form-group">
+                <label for="search-target-topic">Topik / Masalah Yang Dicari:</label>
+                <input type="text" id="search-target-topic" class="doc-input" placeholder="Misal: Kurikulum Merdeka Rekayasa Perangkat Lunak SMK" value={searchOperatorsData.topic || searchOperatorsData.target_topic || ''} />
+              </div>
+              <div class="form-group">
+                <label for="search-query-string">Sintaks Query Google / Engine Ber-Operator:</label>
+                <input type="text" id="search-query-string" class="doc-input font-mono" placeholder='"kurikulum merdeka RPL" filetype:pdf site:.go.id -spam' value={searchOperatorsData.query || searchOperatorsData.query_string || ''} />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="search-source-eval">Evaluasi Efektivitas Operator &amp; Validasi Kredibilitas Sumber:</label>
+              <textarea id="search-source-eval" class="doc-textarea" rows="4" placeholder="Analisis mengapa sintaks query tersebut dapat mengeliminasi website blog tak terpercaya, iklan, dan menghasilkan berkas resmi...">{searchOperatorsData.evaluation || searchOperatorsData.source_eval || ''}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Part 4: Team Reflection -->
+        <section class="doc-section">
+          <h2 class="section-title">4. REFLEKSI TIM</h2>
+          <div class="pillar-box">
+            <h3 class="pillar-heading">Refleksi Efisiensi Kerja &amp; Pembelajaran TIK</h3>
+            <p class="pillar-instruction">Diskusikan bersama tim mengenai dampak otomatisasi Mail Merge, OLE, dan efisiensi pencarian informasi terhadap produktivitas kerja di industri software engineering.</p>
+            <div class="form-group">
+              <label for="reflection-text">Refleksi Tim:</label>
+              <textarea id="reflection-text" class="doc-textarea" rows="4" placeholder="Tuliskan kesimpulan dan refleksi tim...">{reflectionData.efficiency || reflectionData.reflection || ''}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Form Actions -->
+        <div class="doc-actions no-print">
+          <button type="submit" id="submit-lkpd-btn" class={`btn btn-primary btn-lg ${isPastDeadline ? 'btn-disabled' : ''}`} disabled={isPastDeadline}>
+            {isPastDeadline ? '🔒 Pengumpulan Ditutup (Tenggat Berakhir)' : '🚀 Kirim / Perbarui Tugas LKPD TIK'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Print Button
+    const printBtn = document.getElementById('print-lkpd-btn');
+    printBtn?.addEventListener('click', () => {
+      window.print();
+    });
+
+    // Form Submit
+    const form = document.getElementById('lkpd-tik-form');
+    const submitBtn = document.getElementById('submit-lkpd-btn');
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!submitBtn || submitBtn.disabled) return;
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = '⏳ Menyimpan LKPD TIK...';
+
+      const teamMembersVal = document.getElementById('team-members')?.value || '';
+      const membersArr = teamMembersVal.split(',').map(s => s.trim()).filter(s => s);
+
+      const payload = {
+        caseStudyId: document.getElementById('case-study-select')?.value,
+        teamName: document.getElementById('team-name')?.value,
+        teamMembers: membersArr,
+        mailMerge: {
+          headers: document.getElementById('mail-merge-headers')?.value || '',
+          template: document.getElementById('mail-merge-template')?.value || '',
+          ole_workflow: document.getElementById('ole-workflow')?.value || ''
+        },
+        searchOperators: {
+          topic: document.getElementById('search-target-topic')?.value || '',
+          query: document.getElementById('search-query-string')?.value || '',
+          evaluation: document.getElementById('search-source-eval')?.value || ''
+        },
+        reflection: {
+          efficiency: document.getElementById('reflection-text')?.value || ''
+        }
+      };
+
+      try {
+        const res = await fetch('/api/lkpd/submit-tik', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('✅ ' + data.message);
+          window.location.reload();
+        } else {
+          alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan saat menyimpan.'));
+        }
+      } catch (err) {
+        alert('❌ Error koneksi ke server.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  });
+</script>
+
+<style>
+  .lkpd-page-container {
+    max-width: 1040px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Deadline Notice Banner */
+  .deadline-notice-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-xl);
+  }
+
+  .banner-active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+  }
+
+  .banner-expired {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.12) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .deadline-notice-flex {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .notice-title {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    display: block;
+  }
+
+  .notice-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+
+  .badge-red {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  /* Grade Banner */
+  .grade-banner {
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.12) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-xl);
+  }
+
+  .grade-badge-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #10b981;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-lg);
+    min-width: 140px;
+  }
+
+  .grade-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .grade-score {
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .grade-feedback-box {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
+
+  /* Paper Document */
+  .lkpd-document-paper {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 2.5rem;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px double #0891b2;
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+
+  .header-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .doc-badge {
+    background: linear-gradient(135deg, #0891b2, #4f46e5);
+    color: #ffffff;
+    font-weight: 800;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .doc-title {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+  }
+
+  .doc-sub {
+    font-size: 0.85rem;
+    color: #0891b2;
+    font-weight: 600;
+  }
+
+  .doc-meta-right {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    font-size: 0.825rem;
+    color: #475569;
+  }
+
+  .doc-section {
+    margin-bottom: 2.25rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0891b2;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .identity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .margin-top {
+    margin-top: 1rem;
+  }
+
+  .margin-bottom-sm {
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .doc-input, .doc-select, .doc-textarea {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    line-height: 1.45;
+  }
+
+  textarea.doc-input, .doc-textarea {
+    resize: vertical;
+    field-sizing: content;
+    min-height: 70px;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono, monospace);
+  }
+
+  .doc-input:focus, .doc-select:focus, .doc-textarea:focus {
+    outline: none;
+    border-color: #0891b2;
+    background: #ffffff;
+  }
+
+  .pillar-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+  }
+
+  .pillar-heading {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+  }
+
+  .pillar-instruction {
+    font-size: 0.825rem;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  /* Mobile Responsive Form UX (< 768px) */
+  @media (max-width: 768px) {
+    .lkpd-page-container {
+      margin: 0.75rem auto 3rem;
+      padding: 0 0.5rem;
+      gap: 1rem;
+    }
+
+    .page-top-nav {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .page-top-nav .btn {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+    }
+
+    .top-nav-actions {
+      flex-direction: column;
+      width: 100%;
+      gap: 0.5rem;
+    }
+
+    .grade-banner {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 1rem;
+      gap: 0.875rem;
+    }
+
+    .grade-badge-box {
+      width: 100%;
+      min-width: 100%;
+    }
+
+    .lkpd-document-paper {
+      padding: 1.25rem 0.875rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .doc-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.875rem;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-logo-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .doc-meta-right {
+      text-align: left;
+    }
+
+    .doc-title {
+      font-size: 1.15rem;
+      line-height: 1.3;
+    }
+
+    .doc-sub {
+      font-size: 0.8rem;
+    }
+
+    .identity-grid, .grid-2col {
+      grid-template-columns: 1fr;
+      gap: 0.875rem;
+    }
+
+    .pillar-box {
+      padding: 1rem 0.75rem;
+    }
+
+    .doc-input, .doc-select, .doc-textarea {
+      font-size: 16px !important;
+      padding: 0.65rem 0.85rem;
+      min-height: 44px;
+      border-radius: var(--radius-md);
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .doc-textarea {
+      min-height: 110px;
+    }
+
+    .doc-actions .btn {
+      width: 100%;
+      min-height: 48px;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+  }
+
+  /* Print Stylesheet */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: #ffffff !important;
+    }
+    .lkpd-page-container {
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .lkpd-document-paper {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 1rem !important;
+    }
+  }
+</style>
