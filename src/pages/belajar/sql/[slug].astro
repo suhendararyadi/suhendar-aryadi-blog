@@ -44,7 +44,7 @@ const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
 if (!user) {
-  return Astro.redirect(`/auth/login?redirect=/belajar/sql/${slug}`);
+  return Astro.redirect(`/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
 }
 
 let completedLessonIds = new Set<number>();

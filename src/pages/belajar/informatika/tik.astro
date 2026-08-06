@@ -5,6 +5,10 @@ import { getSessionUser } from '../../../lib/auth';
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
+if (!user) {
+  return Astro.redirect(`/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
 const searchOperators = [
   {
     op: 'filetype:pdf / filetype:docx',

@@ -7,6 +7,10 @@ import { query } from '../../../lib/db';
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
+if (!user) {
+  return Astro.redirect(`/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
 let lessons: SQLLesson[] = seedLessons;
 try {
   const dbRes = await query('SELECT * FROM sql_lessons ORDER BY order_index ASC');
