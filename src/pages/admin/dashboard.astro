@@ -22,13 +22,16 @@ const totalLessonsCount = seedLessons.length || 40;
 
 if (isTeacherOrAdmin) {
   try {
-    // 1. Fetch all registered students & completion metrics
+    // 1. Fetch all registered students, SQL completion metrics, & LKPD scores
     const studentsRes = await query(
       `SELECT u.id, u.name, u.email, u.role, u.class_name, u.created_at,
-              COUNT(up.id) as completed_count,
-              MAX(up.completed_at) as last_completed_at
+              COUNT(DISTINCT up.id) as completed_count,
+              MAX(up.completed_at) as last_completed_at,
+              MAX(lk.score) as lkpd_score,
+              MAX(lk.updated_at) as lkpd_submitted_at
        FROM users u
        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+       LEFT JOIN lkpd_submissions lk ON u.id = lk.user_id
        GROUP BY u.id, u.name, u.email, u.role, u.class_name, u.created_at
        ORDER BY u.created_at DESC`
     );
@@ -37,6 +40,7 @@ if (isTeacherOrAdmin) {
       students = studentsRes.rows.map((row: any) => {
         const count = parseInt(row.completed_count || '0', 10);
         const percentage = Math.round((count / totalLessonsCount) * 100);
+        const lkpdScore = row.lkpd_score !== null && row.lkpd_score !== undefined ? parseInt(row.lkpd_score, 10) : null;
 
         let rankTitle = 'SQL Novice';
         let badgeClass = 'badge-novice';
@@ -55,6 +59,7 @@ if (isTeacherOrAdmin) {
           ...row,
           completed_count: count,
           percentage,
+          lkpd_score: lkpdScore,
           rankTitle,
           badgeClass
         };
@@ -238,7 +243,8 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                   <th class="text-center">Kelas (RPL)</th>
                   <th>Email</th>
                   <th class="text-center">Role</th>
-                  <th class="text-center">Modul Selesai</th>
+                  <th class="text-center">Modul SQL</th>
+                  <th class="text-center">Nilai LKPD</th>
                   <th class="text-center">Peringkat Rank</th>
                   <th class="text-center">Terdaftar pada</th>
                   <th class="text-center">Aksi</th>
@@ -271,6 +277,17 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                       </span>
                     </td>
                     <td class="text-center">
+                      {item.lkpd_score !== null && item.lkpd_score !== undefined ? (
+                        <span class="badge badge-green font-mono">
+                          {item.lkpd_score} / 100
+                        </span>
+                      ) : item.lkpd_submitted_at ? (
+                        <span class="badge badge-amber font-mono">Belum Dinilai</span>
+                      ) : (
+                        <span class="badge badge-muted font-mono">-</span>
+                      )}
+                    </td>
+                    <td class="text-center">
                       <span class={`badge ${item.badgeClass}`}>{item.rankTitle}</span>
                     </td>
                     <td class="date-col text-center">
@@ -279,8 +296,8 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                       })}
                     </td>
                     <td class="text-center">
-                      <a href={`/belajar/sql/leaderboard`} class="btn btn-outline btn-xs">
-                        Detail
+                      <a href="/admin/lkpd" class="btn btn-outline btn-xs">
+                        Nilai LKPD
                       </a>
                     </td>
                   </tr>
@@ -355,7 +372,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
 
       // UTF-8 BOM for Excel compatibility
       let csv = '\uFEFF';
-      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase,Peringkat Rank,Tanggal Terdaftar\n';
+      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase SQL,Nilai LKPD BK,Peringkat Rank,Tanggal Terdaftar\n';
 
       filtered.forEach((s, idx) => {
         const name = `"${(s.name || '').replace(/"/g, '""')}"`;
@@ -364,10 +381,11 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
         const role = s.role || 'student';
         const completed = s.completed_count || 0;
         const pct = `${s.percentage || 0}%`;
+        const lkpdVal = s.lkpd_score !== null && s.lkpd_score !== undefined ? s.lkpd_score : (s.lkpd_submitted_at ? 'Belum Dinilai' : '-');
         const rank = `"${s.rankTitle || ''}"`;
         const date = new Date(s.created_at).toLocaleDateString('id-ID');
 
-        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${rank},${date}\n`;
+        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${lkpdVal},${rank},${date}\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
