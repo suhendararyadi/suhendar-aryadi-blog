@@ -586,16 +586,14 @@ END
     const sampleText = document.getElementById('toggle-sample-text');
 
     toggleSampleBtn?.addEventListener('click', () => {
-      if (!sampleContent || !sampleIcon || !sampleText) return;
-      const isHidden = sampleContent.style.display === 'none';
+      if (!sampleContent || !sampleText) return;
+      const isHidden = sampleContent.style.display === 'none' || !sampleContent.style.display;
       if (isHidden) {
         sampleContent.style.display = 'block';
-        sampleIcon.textContent = '🙈';
         sampleText.textContent = 'Sembunyikan Contoh LKPD Ideal';
         sampleContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         sampleContent.style.display = 'none';
-        sampleIcon.textContent = '👁️';
         sampleText.textContent = 'Tampilkan Contoh LKPD Ideal Terisi';
       }
     });
