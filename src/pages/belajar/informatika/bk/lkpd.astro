@@ -119,23 +119,23 @@ const isGraded = existingSubmission && existingSubmission.score !== null;
               <tbody>
                 <tr>
                   <td class="text-center">1</td>
-                  <td><input type="text" id="deco-mod-1" class="doc-table-input" placeholder="Misal: Modul Katalog Menu" /></td>
-                  <td><input type="text" id="deco-func-1" class="doc-table-input" placeholder="Menampilkan daftar makanan, foto, dan filter harga" /></td>
+                  <td><textarea id="deco-mod-1" class="doc-table-input" rows="2" placeholder="Misal: Modul Katalog Menu"></textarea></td>
+                  <td><textarea id="deco-func-1" class="doc-table-input" rows="2" placeholder="Menampilkan daftar makanan, foto, dan filter harga"></textarea></td>
                 </tr>
                 <tr>
                   <td class="text-center">2</td>
-                  <td><input type="text" id="deco-mod-2" class="doc-table-input" placeholder="Misal: Modul Antrean &amp; Dapur" /></td>
-                  <td><input type="text" id="deco-func-2" class="doc-table-input" placeholder="Mengatur nomor urut pesanan sesuai kedatangan (Queue)" /></td>
+                  <td><textarea id="deco-mod-2" class="doc-table-input" rows="2" placeholder="Misal: Modul Antrean &amp; Dapur"></textarea></td>
+                  <td><textarea id="deco-func-2" class="doc-table-input" rows="2" placeholder="Mengatur nomor urut pesanan sesuai kedatangan (Queue)"></textarea></td>
                 </tr>
                 <tr>
                   <td class="text-center">3</td>
-                  <td><input type="text" id="deco-mod-3" class="doc-table-input" placeholder="Misal: Modul Keranjang &amp; Checkout" /></td>
-                  <td><input type="text" id="deco-func-3" class="doc-table-input" placeholder="Merekam daftar belanja dan menghitung total harga" /></td>
+                  <td><textarea id="deco-mod-3" class="doc-table-input" rows="2" placeholder="Misal: Modul Keranjang &amp; Checkout"></textarea></td>
+                  <td><textarea id="deco-func-3" class="doc-table-input" rows="2" placeholder="Merekam daftar belanja dan menghitung total harga"></textarea></td>
                 </tr>
                 <tr>
                   <td class="text-center">4</td>
-                  <td><input type="text" id="deco-mod-4" class="doc-table-input" placeholder="Misal: Modul Pembayaran Digital" /></td>
-                  <td><input type="text" id="deco-func-4" class="doc-table-input" placeholder="Integrasi saldo/QRIS dan mencetak struk transaksi" /></td>
+                  <td><textarea id="deco-mod-4" class="doc-table-input" rows="2" placeholder="Misal: Modul Pembayaran Digital"></textarea></td>
+                  <td><textarea id="deco-func-4" class="doc-table-input" rows="2" placeholder="Integrasi saldo/QRIS dan mencetak struk transaksi"></textarea></td>
                 </tr>
               </tbody>
             </table>
@@ -156,13 +156,13 @@ const isGraded = existingSubmission && existingSubmission.score !== null;
               <tbody>
                 <tr>
                   <td class="text-center">1</td>
-                  <td><input type="text" id="patt-name-1" class="doc-table-input" placeholder="Alur Autentikasi / Login Siswa &amp; Guru" /></td>
-                  <td><input type="text" id="patt-sol-1" class="doc-table-input" placeholder="Membuat 1 fungsi terpusat validasi password &amp; token session" /></td>
+                  <td><textarea id="patt-name-1" class="doc-table-input" rows="2" placeholder="Alur Autentikasi / Login Siswa &amp; Guru"></textarea></td>
+                  <td><textarea id="patt-sol-1" class="doc-table-input" rows="2" placeholder="Membuat 1 fungsi terpusat validasi password &amp; token session"></textarea></td>
                 </tr>
                 <tr>
                   <td class="text-center">2</td>
-                  <td><input type="text" id="patt-name-2" class="doc-table-input" placeholder="Fitur Pencarian Data Menu &amp; Pasien" /></td>
-                  <td><input type="text" id="patt-sol-2" class="doc-table-input" placeholder="Memakai algoritma searching terstandar untuk pencarian kata kunci" /></td>
+                  <td><textarea id="patt-name-2" class="doc-table-input" rows="2" placeholder="Fitur Pencarian Data Menu &amp; Pasien"></textarea></td>
+                  <td><textarea id="patt-sol-2" class="doc-table-input" rows="2" placeholder="Memakai algoritma searching terstandar untuk pencarian kata kunci"></textarea></td>
                 </tr>
               </tbody>
             </table>
@@ -206,11 +206,11 @@ const isGraded = existingSubmission && existingSubmission.score !== null;
             <div class="grid-2col margin-top">
               <div class="form-group">
                 <label for="alg-queue-use">Penerapan Queue (FIFO - First In First Out):</label>
-                <input type="text" id="alg-queue-use" class="doc-input" placeholder="Manajemen Antrean Pesanan Dapur / Nomor Berobat Pasien" />
+                <textarea id="alg-queue-use" class="doc-input" rows="2" placeholder="Manajemen Antrean Pesanan Dapur / Nomor Berobat Pasien"></textarea>
               </div>
               <div class="form-group">
                 <label for="alg-stack-use">Penerapan Stack (LIFO - Last In First Out):</label>
-                <input type="text" id="alg-stack-use" class="doc-input" placeholder="Fitur Undo / Redo Pembatalan Transaksi Kasir" />
+                <textarea id="alg-stack-use" class="doc-input" rows="2" placeholder="Fitur Undo / Redo Pembatalan Transaksi Kasir"></textarea>
               </div>
             </div>
 
@@ -511,6 +511,14 @@ END"></textarea>
     color: #0f172a;
     width: 100%;
     box-sizing: border-box;
+    font-family: inherit;
+    line-height: 1.45;
+  }
+
+  textarea.doc-table-input, textarea.doc-input, .doc-textarea {
+    resize: vertical;
+    field-sizing: content;
+    min-height: 52px;
   }
 
   .doc-input:focus, .doc-select:focus, .doc-textarea:focus, .doc-table-input:focus {
