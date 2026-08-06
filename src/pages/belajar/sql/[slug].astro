@@ -280,11 +280,13 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
               <textarea 
                 id="sql-input" 
                 class="sql-code-editor" 
-                placeholder="-- Tulis query SQL Anda di sini..."
+                placeholder="-- Tulis query SQL Anda di sini (Ketik langsung, fitur Paste dinonaktifkan)..."
                 spellcheck="false"
                 autocomplete="off"
                 autocorrect="off"
                 autocapitalize="off"
+                onpaste="return false;"
+                ondrop="return false;"
               >{lesson.initial_code}</textarea>
             </div>
           </div>
@@ -331,6 +333,26 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
   const tableContainer = document.getElementById('output-table-container');
   const rowsCountEl = document.getElementById('rows-count');
   const evalStatus = document.getElementById('eval-status');
+
+  // Anti-Paste & Anti-Copy-Paste Protection to enforce direct typing
+  if (sqlInput) {
+    sqlInput.addEventListener('paste', (e) => {
+      e.preventDefault();
+      if (evalStatus) {
+        evalStatus.style.display = 'block';
+        evalStatus.className = 'eval-banner eval-warning';
+        evalStatus.innerHTML = '<strong>⚠️ Fitur Paste Dinonaktifkan:</strong> Siswa diwajibkan mengetik perintah SQL secara langsung untuk melatih memori otot (muscle memory) dan keahlian sintaksis dasar.';
+      } else {
+        alert('⚠️ Fitur Paste dinonaktifkan! Harap ketik sintaks SQL secara langsung.');
+      }
+      return false;
+    });
+
+    sqlInput.addEventListener('drop', (e) => {
+      e.preventDefault();
+      return false;
+    });
+  }
 
   // Reset Code handler
   resetBtn?.addEventListener('click', () => {
