@@ -21,11 +21,32 @@ try {
      ORDER BY s.updated_at DESC`
   );
   if (res.rows) {
-    submissions = res.rows;
+    submissions = res.rows.map(row => {
+      let deco: any[] = [];
+      let patt: any[] = [];
+      let abs: any = {};
+      let alg: any = {};
+
+      try { deco = JSON.parse(row.decomposition_json || '[]'); } catch (e) {}
+      try { patt = JSON.parse(row.pattern_json || '[]'); } catch (e) {}
+      try { abs = JSON.parse(row.abstraction_json || '{}'); } catch (e) {}
+      try { alg = JSON.parse(row.algorithm_json || '{}'); } catch (e) {}
+
+      return {
+        ...row,
+        parsedDeco: deco,
+        parsedPatt: patt,
+        parsedAbs: abs,
+        parsedAlg: alg
+      };
+    });
   }
 } catch (err) {
   console.warn('Error fetching LKPD submissions:', err);
 }
+
+// Get unique classes for filter dropdown
+const uniqueClasses = Array.from(new Set(submissions.map(s => s.class_name || 'X RPL'))).sort();
 ---
 
 <MainLayout
@@ -44,9 +65,41 @@ try {
           </p>
         </div>
         <div class="header-actions">
+          <button id="export-csv-btn" class="btn btn-secondary btn-sm" type="button">
+            Unduh CSV Rekap LKPD
+          </button>
           <a href="/admin/dashboard" class="btn btn-outline btn-sm">
             &larr; Dashboard Rekap Nilai
           </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Toolbar Block -->
+    <div class="toolbar-card glass-card">
+      <div class="toolbar-grid">
+        <div class="tool-group">
+          <label for="filter-class">Filter Kelas / Rombel:</label>
+          <select id="filter-class" class="tool-select">
+            <option value="ALL">Semua Kelas</option>
+            {uniqueClasses.map(c => (
+              <option value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        <div class="tool-group">
+          <label for="filter-status">Filter Status Penilaian:</label>
+          <select id="filter-status" class="tool-select">
+            <option value="ALL">Semua Status</option>
+            <option value="UNGRADED">Belum Dinilai</option>
+            <option value="GRADED">Sudah Dinilai</option>
+          </select>
+        </div>
+
+        <div class="tool-group flex-2">
+          <label for="search-input">Cari Siswa / Tim:</label>
+          <input type="text" id="search-input" class="tool-input" placeholder="Ketik nama siswa, email, atau nama tim..." />
         </div>
       </div>
     </div>
@@ -55,8 +108,8 @@ try {
     <div class="section-block glass-card">
       <div class="block-header">
         <div>
-          <h2 class="block-title">Daftar Kiriman LKPD Siswa ({submissions.length})</h2>
-          <p class="block-sub">Pilih tugas siswa untuk memberikan skor nilai dan umpan balik guru</p>
+          <h2 class="block-title">Daftar Kiriman LKPD Siswa (<span id="count-display">{submissions.length}</span>)</h2>
+          <p class="block-sub">Pilih tugas siswa untuk memeriksa 4 pilar analisis dan memberikan skor nilai</p>
         </div>
       </div>
 
@@ -65,13 +118,18 @@ try {
           <p>Belum ada siswa yang mengirimkan LKPD Digital.</p>
         </div>
       ) : (
-        <div class="submissions-list">
+        <div class="submissions-list" id="submissions-list">
           {submissions.map((item) => (
-            <div class="submission-card glass-card">
+            <div 
+              class="submission-card glass-card"
+              data-class={item.class_name || 'X RPL'}
+              data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
+              data-search={`${item.student_name} ${item.student_email} ${item.team_name || ''}`.toLowerCase()}
+            >
               <div class="sub-card-header">
                 <div>
                   <span class="badge badge-cyan">{item.class_name || 'X RPL'}</span>
-                  <h3 class="sub-student-name">{item.student_name} ({item.student_email})</h3>
+                  <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
                   <span class="sub-team-name">Tim: <strong>{item.team_name || 'Mandiri'}</strong> | Studi Kasus: <strong>{item.case_study_id.toUpperCase()}</strong></span>
                 </div>
                 <div class="sub-score-box">
@@ -83,15 +141,102 @@ try {
                 </div>
               </div>
 
-              <!-- Content Summary -->
-              <div class="sub-content-preview">
-                <div class="preview-item">
-                  <strong>🧩 Dekomposisi &amp; Modul:</strong>
-                  <p>{item.decomposition_json.slice(0, 160)}...</p>
+              <!-- Quick Answers Overview -->
+              <div class="sub-quick-preview">
+                <div class="quick-item">
+                  <strong>Struktur Modul Dekomposisi:</strong>
+                  <span>{item.parsedDeco.map((d: any) => d.mod).filter(Boolean).join(', ') || 'Belum diisi'}</span>
                 </div>
-                <div class="preview-item">
-                  <strong>⚙️ Algoritma &amp; Pseudocode:</strong>
-                  <pre class="font-mono">{item.algorithm_json.slice(0, 160)}...</pre>
+                <div class="quick-item">
+                  <strong>Algoritma &amp; Search:</strong>
+                  <span>{item.parsedAlg.search || '-'} / {item.parsedAlg.sort || '-'}</span>
+                </div>
+              </div>
+
+              <!-- Collapsible Full Detail Drawer Button -->
+              <div class="detail-toggle-bar">
+                <button class="btn-toggle-detail" type="button" data-target={`detail-${item.id}`}>
+                  <span>Tampilkan Detail Jawaban Lengkap 4 Pilar</span>
+                  <span class="arrow-icon">&darr;</span>
+                </button>
+              </div>
+
+              <!-- Full Detail Answer Drawer (Hidden by default) -->
+              <div id={`detail-${item.id}`} class="detail-drawer" style="display: none;">
+                <!-- 1. Dekomposisi -->
+                <div class="detail-section">
+                  <h4 class="detail-sec-title">1. Dekomposisi System (4 Sub-Sistem)</h4>
+                  <table class="detail-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 40px;">No</th>
+                        <th style="width: 220px;">Modul / Sub-Sistem</th>
+                        <th>Fungsi Utama &amp; Fitur</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.parsedDeco.map((d: any, idx: number) => (
+                        <tr>
+                          <td class="text-center">{idx + 1}</td>
+                          <td><strong>{d.mod || '-'}</strong></td>
+                          <td>{d.func || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- 2. Pengenalan Pola -->
+                <div class="detail-section margin-top-sm">
+                  <h4 class="detail-sec-title">2. Pengenalan Pola (Pattern Recognition)</h4>
+                  <table class="detail-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 40px;">No</th>
+                        <th style="width: 240px;">Pola Ditemukan</th>
+                        <th>Rencana Solusi Berulang</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.parsedPatt.map((p: any, idx: number) => (
+                        <tr>
+                          <td class="text-center">{idx + 1}</td>
+                          <td><strong>{p.name || '-'}</strong></td>
+                          <td>{p.sol || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- 3. Abstraksi -->
+                <div class="detail-section margin-top-sm">
+                  <h4 class="detail-sec-title">3. Abstraksi (Abstraction)</h4>
+                  <div class="detail-grid-2">
+                    <div class="detail-box box-kept">
+                      <strong>Data Utama Wajib Disimpan:</strong>
+                      <p>{item.parsedAbs.kept || 'Belum diisi'}</p>
+                    </div>
+                    <div class="detail-box box-ignored">
+                      <strong>Detail Informasi Diabaikan:</strong>
+                      <p>{item.parsedAbs.ignored || 'Belum diisi'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4. Algoritma & Pseudocode -->
+                <div class="detail-section margin-top-sm">
+                  <h4 class="detail-sec-title">4. Algoritma &amp; Pseudocode</h4>
+                  <div class="detail-grid-2 margin-bottom-xs">
+                    <div><strong>Algoritma Search:</strong> {item.parsedAlg.search || '-'}</div>
+                    <div><strong>Algoritma Sort:</strong> {item.parsedAlg.sort || '-'}</div>
+                    <div><strong>Penggunaan Queue:</strong> {item.parsedAlg.queue || '-'}</div>
+                    <div><strong>Penggunaan Stack:</strong> {item.parsedAlg.stack || '-'}</div>
+                  </div>
+                  <div class="pseudocode-preview-box">
+                    <strong>Pseudocode Alur Utama:</strong>
+                    <pre class="font-mono">{item.parsedAlg.pseudocode || '// Belum diisi'}</pre>
+                  </div>
                 </div>
               </div>
 
@@ -108,7 +253,7 @@ try {
                       <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Dekomposisi sangat tepat, perhatikan urutan Pseudocode." value={item.teacher_feedback || ''} />
                     </div>
                     <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
-                      💾 Simpan Nilai
+                      Simpan Nilai
                     </button>
                   </div>
                 </form>
@@ -121,10 +266,69 @@ try {
   </div>
 </MainLayout>
 
-<script is:inline>
+<script is:inline define:vars={{ submissionsData: submissions }}>
   document.addEventListener('DOMContentLoaded', () => {
-    const forms = document.querySelectorAll('.grade-form');
+    // 1. Toggle Detail Drawers
+    const toggleBtns = document.querySelectorAll('.btn-toggle-detail');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const drawer = document.getElementById(targetId);
+        const arrow = btn.querySelector('.arrow-icon');
+        if (!drawer) return;
 
+        if (drawer.style.display === 'none' || !drawer.style.display) {
+          drawer.style.display = 'block';
+          btn.classList.add('active');
+          if (arrow) arrow.innerHTML = '&uarr;';
+        } else {
+          drawer.style.display = 'none';
+          btn.classList.remove('active');
+          if (arrow) arrow.innerHTML = '&darr;';
+        }
+      });
+    });
+
+    // 2. Filter & Search Logic
+    const filterClass = document.getElementById('filter-class');
+    const filterStatus = document.getElementById('filter-status');
+    const searchInput = document.getElementById('search-input');
+    const countDisplay = document.getElementById('count-display');
+    const cards = document.querySelectorAll('.submission-card');
+
+    function applyFilters() {
+      const selectedClass = filterClass ? filterClass.value : 'ALL';
+      const selectedStatus = filterStatus ? filterStatus.value : 'ALL';
+      const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cardClass = card.getAttribute('data-class') || '';
+        const cardStatus = card.getAttribute('data-status') || '';
+        const cardSearch = card.getAttribute('data-search') || '';
+
+        const classMatch = selectedClass === 'ALL' || cardClass === selectedClass;
+        const statusMatch = selectedStatus === 'ALL' || cardStatus === selectedStatus;
+        const searchMatch = !searchQuery || cardSearch.includes(searchQuery);
+
+        if (classMatch && statusMatch && searchMatch) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (countDisplay) countDisplay.textContent = String(visibleCount);
+    }
+
+    filterClass?.addEventListener('change', applyFilters);
+    filterStatus?.addEventListener('change', applyFilters);
+    searchInput?.addEventListener('input', applyFilters);
+
+    // 3. Save Grade Form Submit
+    const forms = document.querySelectorAll('.grade-form');
     forms.forEach(form => {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -134,7 +338,7 @@ try {
         const btn = form.querySelector('.save-grade-btn');
 
         btn.disabled = true;
-        btn.textContent = '⏳ Menyimpan...';
+        btn.textContent = 'Menyimpan...';
 
         try {
           const res = await fetch('/api/admin/grade-lkpd', {
@@ -154,9 +358,42 @@ try {
           alert('❌ Error koneksi ke server.');
         } finally {
           btn.disabled = false;
-          btn.textContent = '💾 Simpan Nilai';
+          btn.textContent = 'Simpan Nilai';
         }
       });
+    });
+
+    // 4. Export CSV Handler
+    const exportBtn = document.getElementById('export-csv-btn');
+    exportBtn?.addEventListener('click', () => {
+      if (!submissionsData || submissionsData.length === 0) {
+        alert('Tidak ada data kiriman LKPD untuk di-export.');
+        return;
+      }
+
+      let csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+
+      submissionsData.forEach((row, index) => {
+        const studentName = `"${(row.student_name || '').replace(/"/g, '""')}"`;
+        const studentEmail = `"${(row.student_email || '').replace(/"/g, '""')}"`;
+        const className = `"${(row.class_name || 'X RPL').replace(/"/g, '""')}"`;
+        const teamName = `"${(row.team_name || 'Mandiri').replace(/"/g, '""')}"`;
+        const caseStudy = `"${(row.case_study_id || '').toUpperCase().replace(/"/g, '""')}"`;
+        const score = row.score !== null ? row.score : 'Belum Dinilai';
+        const feedback = `"${(row.teacher_feedback || '').replace(/"/g, '""')}"`;
+        const date = `"${new Date(row.updated_at).toLocaleString('id-ID')}"`;
+
+        csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${score},${feedback},${date}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `rekap_lkpd_informatika_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
   });
 </script>
@@ -168,7 +405,7 @@ try {
     padding: 0 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1.75rem;
+    gap: 1.5rem;
   }
 
   .admin-header {
@@ -183,6 +420,12 @@ try {
     flex-wrap: wrap;
   }
 
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
   .admin-title {
     font-size: 1.85rem;
     font-weight: 800;
@@ -195,6 +438,48 @@ try {
     margin-top: 0.25rem;
   }
 
+  /* Toolbar Filter */
+  .toolbar-card {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .toolbar-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .tool-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 180px;
+  }
+
+  .flex-2 {
+    flex: 2;
+    min-width: 240px;
+  }
+
+  .tool-group label {
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .tool-select, .tool-input {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Submissions Block */
   .section-block {
     padding: 1.75rem;
     display: flex;
@@ -224,6 +509,9 @@ try {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
   }
 
   .sub-card-header {
@@ -231,6 +519,7 @@ try {
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
+    flex-wrap: wrap;
   }
 
   .sub-student-name {
@@ -240,6 +529,12 @@ try {
     margin-top: 0.25rem;
   }
 
+  .sub-email {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
   .sub-team-name {
     font-size: 0.85rem;
     color: var(--text-secondary);
@@ -247,32 +542,149 @@ try {
     margin-top: 0.15rem;
   }
 
-  .sub-content-preview {
+  .sub-quick-preview {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    background: var(--bg-secondary);
-    padding: 1rem;
+    background: var(--bg-tertiary);
+    padding: 0.85rem 1rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-subtle);
     font-size: 0.825rem;
   }
 
   @media (max-width: 640px) {
-    .sub-content-preview {
+    .sub-quick-preview {
       grid-template-columns: 1fr;
     }
   }
 
-  .preview-item strong {
+  .quick-item strong {
     color: var(--text-primary);
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
   }
 
-  .preview-item p, .preview-item pre {
+  .quick-item span {
     color: var(--text-secondary);
+  }
+
+  /* Detail Drawer Button */
+  .detail-toggle-bar {
+    display: flex;
+  }
+
+  .btn-toggle-detail {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent-primary);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    padding: 0.45rem 1rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-toggle-detail:hover, .btn-toggle-detail.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+  }
+
+  /* Detail Drawer Content */
+  .detail-drawer {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid #cbd5e1;
+    margin-top: 0.5rem;
+  }
+
+  .detail-sec-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0891b2;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.825rem;
+  }
+
+  .detail-table th {
+    background: #f1f5f9;
+    color: #334155;
+    text-align: left;
+    padding: 0.45rem 0.65rem;
+    font-weight: 700;
+  }
+
+  .detail-table td {
+    padding: 0.45rem 0.65rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .detail-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    font-size: 0.825rem;
+  }
+
+  @media (max-width: 640px) {
+    .detail-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .detail-box {
+    padding: 0.85rem;
+    border-radius: 0.375rem;
+    border: 1px solid #cbd5e1;
+  }
+
+  .box-kept {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+  }
+
+  .box-ignored {
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
+
+  .detail-box strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #0f172a;
+  }
+
+  .detail-box p {
+    color: #334155;
+    margin: 0;
+  }
+
+  .pseudocode-preview-box {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 0.85rem;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+  }
+
+  .pseudocode-preview-box pre {
+    margin-top: 0.35rem;
+    white-space: pre-wrap;
     font-size: 0.8rem;
+    color: #84cc16;
   }
 
   .grading-form-wrap {
@@ -341,5 +753,13 @@ try {
     padding: 3rem;
     text-align: center;
     color: var(--text-muted);
+  }
+
+  .margin-top-sm {
+    margin-top: 1rem;
+  }
+
+  .margin-bottom-xs {
+    margin-bottom: 0.5rem;
   }
 </style>
