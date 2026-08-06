@@ -151,6 +151,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
             ) : (
               <span class="badge badge-muted">Kelas Belum Diisi</span>
             )}
+            <span class="badge badge-gold">Peringkat #{userRankPosition}</span>
             <span class={`badge ${rankInfo.badgeClass}`}>{rankInfo.title}</span>
           </div>
           <h1 class="profile-name">{user.name}</h1>
@@ -218,38 +219,9 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
         <span class="stat-value">{completionPercentage}<span class="stat-unit">%</span></span>
         <span class="stat-label">Tingkat Penyelesaian</span>
       </div>
-      <div class="stat-item glass-card stat-item-highlight">
-        <span class="stat-value stat-rank-num">#{userRankPosition}</span>
-        <span class="stat-label">Peringkat Siswa <span class="stat-sub">({user.class_name ? `Kelas #${userClassRankPosition}` : `dari ${totalStudentsCount} Siswa`})</span></span>
-      </div>
       <div class="stat-item glass-card">
-        <span class="stat-value stat-rank">{rankInfo.title}</span>
-        <span class="stat-label">Predikat Level</span>
-      </div>
-    </div>
-
-    <!-- Student Rank & Leaderboard Banner -->
-    <div class="student-rank-card glass-card">
-      <div class="rank-card-left">
-        <div class="rank-trophy-box">
-          <span class="trophy-emoji">{trophyEmoji}</span>
-          <div class="rank-big-num">#{userRankPosition}</div>
-        </div>
-        <div class="rank-card-info">
-          <div class="rank-badge-group">
-            <span class="badge badge-gold">POSISI PAPAN PERINGKAT 🏆</span>
-            {user.class_name && (
-              <span class="badge badge-purple">Peringkat #{userClassRankPosition} di Kelas {user.class_name}</span>
-            )}
-          </div>
-          <h2 class="rank-card-title">Peringkat #{userRankPosition} dari {totalStudentsCount} Siswa Terdaftar</h2>
-          <p class="rank-card-desc">{rankMotivationalMsg}</p>
-        </div>
-      </div>
-      <div class="rank-card-right">
-        <a href="/belajar/sql/leaderboard" class="btn btn-outline btn-sm">
-          <span>Lihat Leaderboard Lengkap &rarr;</span>
-        </a>
+        <span class="stat-value stat-rank">#{userRankPosition} <span class="stat-total">({rankInfo.title})</span></span>
+        <span class="stat-label">Peringkat Siswa ({user.class_name ? `Kelas #${userClassRankPosition}` : `dari ${totalStudentsCount} Siswa`})</span>
       </div>
     </div>
 
@@ -603,17 +575,11 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   /* Stats Row */
   .stats-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
 
-  @media (max-width: 900px) {
-    .stats-row {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     .stats-row {
       grid-template-columns: 1fr;
     }
