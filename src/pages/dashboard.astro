@@ -14,6 +14,10 @@ if (!user) {
 let completedModules: any[] = [];
 let topLeaderboard: any[] = [];
 let totalLessonsCount = seedLessons.length;
+let userRankPosition = 1;
+let totalStudentsCount = 1;
+let userClassRankPosition = 1;
+let classStudentsCount = 1;
 
 try {
   const lessonsRes = await query('SELECT COUNT(*) as count FROM sql_lessons');
@@ -33,20 +37,35 @@ try {
   );
   completedModules = progressRes.rows;
 
-  const lbRes = await query(
-    `SELECT u.id, u.name, u.role,
-            COUNT(DISTINCT up.lesson_id) as completed_count
-     FROM users u
-     LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
-     GROUP BY u.id, u.name, u.role
-     ORDER BY completed_count DESC, u.id ASC
-     LIMIT 5`
+  const rankRes = await query(
+    `WITH user_ranks AS (
+       SELECT u.id, u.name, u.role, u.class_name,
+              COUNT(DISTINCT up.lesson_id) as completed_count,
+              ROW_NUMBER() OVER (ORDER BY COUNT(DISTINCT up.lesson_id) DESC, u.id ASC) as overall_rank,
+              ROW_NUMBER() OVER (PARTITION BY u.class_name ORDER BY COUNT(DISTINCT up.lesson_id) DESC, u.id ASC) as class_rank
+       FROM users u
+       LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+       GROUP BY u.id, u.name, u.role, u.class_name
+     )
+     SELECT * FROM user_ranks ORDER BY overall_rank ASC`
   );
-  topLeaderboard = lbRes.rows.map((r) => {
-    const count = parseInt(r.completed_count || '0', 10);
-    const pct = totalLessonsCount > 0 ? Math.round((count / totalLessonsCount) * 100) : 0;
-    return { ...r, count, pct };
-  });
+
+  if (rankRes.rows && rankRes.rows.length > 0) {
+    totalStudentsCount = rankRes.rows.length;
+    const myRankRow = rankRes.rows.find((r: any) => r.id === user.id);
+    if (myRankRow) {
+      userRankPosition = parseInt(myRankRow.overall_rank, 10);
+      userClassRankPosition = parseInt(myRankRow.class_rank, 10);
+    }
+    if (user.class_name) {
+      classStudentsCount = rankRes.rows.filter((r: any) => r.class_name === user.class_name).length;
+    }
+    topLeaderboard = rankRes.rows.slice(0, 5).map((r: any) => {
+      const count = parseInt(r.completed_count || '0', 10);
+      const pct = totalLessonsCount > 0 ? Math.round((count / totalLessonsCount) * 100) : 0;
+      return { ...r, count, pct, rank: parseInt(r.overall_rank, 10) };
+    });
+  }
 } catch (err) {
   console.warn('Could not fetch dashboard progress from database:', err);
 }
@@ -62,6 +81,20 @@ if (completedCount >= 40) {
   rankInfo = { title: 'SQL Advanced', badgeClass: 'badge-advanced' };
 } else if (completedCount >= 11) {
   rankInfo = { title: 'SQL Intermediate', badgeClass: 'badge-intermediate' };
+}
+
+let trophyEmoji = '🏆';
+let rankMotivationalMsg = '🚀 Pertahankan semangat! Selesaikan modul berikutnya untuk naik ke 10 Besar.';
+
+if (userRankPosition === 1) {
+  trophyEmoji = '🥇';
+  rankMotivationalMsg = '🥇 Luar biasa! Anda saat ini memimpin di Peringkat #1 Teratas seluruh platform.';
+} else if (userRankPosition <= 3) {
+  trophyEmoji = '🥈';
+  rankMotivationalMsg = '🥈 Selamat! Anda berada di posisi 3 Besar Peringkat Teratas.';
+} else if (userRankPosition <= 10) {
+  trophyEmoji = '🥉';
+  rankMotivationalMsg = '🔥 Hebat! Anda berhasil menembus 10 Besar Peringkat Teratas.';
 }
 
 interface PathDefinition {
@@ -185,9 +218,38 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
         <span class="stat-value">{completionPercentage}<span class="stat-unit">%</span></span>
         <span class="stat-label">Tingkat Penyelesaian</span>
       </div>
+      <div class="stat-item glass-card stat-item-highlight">
+        <span class="stat-value stat-rank-num">#{userRankPosition}</span>
+        <span class="stat-label">Peringkat Siswa <span class="stat-sub">({user.class_name ? `Kelas #${userClassRankPosition}` : `dari ${totalStudentsCount} Siswa`})</span></span>
+      </div>
       <div class="stat-item glass-card">
         <span class="stat-value stat-rank">{rankInfo.title}</span>
-        <span class="stat-label">Peringkat Saat Ini</span>
+        <span class="stat-label">Predikat Level</span>
+      </div>
+    </div>
+
+    <!-- Student Rank & Leaderboard Banner -->
+    <div class="student-rank-card glass-card">
+      <div class="rank-card-left">
+        <div class="rank-trophy-box">
+          <span class="trophy-emoji">{trophyEmoji}</span>
+          <div class="rank-big-num">#{userRankPosition}</div>
+        </div>
+        <div class="rank-card-info">
+          <div class="rank-badge-group">
+            <span class="badge badge-gold">POSISI PAPAN PERINGKAT 🏆</span>
+            {user.class_name && (
+              <span class="badge badge-purple">Peringkat #{userClassRankPosition} di Kelas {user.class_name}</span>
+            )}
+          </div>
+          <h2 class="rank-card-title">Peringkat #{userRankPosition} dari {totalStudentsCount} Siswa Terdaftar</h2>
+          <p class="rank-card-desc">{rankMotivationalMsg}</p>
+        </div>
+      </div>
+      <div class="rank-card-right">
+        <a href="/belajar/sql/leaderboard" class="btn btn-outline btn-sm">
+          <span>Lihat Leaderboard Lengkap &rarr;</span>
+        </a>
       </div>
     </div>
 
@@ -541,13 +603,105 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   /* Stats Row */
   .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 900px) {
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
     .stats-row {
       grid-template-columns: 1fr;
+    }
+  }
+
+  .stat-item-highlight {
+    border-color: rgba(132, 204, 22, 0.4);
+    background: linear-gradient(135deg, rgba(132, 204, 22, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
+  }
+
+  .stat-rank-num {
+    color: #84cc16;
+    font-size: 2.25rem;
+  }
+
+  .stat-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    text-transform: none;
+  }
+
+  /* Student Rank Card Banner */
+  .student-rank-card {
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border: 1px solid rgba(132, 204, 22, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .rank-card-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .rank-trophy-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 4.5rem;
+    height: 4.5rem;
+    background: rgba(132, 204, 22, 0.12);
+    border: 1px solid rgba(132, 204, 22, 0.4);
+    border-radius: var(--radius-lg);
+  }
+
+  .trophy-emoji {
+    font-size: 1.75rem;
+    line-height: 1;
+  }
+
+  .rank-big-num {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #84cc16;
+    margin-top: 0.15rem;
+  }
+
+  .rank-badge-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .rank-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+  }
+
+  .rank-card-desc {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 0.25rem;
+  }
+
+  @media (max-width: 768px) {
+    .student-rank-card {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 
