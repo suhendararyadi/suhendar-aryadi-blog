@@ -86,6 +86,24 @@ function isActive(href: string): boolean {
   <!-- Mobile Navigation Drawer -->
   <div id="mobile-nav" class="nav-mobile">
     <div class="container mobile-nav-content">
+      <div class="mobile-auth-wrapper">
+        {user ? (
+          isTeacherOrAdmin ? (
+            <a href="/admin/dashboard" class="btn btn-primary btn-md mobile-auth-btn">
+              <span>Portal Guru &amp; Admin &rarr;</span>
+            </a>
+          ) : (
+            <a href="/dashboard" class="btn btn-primary btn-md mobile-auth-btn">
+              <span>Dashboard Saya &rarr;</span>
+            </a>
+          )
+        ) : (
+          <a href="/auth/login" class="btn btn-primary btn-md mobile-auth-btn">
+            <span>Masuk Akun Siswa &rarr;</span>
+          </a>
+        )}
+      </div>
+
       {navItems.map(item => (
         <a 
           href={item.href} 
@@ -280,10 +298,34 @@ function isActive(href: string): boolean {
     display: block;
   }
 
-  @media (min-width: 769px) {
-    .nav-mobile {
+  @media (max-width: 640px) {
+    .header-container {
+      height: 3.75rem;
+      padding: 0 1rem;
+    }
+    .header-actions .header-auth-btn {
       display: none !important;
     }
+    .logo-spine-text {
+      font-size: 1.05rem;
+    }
+    .logo-icon-spine {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  .mobile-auth-wrapper {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--border-color);
+  }
+
+  .mobile-auth-btn {
+    width: 100%;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    font-weight: 700;
   }
 
   .mobile-nav-content {
