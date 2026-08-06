@@ -183,13 +183,13 @@ const isItemActive = (href: string) => {
     height: 100%;
     object-fit: cover;
     object-position: center bottom;
-    opacity: 0.35;
-    filter: saturate(1.1);
+    opacity: 0.85;
+    filter: saturate(1.25) contrast(1.05);
   }
 
   [data-theme="dark"] .footer-bg-img {
-    opacity: 0.18;
-    filter: brightness(0.7) contrast(1.2);
+    opacity: 0.55;
+    filter: brightness(0.75) contrast(1.25) saturate(1.2);
   }
 
   .footer-bg-gradient {
@@ -198,8 +198,8 @@ const isItemActive = (href: string) => {
     background: linear-gradient(
       to bottom,
       #edeceb 0%,
-      rgba(237, 236, 235, 0.65) 40%,
-      rgba(237, 236, 235, 0.85) 100%
+      rgba(237, 236, 235, 0.35) 30%,
+      rgba(237, 236, 235, 0.6) 100%
     );
   }
 
@@ -207,8 +207,8 @@ const isItemActive = (href: string) => {
     background: linear-gradient(
       to bottom,
       #0c0d10 0%,
-      rgba(12, 13, 16, 0.75) 40%,
-      rgba(12, 13, 16, 0.9) 100%
+      rgba(12, 13, 16, 0.4) 30%,
+      rgba(12, 13, 16, 0.65) 100%
     );
   }
 
@@ -457,7 +457,7 @@ const isItemActive = (href: string) => {
     letter-spacing: -0.05em;
     line-height: 0.85;
     text-align: center;
-    color: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.12);
     margin-top: 2rem;
     user-select: none;
     pointer-events: none;
@@ -465,7 +465,7 @@ const isItemActive = (href: string) => {
   }
 
   [data-theme="dark"] .cooldock-watermark {
-    color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.1);
   }
 
   /* --- Floating macOS Smart Dock Navigation Bar --- */
