@@ -199,6 +199,158 @@ const caseStudies = [
         ))}
       </div>
     </div>
+
+    <!-- Ideal LKPD Example Section (Collapsible) -->
+    <div class="sample-lkpd-section">
+      <div class="sample-lkpd-header glass-card">
+        <div class="sample-lkpd-intro">
+          <span class="badge badge-gold">💡 PANDUAN PENGISIAN TUGAS</span>
+          <h2 class="sample-title">Panduan Contoh LKPD Berpikir Komputasional Ideal</h2>
+          <p class="sample-desc">
+            Ingin melihat bagaimana cara mengisi lembar analisis LKPD yang lengkap dan memenuhi kriteria penilaian tinggi dari guru? Klik tombol di samping untuk melihat contoh jawaban ideal pada Studi Kasus Restoran FoodExpress.
+          </p>
+        </div>
+        <button id="toggle-sample-lkpd-btn" class="btn btn-primary btn-md" type="button">
+          <span id="toggle-sample-icon">👁️</span> <span id="toggle-sample-text">Tampilkan Contoh LKPD Ideal Terisi</span>
+        </button>
+      </div>
+
+      <!-- Collapsible Container (Hidden by default) -->
+      <div id="sample-lkpd-content" class="sample-lkpd-content glass-card" style="display: none;">
+        <div class="sample-paper-header">
+          <div class="sample-paper-badge">CONTOH DOKUMEN LKPD IDEAL</div>
+          <h3 class="sample-doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) - BERPIKIR KOMPUTASIONAL</h3>
+          <p class="sample-doc-sub">Studi Kasus A: Kiosk Self-Service Restoran (FoodExpress)</p>
+        </div>
+
+        <div class="sample-body">
+          <!-- 1. Identitas -->
+          <div class="sample-section">
+            <h4 class="sample-sec-title">1. Identitas Tim &amp; Studi Kasus</h4>
+            <div class="sample-grid-2">
+              <div><strong>Nama Tim / Kelompok:</strong> Tim Cypher RPL 1</div>
+              <div><strong>Kelas &amp; Rombel:</strong> X RPL 1</div>
+              <div class="full-width"><strong>Studi Kasus Dipilih:</strong> Kiosk Self-Service Restoran (FoodExpress)</div>
+            </div>
+          </div>
+
+          <!-- 2. Dekomposisi -->
+          <div class="sample-section">
+            <h4 class="sample-sec-title">🧩 2.1 Dekomposisi (Memecah Sistem)</h4>
+            <table class="sample-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">No</th>
+                  <th style="width: 220px;">Nama Modul / Sub-Sistem</th>
+                  <th>Fungsi Utama &amp; Fitur di Dalam Modul</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><strong>Modul Katalog &amp; Menu</strong></td>
+                  <td>Menampilkan daftar makanan/minuman, foto produk, kategori (Makanan/Minuman/Dessert), dan filter harga.</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>Modul Keranjang &amp; Checkout</strong></td>
+                  <td>Merekam item yang dipilih, mengedit jumlah porsi, dan menghitung total tagihan belanja secara otomatis.</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><strong>Modul Antrean Dapur (Queue)</strong></td>
+                  <td>Mencetak nomor antrean pesanan dan menampilkan alur urutan pembuatan di monitor dapur koki (FIFO).</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><strong>Modul Pembayaran QRIS / Kasir</strong></td>
+                  <td>Memproses transaksi pembayaran digital QRIS/E-Wallet dan mencetak bukti struk pembayaran resmi.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 2.2 Pengenalan Pola -->
+          <div class="sample-section">
+            <h4 class="sample-sec-title">🔍 2.2 Pengenalan Pola (Pattern Recognition)</h4>
+            <table class="sample-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">No</th>
+                  <th style="width: 240px;">Pola Kemiripan Masalah</th>
+                  <th>Rencana Penerapan Solusi Berulang</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><strong>Fitur Autentikasi Pengguna</strong></td>
+                  <td>Alur login kasir dan login admin memiliki pola yang sama, sehingga dapat memakai 1 fungsi terpusat validasi password.</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>Pencarian &amp; Filter Data</strong></td>
+                  <td>Pencarian menu makanan dan pencarian riwayat transaksi memakai pola algoritma searching yang identik berdasarkan kata kunci ID/Nama.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 2.3 Abstraksi -->
+          <div class="sample-section">
+            <h4 class="sample-sec-title">💡 2.3 Abstraksi (Abstraction)</h4>
+            <div class="sample-box sample-box-kept">
+              <strong>✅ Data Utama yang WAJIB Disimpan dalam Database:</strong>
+              <p>ID Transaksi, ID Siswa/Pelanggan, Kode Menu, Jumlah Porsi, Total Bayar, Metode Pembayaran, Waktu Transaksi, No Antrean.</p>
+            </div>
+            <div class="sample-box sample-box-ignored">
+              <strong>🚫 Detail Informasi yang DIABSTRAKSIKAN (Diabaikan):</strong>
+              <p>Warna pakaian pelanggan saat memesan, suasana hati pembeli, jenis ponsel yang dipakai saat memindai QRIS, aroma makanan di meja.</p>
+            </div>
+          </div>
+
+          <!-- 2.4 Perancangan Algoritma -->
+          <div class="sample-section">
+            <h4 class="sample-sec-title">⚙️ 2.4 Perancangan Algoritma &amp; Pseudocode</h4>
+            <div class="sample-grid-2 margin-bottom">
+              <div><strong>Algoritma Searching:</strong> Linear Search (Pencarian Kata Kunci Menu)</div>
+              <div><strong>Algoritma Sorting:</strong> Bubble Sort (Pengurutan Harga Terendah)</div>
+              <div><strong>Penerapan Queue (FIFO):</strong> Nomor Antrean Dapur (Pelanggan Pertama Memesan = Diproses Pertama)</div>
+              <div><strong>Penerapan Stack (LIFO):</strong> Fitur Undo Pembatalan Item Terakhir pada Keranjang Belanja</div>
+            </div>
+            <div class="sample-code-box">
+              <strong>Notasi Pseudocode Alur Utama Sistem Pemesanan:</strong>
+              <pre class="sample-pseudocode">
+ALGORITMA Proses_Pemesanan_FoodExpress
+START
+  INPUT id_menu, jumlah_porsi
+  CEK stok_menu DARI database
+  IF stok_menu >= jumlah_porsi THEN
+     Hitung total_bayar = harga_satuan * jumlah_porsi
+     TAMPILKAN total_bayar DI layar Kiosk
+     PROSES pembayaran_QRIS
+     IF pembayaran_sukses THEN
+        MASUKKAN nomor_pesanan KE antrean_dapur (QUEUE)
+        CETAK struk_transaksi
+     ENDIF
+  ELSE
+     TAMPILKAN 'Maaf, Stok Makanan Habis'
+  ENDIF
+END
+              </pre>
+            </div>
+          </div>
+
+          <!-- CTA inside sample -->
+          <div class="sample-footer-cta">
+            <p>Sudah paham gambaran pengisian yang ideal? Sekarang giliran tim kamu untuk menganalisis!</p>
+            <a href="/belajar/informatika/bk/lkpd" class="btn btn-primary btn-md">
+              🚀 Isi Lembar Kerja LKPD Sekarang &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </MainLayout>
 
@@ -433,6 +585,27 @@ const caseStudies = [
 
     // Initial render
     resetVisualizer();
+
+    // Toggle Contoh LKPD Ideal
+    const toggleSampleBtn = document.getElementById('toggle-sample-lkpd-btn');
+    const sampleContent = document.getElementById('sample-lkpd-content');
+    const sampleIcon = document.getElementById('toggle-sample-icon');
+    const sampleText = document.getElementById('toggle-sample-text');
+
+    toggleSampleBtn?.addEventListener('click', () => {
+      if (!sampleContent || !sampleIcon || !sampleText) return;
+      const isHidden = sampleContent.style.display === 'none';
+      if (isHidden) {
+        sampleContent.style.display = 'block';
+        sampleIcon.textContent = '🙈';
+        sampleText.textContent = 'Sembunyikan Contoh LKPD Ideal';
+        sampleContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        sampleContent.style.display = 'none';
+        sampleIcon.textContent = '👁️';
+        sampleText.textContent = 'Tampilkan Contoh LKPD Ideal Terisi';
+      }
+    });
   });
 </script>
 
@@ -823,5 +996,206 @@ const caseStudies = [
     padding: 0.85rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-subtle);
+  }
+
+  /* Sample LKPD Styles */
+  .sample-lkpd-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .sample-lkpd-header {
+    padding: 1.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+  }
+
+  .sample-lkpd-intro {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .sample-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .sample-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .sample-lkpd-content {
+    padding: 2.25rem;
+    border: 1px solid rgba(132, 204, 22, 0.3);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+
+  .sample-paper-header {
+    text-align: center;
+    border-bottom: 2px dashed var(--border-color);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .sample-paper-badge {
+    display: inline-block;
+    background: rgba(132, 204, 22, 0.15);
+    color: #84cc16;
+    border: 1px solid rgba(132, 204, 22, 0.4);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .sample-doc-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .sample-doc-sub {
+    font-size: 0.9rem;
+    color: var(--accent-cyan);
+    font-weight: 600;
+    margin-top: 0.25rem;
+  }
+
+  .sample-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .sample-section {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .sample-sec-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+  }
+
+  .sample-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .sample-grid-2 .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .sample-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .sample-table th, .sample-table td {
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--border-color);
+    text-align: left;
+  }
+
+  .sample-table th {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .sample-box {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .sample-box-kept {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--text-primary);
+  }
+
+  .sample-box-ignored {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--text-primary);
+  }
+
+  .sample-code-box {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .sample-pseudocode {
+    background: #090d16;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    color: #38bdf8;
+    font-family: monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+  }
+
+  .sample-footer-cta {
+    text-align: center;
+    background: linear-gradient(135deg, rgba(132, 204, 22, 0.1) 0%, rgba(16, 185, 129, 0.08) 100%);
+    border: 1px solid rgba(132, 204, 22, 0.3);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.875rem;
+  }
+
+  @media (max-width: 768px) {
+    .sample-lkpd-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .sample-lkpd-header .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    .sample-grid-2 {
+      grid-template-columns: 1fr;
+    }
+    .sample-lkpd-content {
+      padding: 1.25rem 1rem;
+    }
+    .sample-table {
+      display: block;
+      overflow-x: auto;
+    }
   }
 </style>
