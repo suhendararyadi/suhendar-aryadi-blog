@@ -7,7 +7,8 @@ if (sessionId) {
   try {
     const user = await getSessionUser(sessionId);
     if (user) {
-      return Astro.redirect('/sql');
+      const redirectTarget = Astro.url.searchParams.get('redirect') || '/belajar';
+      return Astro.redirect(redirectTarget);
     }
   } catch (e) {
     // Ignore error if DB unreachable during build
@@ -15,13 +16,13 @@ if (sessionId) {
 }
 ---
 
-<MainLayout title="Daftar Akun | Platform Belajar SQL Interaktif RPL" description="Halaman pendaftaran akun siswa RPL untuk akses Platform Belajar SQL Interaktif.">
+<MainLayout title="Daftar Akun | Platform Pembelajaran Informatika & RPL" description="Halaman pendaftaran akun siswa untuk mengakses modul pembelajaran & praktikum interaktif.">
   <div class="auth-container">
     <div class="auth-card glass-panel">
       <div class="auth-header">
         <div class="auth-badge">SMK RPL</div>
         <h1>Buat Akun Siswa</h1>
-        <p>Daftar untuk mengakses platform interaktif simulasi & latihan SQL.</p>
+        <p>Daftar untuk mengakses modul pembelajaran, LKPD interaktif &amp; praktikum.</p>
       </div>
 
       <div id="error-banner" class="alert alert-error" style="display: none;"></div>
@@ -150,7 +151,7 @@ if (sessionId) {
 
         setTimeout(() => {
           const urlParams = new URLSearchParams(window.location.search);
-          const redirectTarget = urlParams.get('redirect') || '/belajar/sql';
+          const redirectTarget = urlParams.get('redirect') || '/belajar';
           window.location.href = redirectTarget;
         }, 1000);
       } catch (err: any) {
