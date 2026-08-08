@@ -25,11 +25,20 @@ interface MemoryProgress {
   completed_at: string;
 }
 
+interface MemoryEnrollment {
+  id: number;
+  user_id: number;
+  course_id: string;
+  enrolled_at: string;
+}
+
 const memoryUsers: MemoryUser[] = [];
 const memorySessions: MemorySession[] = [];
 const memoryProgress: MemoryProgress[] = [];
+const memoryEnrollments: MemoryEnrollment[] = [];
 let nextUserId = 1;
 let nextProgressId = 1;
+let nextEnrollmentId = 1;
 let tablesInitializedPg = false;
 
 const CREATE_TABLES_PG = `
@@ -259,6 +268,29 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
     const userId = Number(params[0]);
     const userProgs = memoryProgress.filter((p) => p.user_id === userId);
     return { rows: userProgs };
+  }
+
+  // 10. INSERT INTO course_enrollments ...
+  if (normText.toUpperCase().includes('INSERT INTO COURSE_ENROLLMENTS')) {
+    const userId = Number(params[0]);
+    const courseId = String(params[1] || '').toLowerCase();
+    const existing = memoryEnrollments.find((e) => e.user_id === userId && e.course_id === courseId);
+    if (!existing) {
+      memoryEnrollments.push({
+        id: nextEnrollmentId++,
+        user_id: userId,
+        course_id: courseId,
+        enrolled_at: new Date().toISOString()
+      });
+    }
+    return { rows: [] };
+  }
+
+  // 11. SELECT ... FROM course_enrollments ...
+  if (normText.toUpperCase().includes('FROM COURSE_ENROLLMENTS')) {
+    const userId = Number(params[0]);
+    const userEnrollments = memoryEnrollments.filter((e) => e.user_id === userId);
+    return { rows: userEnrollments };
   }
 
   return { rows: [] };

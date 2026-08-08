@@ -1,14 +1,51 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import { getSessionUser } from '../../lib/auth';
+import { query } from '../../lib/db';
 
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
+let enrolledCourseIds: string[] = [];
+
+if (user) {
+  try {
+    const enrollRes = await query(
+      `SELECT course_id FROM course_enrollments WHERE user_id = $1`,
+      [user.id]
+    );
+    if (enrollRes.rows) {
+      enrolledCourseIds = enrollRes.rows.map((r: any) => String(r.course_id).toLowerCase());
+    }
+
+    // Auto-sync if student has existing progress in LKPD or SQL
+    const [bkRes, tikRes, sqlRes] = await Promise.all([
+      query(`SELECT id FROM lkpd_submissions WHERE user_id = $1 LIMIT 1`, [user.id]),
+      query(`SELECT id FROM lkpd_tik_submissions WHERE user_id = $1 LIMIT 1`, [user.id]),
+      query(`SELECT id FROM user_progress WHERE user_id = $1 LIMIT 1`, [user.id]),
+    ]);
+
+    if (bkRes.rows && bkRes.rows.length > 0 && !enrolledCourseIds.includes('bk')) {
+      enrolledCourseIds.push('bk');
+      await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'bk') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]).catch(() => {});
+    }
+    if (tikRes.rows && tikRes.rows.length > 0 && !enrolledCourseIds.includes('tik')) {
+      enrolledCourseIds.push('tik');
+      await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'tik') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]).catch(() => {});
+    }
+    if (sqlRes.rows && sqlRes.rows.length > 0 && !enrolledCourseIds.includes('sql')) {
+      enrolledCourseIds.push('sql');
+      await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'sql') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('Could not fetch course_enrollments in catalog:', err);
+  }
+}
+
 const curricula = [
   {
     id: 'informatika',
-    title: 'Informatika SMK',
+    title: 'Informatika SMK (Fase E)',
     category: 'Kurikulum Merdeka SMK',
     status: 'active',
     statusLabel: 'SIAP & AKTIF',
@@ -20,6 +57,36 @@ const curricula = [
     accentColor: '#a855f7',
     gradient: 'linear-gradient(135deg, #1e1b4b 0%, #a855f7 50%, #6366f1 100%)',
     icon: 'cpu'
+  },
+  {
+    id: 'bk',
+    title: 'Berpikir Komputasional (BK)',
+    category: 'Informatika — Elemen 1',
+    status: 'active',
+    statusLabel: 'SIAP & AKTIF',
+    moduleCount: '4 Pilar BK & Visualizer',
+    description: 'Melatih pola pikir pemecahan masalah (problem solving), Searching, Sorting, serta Struktur Data Stack & Queue Visualizer.',
+    tags: ['BK', 'Searching', 'Sorting', 'Stack', 'Queue'],
+    link: '/belajar/informatika/bk',
+    btnText: 'Buka Modul BK',
+    accentColor: '#a855f7',
+    gradient: 'linear-gradient(135deg, #2e1065 0%, #7c3aed 50%, #a855f7 100%)',
+    icon: 'cpu'
+  },
+  {
+    id: 'tik',
+    title: 'Teknologi Informasi & Komunikasi (TIK)',
+    category: 'Informatika — Elemen 2',
+    status: 'active',
+    statusLabel: 'SIAP & AKTIF',
+    moduleCount: 'Office & Search Engine',
+    description: 'Integrasi aplikasi perkantoran (Mail Merge), pencarian data tingkat lanjut, dan pengolahan dokumen digital.',
+    tags: ['TIK', 'Mail Merge', 'Search Engine', 'Office'],
+    link: '/belajar/informatika/tik',
+    btnText: 'Buka Modul TIK',
+    accentColor: '#06b6d4',
+    gradient: 'linear-gradient(135deg, #083344 0%, #0891b2 50%, #06b6d4 100%)',
+    icon: 'layout'
   },
   {
     id: 'sql',
@@ -37,6 +104,36 @@ const curricula = [
     icon: 'database'
   },
   {
+    id: 'sk',
+    title: 'Sistem Komputer (SK)',
+    category: 'Informatika — Elemen 3',
+    status: 'active',
+    statusLabel: 'SIAP & AKTIF',
+    moduleCount: 'Hardware & OS',
+    description: 'Arsitektur internal komputer (CPU, RAM, Storage), interaksi hardware/software, peran Sistem Operasi, dan operasi biner.',
+    tags: ['SK', 'Hardware', 'CPU', 'Memori', 'OS'],
+    link: '/belajar/informatika/sk',
+    btnText: 'Buka Modul SK',
+    accentColor: '#3b82f6',
+    gradient: 'linear-gradient(135deg, #172554 0%, #2563eb 50%, #3b82f6 100%)',
+    icon: 'server'
+  },
+  {
+    id: 'ap',
+    title: 'Algoritma & Pemrograman (AP)',
+    category: 'Informatika — Elemen 6',
+    status: 'active',
+    statusLabel: 'SIAP & AKTIF',
+    moduleCount: 'Python WASM Sandbox',
+    description: 'Dasar logika pemrograman Python, variabel, percabangan, perulangan, dan eksekusi kode langsung di browser.',
+    tags: ['AP', 'Python', 'Algoritma', 'Logic', 'WASM'],
+    link: '/belajar/informatika/ap',
+    btnText: 'Buka Modul AP',
+    accentColor: '#10b981',
+    gradient: 'linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%)',
+    icon: 'code'
+  },
+  {
     id: 'html-css',
     title: 'HTML5 & CSS3 Responsive Web Design',
     category: 'Frontend Development',
@@ -48,7 +145,7 @@ const curricula = [
     link: '#',
     btnText: 'Segera Hadir',
     accentColor: '#f59e0b',
-    gradient: 'linear-gradient(135deg, #1e1b4b 0%, #d97706 50%, #f59e0b 100%)',
+    gradient: 'linear-gradient(135deg, #451a03 0%, #d97706 50%, #f59e0b 100%)',
     icon: 'layout'
   },
   {
@@ -63,7 +160,7 @@ const curricula = [
     link: '#',
     btnText: 'Segera Hadir',
     accentColor: '#eab308',
-    gradient: 'linear-gradient(135deg, #172554 0%, #ca8a04 50%, #eab308 100%)',
+    gradient: 'linear-gradient(135deg, #422006 0%, #ca8a04 50%, #eab308 100%)',
     icon: 'code'
   },
   {
@@ -78,12 +175,12 @@ const curricula = [
     link: '#',
     btnText: 'Segera Hadir',
     accentColor: '#ef4444',
-    gradient: 'linear-gradient(135deg, #311212 0%, #dc2626 50%, #f87171 100%)',
+    gradient: 'linear-gradient(135deg, #450a0a 0%, #dc2626 50%, #ef4444 100%)',
     icon: 'server'
   },
   {
     id: 'python-algo',
-    title: 'Python & Algoritma Dasar',
+    title: 'Python & Algoritma Lanjutan',
     category: 'Programming Logic',
     status: 'coming_soon',
     statusLabel: 'SEGERA HADIR',
@@ -119,97 +216,267 @@ const curricula = [
     </div>
 
     <div class="curriculum-grid">
-      {curricula.map((item) => (
-        <div class={`glass-card curriculum-card ${item.status === 'active' ? 'card-active' : 'card-disabled'}`}>
-          <div class="card-thumb" style={`background: ${item.gradient}`}>
-            <div class="thumb-pattern"></div>
-            <div class="thumb-icon-box">
-              {item.icon === 'cpu' && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                  <rect x="9" y="9" width="6" height="6"></rect>
-                  <line x1="9" y1="1" x2="9" y2="4"></line>
-                  <line x1="15" y1="1" x2="15" y2="4"></line>
-                  <line x1="9" y1="20" x2="9" y2="23"></line>
-                  <line x1="15" y1="20" x2="15" y2="23"></line>
-                  <line x1="20" y1="9" x2="23" y2="9"></line>
-                  <line x1="20" y1="15" x2="23" y2="15"></line>
-                  <line x1="1" y1="9" x2="4" y2="9"></line>
-                  <line x1="1" y1="15" x2="4" y2="15"></line>
-                </svg>
-              )}
-              {item.icon === 'database' && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                </svg>
-              )}
-              {item.icon === 'layout' && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="9" y1="21" x2="9" y2="9"></line>
-                </svg>
-              )}
-              {item.icon === 'code' && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="16 18 22 12 16 6"></polyline>
-                  <polyline points="8 6 2 12 8 18"></polyline>
-                </svg>
-              )}
-              {item.icon === 'server' && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                  <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                  <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                </svg>
-              )}
-              {item.icon === 'terminal' && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="4 17 10 11 4 5"></polyline>
-                  <line x1="12" y1="19" x2="20" y2="19"></line>
-                </svg>
-              )}
+      {curricula.map((item) => {
+        const isEnrolled = item.status === 'active' && (
+          item.id === 'informatika'
+            ? (enrolledCourseIds.length > 0 || enrolledCourseIds.includes('informatika'))
+            : enrolledCourseIds.includes(item.id)
+        );
+
+        let badgeLabel = item.statusLabel;
+        let badgeClass = 'badge-status-coming';
+
+        if (item.status === 'active') {
+          if (!user) {
+            badgeLabel = 'SIAP & AKTIF';
+            badgeClass = 'badge-status-active';
+          } else if (isEnrolled) {
+            badgeLabel = '✓ TERDAFTAR';
+            badgeClass = 'badge-status-enrolled';
+          } else {
+            badgeLabel = '🔒 BELUM ENROLL';
+            badgeClass = 'badge-status-locked';
+          }
+        }
+
+        return (
+          <div class={`glass-card curriculum-card ${item.status === 'active' ? 'card-active' : 'card-disabled'}`}>
+            <div class="card-thumb" style={`background: ${item.gradient}`}>
+              <div class="thumb-pattern"></div>
+              <div class="thumb-icon-box">
+                {item.icon === 'cpu' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                    <rect x="9" y="9" width="6" height="6"></rect>
+                    <line x1="9" y1="1" x2="9" y2="4"></line>
+                    <line x1="15" y1="1" x2="15" y2="4"></line>
+                    <line x1="9" y1="20" x2="9" y2="23"></line>
+                    <line x1="15" y1="20" x2="15" y2="23"></line>
+                    <line x1="20" y1="9" x2="23" y2="9"></line>
+                    <line x1="20" y1="15" x2="23" y2="15"></line>
+                    <line x1="1" y1="9" x2="4" y2="9"></line>
+                    <line x1="1" y1="15" x2="4" y2="15"></line>
+                  </svg>
+                )}
+                {item.icon === 'database' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                  </svg>
+                )}
+                {item.icon === 'layout' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                  </svg>
+                )}
+                {item.icon === 'code' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                  </svg>
+                )}
+                {item.icon === 'server' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                  </svg>
+                )}
+                {item.icon === 'terminal' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 17 10 11 4 5"></polyline>
+                    <line x1="12" y1="19" x2="20" y2="19"></line>
+                  </svg>
+                )}
+              </div>
+              <span class={`status-badge ${badgeClass}`}>
+                {badgeLabel}
+              </span>
             </div>
-            <span class={`status-badge ${item.status === 'active' ? 'badge-status-active' : 'badge-status-coming'}`}>
-              {item.statusLabel}
-            </span>
+
+            <div class="card-body">
+              <div class="card-meta">
+                <span class="category-pill">{item.category}</span>
+                <span class="module-count">{item.moduleCount}</span>
+              </div>
+
+              <h2 class="card-title">{item.title}</h2>
+              <p class="card-desc">{item.description}</p>
+
+              <div class="card-tags">
+                {item.tags.map((tag) => (
+                  <span class="tag-item">#{tag}</span>
+                ))}
+              </div>
+
+              <div class="card-footer">
+                {item.status === 'active' ? (
+                  isEnrolled ? (
+                    <a href={item.link} class="btn btn-primary btn-full">
+                      <span>{item.btnText} →</span>
+                    </a>
+                  ) : user ? (
+                    <button
+                      type="button"
+                      class="btn btn-outline btn-full btn-enroll-trigger"
+                      data-course-id={item.id}
+                      data-course-title={item.title}
+                    >
+                      <span>🔒 Enroll Modul (Kode Akses)</span>
+                    </button>
+                  ) : (
+                    <a href={`/auth/login?redirect=/belajar`} class="btn btn-primary btn-full">
+                      <span>Login untuk Enroll →</span>
+                    </a>
+                  )
+                ) : (
+                  <button class="btn btn-secondary btn-full" disabled type="button">
+                    <span>Segera Hadir</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
+        );
+      })}
+    </div>
+  </div>
 
-          <div class="card-body">
-            <div class="card-meta">
-              <span class="category-pill">{item.category}</span>
-              <span class="module-count">{item.moduleCount}</span>
-            </div>
-
-            <h2 class="card-title">{item.title}</h2>
-            <p class="card-desc">{item.description}</p>
-
-            <div class="card-tags">
-              {item.tags.map((tag) => (
-                <span class="tag-item">#{tag}</span>
-              ))}
-            </div>
-
-            <div class="card-footer">
-              {item.status === 'active' ? (
-                <a href={item.link} class="btn btn-primary btn-full">
-                  <span>{item.btnText} →</span>
-                </a>
-              ) : (
-                <button class="btn btn-secondary btn-full" disabled type="button">
-                  <span>Segera Hadir</span>
-                </button>
-              )}
-            </div>
+  <!-- Modal Access Code / Enroll Modul -->
+  <div id="enroll-access-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 class="modal-title">Enroll Modul Pembelajaran</h2>
+            <p class="modal-sub">Masukkan kode akses dari Guru untuk membuka modul ini.</p>
           </div>
         </div>
-      ))}
+        <button id="close-enroll-modal-btn" class="modal-close" type="button" aria-label="Tutup Modal">&times;</button>
+      </div>
+
+      <div id="enroll-error-banner" class="alert alert-error" style="display: none;"></div>
+      <div id="enroll-success-banner" class="alert alert-success" style="display: none;"></div>
+
+      <form id="enroll-access-form" class="modal-form">
+        <input type="hidden" id="enroll-course-id" name="courseId" value="" />
+        <div class="form-group">
+          <label for="enroll-course-title">Modul Pembelajaran</label>
+          <input
+            type="text"
+            id="enroll-course-title"
+            readonly
+            class="form-input-readonly"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="enroll-access-code">Kode Akses dari Guru</label>
+          <input
+            type="text"
+            id="enroll-access-code"
+            name="accessCode"
+            placeholder="Contoh: BK2026, TIK2026, SQL2026, atau RPL2026"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button id="cancel-enroll-modal-btn" class="btn btn-secondary" type="button">Batal</button>
+          <button type="submit" id="save-enroll-btn" class="btn btn-primary">
+            <span>Daftar Modul</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </MainLayout>
+
+<script>
+  const enrollModal = document.getElementById('enroll-access-modal');
+  const closeEnrollModalBtn = document.getElementById('close-enroll-modal-btn');
+  const cancelEnrollModalBtn = document.getElementById('cancel-enroll-modal-btn');
+  const enrollForm = document.getElementById('enroll-access-form') as HTMLFormElement | null;
+  const enrollCourseIdInput = document.getElementById('enroll-course-id') as HTMLInputElement | null;
+  const enrollCourseTitleInput = document.getElementById('enroll-course-title') as HTMLInputElement | null;
+  const enrollCodeInput = document.getElementById('enroll-access-code') as HTMLInputElement | null;
+  const enrollErrorBanner = document.getElementById('enroll-error-banner');
+  const enrollSuccessBanner = document.getElementById('enroll-success-banner');
+
+  document.querySelectorAll('.btn-enroll-trigger').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const courseId = target.getAttribute('data-course-id') || '';
+      const courseTitle = target.getAttribute('data-course-title') || '';
+
+      if (enrollCourseIdInput) enrollCourseIdInput.value = courseId;
+      if (enrollCourseTitleInput) enrollCourseTitleInput.value = courseTitle;
+      if (enrollCodeInput) enrollCodeInput.value = '';
+      if (enrollErrorBanner) enrollErrorBanner.style.display = 'none';
+      if (enrollSuccessBanner) enrollSuccessBanner.style.display = 'none';
+
+      if (enrollModal) enrollModal.style.display = 'flex';
+    });
+  });
+
+  function toggleEnrollModal(show: boolean) {
+    if (enrollModal) enrollModal.style.display = show ? 'flex' : 'none';
+  }
+
+  closeEnrollModalBtn?.addEventListener('click', () => toggleEnrollModal(false));
+  cancelEnrollModalBtn?.addEventListener('click', () => toggleEnrollModal(false));
+  enrollModal?.addEventListener('click', (e) => {
+    if (e.target === enrollModal) toggleEnrollModal(false);
+  });
+
+  enrollForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-enroll-btn') as HTMLButtonElement | null;
+    if (enrollErrorBanner) enrollErrorBanner.style.display = 'none';
+    if (enrollSuccessBanner) enrollSuccessBanner.style.display = 'none';
+
+    const courseId = enrollCourseIdInput?.value || '';
+    const accessCode = enrollCodeInput?.value || '';
+
+    if (saveBtn) saveBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/courses/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId, accessCode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal mendaftar modul.');
+
+      if (enrollSuccessBanner) {
+        enrollSuccessBanner.textContent = data.message || 'Berhasil mendaftar modul!';
+        enrollSuccessBanner.style.display = 'block';
+      }
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      if (enrollErrorBanner) {
+        enrollErrorBanner.textContent = err.message || 'Terjadi kesalahan.';
+        enrollErrorBanner.style.display = 'block';
+      }
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  });
+</script>
 
 <style>
   .curriculum-container {
@@ -321,10 +588,24 @@ const curricula = [
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
-  .badge-status-active {
-    background: rgba(16, 185, 129, 0.9);
+  .badge-status-enrolled {
+    background: rgba(16, 185, 129, 0.95);
     color: #ffffff;
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-status-locked {
+    background: rgba(245, 158, 11, 0.95);
+    color: #ffffff;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-status-active {
+    background: rgba(99, 102, 241, 0.9);
+    color: #ffffff;
+    border: 1px solid rgba(99, 102, 241, 0.4);
   }
 
   .badge-status-coming {
@@ -403,5 +684,130 @@ const curricula = [
   .btn-full {
     width: 100%;
     min-height: 44px;
+  }
+
+  /* Modal Styling */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .modal-title-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .modal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .modal-sub {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .form-group input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.65rem 0.85rem;
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+  }
+
+  .form-input-readonly {
+    opacity: 0.8;
+    background: var(--bg-tertiary) !important;
+  }
+
+  .alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+  }
+
+  .alert-error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+  }
+
+  .alert-success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34d399;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
   }
 </style>
