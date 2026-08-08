@@ -115,15 +115,15 @@ async function migrate() {
     );
 
     INSERT INTO course_enrollments (user_id, course_id)
-    SELECT DISTINCT user_id, 'bk' FROM lkpd_submissions
+    SELECT DISTINCT user_id, 'informatika' FROM lkpd_submissions
     ON CONFLICT (user_id, course_id) DO NOTHING;
 
     INSERT INTO course_enrollments (user_id, course_id)
-    SELECT DISTINCT user_id, 'tik' FROM lkpd_tik_submissions
+    SELECT DISTINCT user_id, 'informatika' FROM lkpd_tik_submissions
     ON CONFLICT (user_id, course_id) DO NOTHING;
 
     INSERT INTO course_enrollments (user_id, course_id)
-    SELECT DISTINCT user_id, 'sql' FROM user_progress
+    SELECT DISTINCT user_id, 'rpl_web_sql' FROM user_progress
     ON CONFLICT (user_id, course_id) DO NOTHING;
   `);
 

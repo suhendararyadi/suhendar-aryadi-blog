@@ -2,13 +2,23 @@ import type { APIRoute } from 'astro';
 import { getSessionUser } from '@/lib/auth';
 import { query } from '@/lib/db';
 
-const UNIVERSAL_CODES = ['RPL2026', 'INFORMATIKA2026'];
-const COURSE_CODES: Record<string, string> = {
-  bk: 'BK2026',
-  tik: 'TIK2026',
-  sql: 'SQL2026',
-  sk: 'SK2026',
-  ap: 'AP2026'
+const SUBJECT_MAP: Record<string, string> = {
+  informatika: 'informatika',
+  bk: 'informatika',
+  tik: 'informatika',
+  sk: 'informatika',
+  ap: 'informatika',
+  rpl_web_sql: 'rpl_web_sql',
+  sql: 'rpl_web_sql',
+  'html-css': 'rpl_web_sql',
+  js: 'rpl_web_sql',
+  pbo: 'pbo'
+};
+
+const VALID_CODES_PER_SUBJECT: Record<string, string[]> = {
+  informatika: ['INFORMATIKA2026', 'INF2026', 'BK2026', 'TIK2026', 'SK2026', 'AP2026', 'RPL2026'],
+  rpl_web_sql: ['RPL2026', 'BASISDATA2026', 'SQL2026', 'WEB2026', 'INFORMATIKA2026'],
+  pbo: ['PBO2026', 'RPL2026', 'INFORMATIKA2026']
 };
 
 export const POST: APIRoute = async ({ request, cookies }) => {
@@ -24,15 +34,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { courseId, accessCode } = body;
+    const rawCourseOrSubjectId = String(body.subjectId || body.courseId || '').trim().toLowerCase();
+    const accessCode = String(body.accessCode || '').trim().toUpperCase();
 
-    const trimmedCode = String(accessCode || '').trim().toUpperCase();
-    const normalizedCourseId = String(courseId || '').trim().toLowerCase();
+    const subjectId = SUBJECT_MAP[rawCourseOrSubjectId];
+    const validCodes = subjectId ? VALID_CODES_PER_SUBJECT[subjectId] : null;
 
-    const isValidCode = UNIVERSAL_CODES.includes(trimmedCode) || COURSE_CODES[normalizedCourseId] === trimmedCode;
-
-    if (!normalizedCourseId || !isValidCode) {
-      return new Response(JSON.stringify({ error: 'Kode akses modul salah. Hubungi Guru (Pak Suhendar) untuk mendapatkan kode akses.' }), {
+    if (!subjectId || !validCodes || !validCodes.includes(accessCode)) {
+      return new Response(JSON.stringify({ error: 'Kode akses mata pelajaran salah. Hubungi Guru (Pak Suhendar) untuk mendapatkan kode akses.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -40,19 +49,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     await query(
       `INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, $2) ON CONFLICT (user_id, course_id) DO NOTHING`,
-      [user.id, normalizedCourseId]
+      [user.id, subjectId]
     );
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Berhasil mendaftar pada modul pembelajaran!'
+      message: 'Berhasil terdaftar pada Mata Pelajaran!'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
-    console.error('Error enrolling course:', error);
-    return new Response(JSON.stringify({ error: 'Gagal mendaftar modul pembelajaran: ' + error.message }), {
+    console.error('Error enrolling subject:', error);
+    return new Response(JSON.stringify({ error: 'Gagal mendaftar Mata Pelajaran: ' + error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
