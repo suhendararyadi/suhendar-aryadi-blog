@@ -73,7 +73,7 @@ try {
 // Fetch BK & TIK LKPD Submissions and Course Enrollments
 let bkSubmission: any = null;
 let tikSubmission: any = null;
-let enrolledCourseIds: string[] = [];
+let enrolledSubjectIds: string[] = [];
 
 try {
   const bkRes = await query(
@@ -101,14 +101,11 @@ try {
 
 // Auto-sync existing student progress to course_enrollments
 try {
-  if (bkSubmission) {
-    await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'bk') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
-  }
-  if (tikSubmission) {
-    await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'tik') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
+  if (bkSubmission || tikSubmission) {
+    await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'informatika') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
   if (completedModules.length > 0) {
-    await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'sql') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
+    await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'rpl_web_sql') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
 } catch (err) {
   console.warn('Auto sync enrollments warning:', err);
@@ -120,16 +117,14 @@ try {
     [user.id]
   );
   if (enrollRes.rows) {
-    enrolledCourseIds = enrollRes.rows.map((r: any) => String(r.course_id).toLowerCase());
+    enrolledSubjectIds = enrollRes.rows.map((r: any) => String(r.course_id).toLowerCase());
   }
 } catch (err) {
   console.warn('Could not fetch course_enrollments:', err);
 }
 
-if (bkSubmission && !enrolledCourseIds.includes('bk')) enrolledCourseIds.push('bk');
-if (tikSubmission && !enrolledCourseIds.includes('tik')) enrolledCourseIds.push('tik');
-if (completedModules.length > 0 && !enrolledCourseIds.includes('sql')) enrolledCourseIds.push('sql');
-if (!enrolledCourseIds.includes('sql')) enrolledCourseIds.push('sql');
+const isInformatikaEnrolled = enrolledSubjectIds.includes('informatika') || enrolledSubjectIds.includes('bk') || enrolledSubjectIds.includes('tik') || !!bkSubmission || !!tikSubmission;
+const isRplSqlEnrolled = enrolledSubjectIds.includes('rpl_web_sql') || enrolledSubjectIds.includes('sql') || completedModules.length > 0;
 
 const completedCount = completedModules.length;
 const completionPercentage = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
@@ -144,75 +139,42 @@ if (completedCount >= 40) {
   rankInfo = { title: 'SQL Intermediate', badgeClass: 'badge-intermediate' };
 }
 
-const mainModules = [
-  {
-    id: 'bk',
-    title: 'Elemen 1 — Berpikir Komputasional',
-    subtitle: 'LKPD 4 Pilar (Dekomposisi, Pola, Abstraksi, Algoritma)',
-    icon: '💡',
-    link: '/belajar/informatika/bk/lkpd',
-    isEnrolled: enrolledCourseIds.includes('bk'),
-    scoreText: bkSubmission
-      ? (bkSubmission.score !== null && bkSubmission.score !== undefined ? `${bkSubmission.score} / 100` : 'Belum Dinilai')
-      : (enrolledCourseIds.includes('bk') ? 'Belum Mengerjakan' : 'Terkunci'),
-    scoreColor: bkSubmission && bkSubmission.score !== null && bkSubmission.score !== undefined
-      ? (bkSubmission.score >= 75 ? '#10b981' : '#f59e0b')
-      : (bkSubmission ? '#0ea5e9' : 'var(--text-muted)'),
-    feedbackText: bkSubmission
-      ? (bkSubmission.teacher_feedback ? `Catatan Guru: "${bkSubmission.teacher_feedback}"` : (bkSubmission.score !== null && bkSubmission.score !== undefined ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD telah dikirim, menunggu penilaian Guru.'))
-      : (enrolledCourseIds.includes('bk') ? 'Kerjakan LKPD 4 Pilar Berpikir Komputasional untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul dan melihat rekap nilai.')
-  },
-  {
-    id: 'tik',
-    title: 'Elemen 2 — Teknologi Informasi & Komunikasi',
-    subtitle: 'Mail Merge & Advanced Search Engine',
-    icon: '💻',
-    link: '/belajar/informatika/tik/lkpd',
-    isEnrolled: enrolledCourseIds.includes('tik'),
-    scoreText: tikSubmission
-      ? (tikSubmission.score !== null && tikSubmission.score !== undefined ? `${tikSubmission.score} / 100` : 'Belum Dinilai')
-      : (enrolledCourseIds.includes('tik') ? 'Belum Mengerjakan' : 'Terkunci'),
-    scoreColor: tikSubmission && tikSubmission.score !== null && tikSubmission.score !== undefined
-      ? (tikSubmission.score >= 75 ? '#10b981' : '#f59e0b')
-      : (tikSubmission ? '#0ea5e9' : 'var(--text-muted)'),
-    feedbackText: tikSubmission
-      ? (tikSubmission.teacher_feedback ? `Catatan Guru: "${tikSubmission.teacher_feedback}"` : (tikSubmission.score !== null && tikSubmission.score !== undefined ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD TIK telah dikirim, menunggu penilaian Guru.'))
-      : (enrolledCourseIds.includes('tik') ? 'Kerjakan LKPD TIK Mail Merge & Search Engine untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul dan melihat rekap nilai.')
-  },
-  {
-    id: 'sql',
-    title: 'Practical SQL Masterclass',
-    subtitle: '40 Modul Interaktif SQL & Relational Database',
-    icon: '🗄️',
-    link: '/belajar/sql',
-    isEnrolled: enrolledCourseIds.includes('sql'),
-    scoreText: `${completedCount} / ${totalLessonsCount} Modul Selesai`,
-    scoreColor: '#6366f1',
-    feedbackText: `${completionPercentage}% Kurikulum SQL diselesaikan (${rankInfo.title})`
-  },
-  {
-    id: 'sk',
-    title: 'Elemen 3 — Sistem Komputer',
-    subtitle: 'Hardware, CPU Architecture, Memori & Operasi Biner',
-    icon: '⚙️',
-    link: '/belajar/informatika/sk',
-    isEnrolled: enrolledCourseIds.includes('sk'),
-    scoreText: enrolledCourseIds.includes('sk') ? 'Modul Aktif' : 'Terkunci',
-    scoreColor: enrolledCourseIds.includes('sk') ? '#10b981' : 'var(--text-muted)',
-    feedbackText: enrolledCourseIds.includes('sk') ? 'Materi Sistem Komputer siap dipelajari.' : 'Masukan kode akses dari Guru untuk membuka modul dan melihat rekap nilai.'
-  },
-  {
-    id: 'ap',
-    title: 'Elemen 4 — Algoritma & Pemrograman',
-    subtitle: 'Flowchart, Pseudocode & Logika Pemrograman',
-    icon: '🧩',
-    link: '/belajar/informatika/ap',
-    isEnrolled: enrolledCourseIds.includes('ap'),
-    scoreText: enrolledCourseIds.includes('ap') ? 'Modul Aktif' : 'Terkunci',
-    scoreColor: enrolledCourseIds.includes('ap') ? '#10b981' : 'var(--text-muted)',
-    feedbackText: enrolledCourseIds.includes('ap') ? 'Materi Algoritma & Pemrograman siap dipelajari.' : 'Masukan kode akses dari Guru untuk membuka modul dan melihat rekap nilai.'
-  }
-];
+// Calculate Scores & Average Grade for Informatika
+let bkScore: number | null = bkSubmission && bkSubmission.score !== null && bkSubmission.score !== undefined ? parseInt(bkSubmission.score, 10) : null;
+let tikScore: number | null = tikSubmission && tikSubmission.score !== null && tikSubmission.score !== undefined ? parseInt(tikSubmission.score, 10) : null;
+
+let avgScore: number | null = null;
+if (bkScore !== null && !isNaN(bkScore) && tikScore !== null && !isNaN(tikScore)) {
+  const rawAvg = (bkScore + tikScore) / 2;
+  avgScore = Number.isInteger(rawAvg) ? rawAvg : Math.round(rawAvg * 10) / 10;
+} else if (bkScore !== null && !isNaN(bkScore)) {
+  avgScore = bkScore;
+} else if (tikScore !== null && !isNaN(tikScore)) {
+  avgScore = tikScore;
+}
+
+const avgScoreText = avgScore !== null ? `${avgScore} / 100` : 'Belum Ada Nilai';
+const avgScoreColor = avgScore !== null ? (avgScore >= 75 ? '#10b981' : '#f59e0b') : 'var(--text-muted)';
+
+const bkScoreText = bkSubmission
+  ? (bkScore !== null ? `${bkScore} / 100` : 'Belum Dinilai')
+  : (isInformatikaEnrolled ? 'Belum Mengerjakan' : 'Terkunci');
+const bkScoreColor = bkSubmission && bkScore !== null
+  ? (bkScore >= 75 ? '#10b981' : '#f59e0b')
+  : (bkSubmission ? '#0ea5e9' : 'var(--text-muted)');
+const bkFeedbackText = bkSubmission
+  ? (bkSubmission.teacher_feedback ? `Catatan Guru: "${bkSubmission.teacher_feedback}"` : (bkScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD telah dikirim, menunggu penilaian Guru.'))
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD 4 Pilar Berpikir Komputasional untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
+
+const tikScoreText = tikSubmission
+  ? (tikScore !== null ? `${tikScore} / 100` : 'Belum Dinilai')
+  : (isInformatikaEnrolled ? 'Belum Mengerjakan' : 'Terkunci');
+const tikScoreColor = tikSubmission && tikScore !== null
+  ? (tikScore >= 75 ? '#10b981' : '#f59e0b')
+  : (tikSubmission ? '#0ea5e9' : 'var(--text-muted)');
+const tikFeedbackText = tikSubmission
+  ? (tikSubmission.teacher_feedback ? `Catatan Guru: "${tikSubmission.teacher_feedback}"` : (tikScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD TIK telah dikirim, menunggu penilaian Guru.'))
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD TIK Mail Merge & Search Engine untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
 
 let trophyEmoji = '🏆';
 let rankMotivationalMsg = '🚀 Pertahankan semangat! Selesaikan modul berikutnya untuk naik ke 10 Besar.';
@@ -356,57 +318,125 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
       </div>
     </div>
 
-    <!-- Rekap Nilai & Status Enroll Modul Pembelajaran -->
+    <!-- Rekap Nilai & Status Enroll Mata Pelajaran -->
     <div class="recap-section">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Rekap Nilai & Status Enroll Modul Pembelajaran</h2>
-          <p class="section-subtitle">Pantau nilai LKPD Informatika, progres modul SQL, dan status pendaftaran modul.</p>
+          <h2 class="section-title">Rekap Nilai & Status Enroll Mata Pelajaran</h2>
+          <p class="section-subtitle">Pantau nilai LKPD Informatika, rata-rata nilai mata pelajaran, dan progres modul RPL.</p>
         </div>
       </div>
 
-      <div class="recap-grid">
-        {mainModules.map((mod) => (
-          <div class={`recap-card glass-card ${mod.isEnrolled ? 'is-enrolled' : 'is-locked'}`}>
-            <div class="recap-card-top">
-              <div class="recap-icon-title">
-                <span class="recap-icon">{mod.icon}</span>
-                <div>
-                  <h3 class="recap-card-title">{mod.title}</h3>
-                  <p class="recap-card-sub">{mod.subtitle}</p>
-                </div>
+      <div class="subject-grid">
+        <!-- Mata Pelajaran 1: Informatika SMK (Fase E) -->
+        <div class={`subject-card glass-card ${isInformatikaEnrolled ? 'is-enrolled' : 'is-locked'}`}>
+          <div class="subject-card-header">
+            <div class="subject-title-wrap">
+              <span class="subject-icon">💻</span>
+              <div>
+                <h3 class="subject-title">Mata Pelajaran: Informatika SMK (Fase E)</h3>
+                <p class="subject-sub">Integrasi Berpikir Komputasional, TIK, Sistem Komputer, & AP</p>
               </div>
-              {mod.isEnrolled ? (
-                <span class="badge badge-success">TERDAFTAR</span>
-              ) : (
-                <span class="badge badge-amber">BELUM TERDAFTAR</span>
-              )}
+            </div>
+            {isInformatikaEnrolled ? (
+              <span class="badge badge-success">✓ TERDAFTAR MATA PELAJARAN</span>
+            ) : (
+              <span class="badge badge-amber">🔒 BELUM ENROLL</span>
+            )}
+          </div>
+
+          <div class="subject-body">
+            <div class="lkpd-items-grid">
+              <!-- LKPD 1 (BK) -->
+              <div class="lkpd-item-box">
+                <div class="lkpd-item-title">LKPD 1 — Berpikir Komputasional (BK)</div>
+                <div class="lkpd-item-score" style={`color: ${bkScoreColor};`}>{bkScoreText}</div>
+                <p class="lkpd-item-feedback">{bkFeedbackText}</p>
+              </div>
+
+              <!-- LKPD 2 (TIK) -->
+              <div class="lkpd-item-box">
+                <div class="lkpd-item-title">LKPD 2 — TIK & Mail Merge</div>
+                <div class="lkpd-item-score" style={`color: ${tikScoreColor};`}>{tikScoreText}</div>
+                <p class="lkpd-item-feedback">{tikFeedbackText}</p>
+              </div>
             </div>
 
-            <div class="recap-score-box">
-              <div class="recap-score-label">NILAI / REKAP PROGRES</div>
-              <div class="recap-score-val" style={`color: ${mod.scoreColor};`}>{mod.scoreText}</div>
-              <p class="recap-score-feedback">{mod.feedbackText}</p>
-            </div>
-
-            <div class="recap-card-action">
-              {mod.isEnrolled ? (
-                <a href={mod.link} class="btn btn-outline btn-sm recap-btn">
-                  Buka Modul / LKPD &rarr;
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  class="btn btn-primary btn-sm btn-enroll-trigger recap-btn"
-                  data-course-id={mod.id}
-                  data-course-title={mod.title}
-                >
-                  🔒 Enroll Modul Ini
-                </button>
-              )}
+            <!-- Rata-rata Nilai Mata Pelajaran -->
+            <div class="average-grade-box">
+              <div class="avg-label">RATA-RATA NILAI MATA PELAJARAN INFORMATIKA</div>
+              <div class="avg-value" style={`color: ${avgScoreColor};`}>{avgScoreText}</div>
             </div>
           </div>
-        ))}
+
+          <div class="subject-card-action">
+            {isInformatikaEnrolled ? (
+              <a href="/belajar/informatika" class="btn btn-outline btn-sm recap-btn">
+                Buka Mata Pelajaran Informatika &rarr;
+              </a>
+            ) : (
+              <button
+                type="button"
+                class="btn btn-primary btn-sm btn-enroll-trigger recap-btn"
+                data-course-id="informatika"
+                data-course-title="Mata Pelajaran: Informatika SMK (Fase E)"
+              >
+                🔒 Enroll Mata Pelajaran Ini (Kode Akses)
+              </button>
+            )}
+          </div>
+        </div>
+
+        <!-- Mata Pelajaran 2: Pemrograman Web & Basis Data (RPL) -->
+        <div class={`subject-card glass-card ${isRplSqlEnrolled ? 'is-enrolled' : 'is-locked'}`}>
+          <div class="subject-card-header">
+            <div class="subject-title-wrap">
+              <span class="subject-icon">🗄️</span>
+              <div>
+                <h3 class="subject-title">Mata Pelajaran: Pemrograman Web & Basis Data (RPL)</h3>
+                <p class="subject-sub">Practical SQL Masterclass & Relational Database Management</p>
+              </div>
+            </div>
+            {isRplSqlEnrolled ? (
+              <span class="badge badge-success">✓ TERDAFTAR MATA PELAJARAN</span>
+            ) : (
+              <span class="badge badge-amber">🔒 BELUM ENROLL</span>
+            )}
+          </div>
+
+          <div class="subject-body">
+            <div class="lkpd-items-grid">
+              <div class="lkpd-item-box">
+                <div class="lkpd-item-title">Practical SQL Masterclass</div>
+                <div class="lkpd-item-score" style="color: #6366f1;">{completedCount} / {totalLessonsCount} Modul Selesai</div>
+                <p class="lkpd-item-feedback">{completionPercentage}% Kurikulum SQL diselesaikan</p>
+              </div>
+
+              <div class="lkpd-item-box">
+                <div class="lkpd-item-title">Predikat & Kualifikasi Kompetensi</div>
+                <div class="lkpd-item-score" style="color: #a855f7;">{rankInfo.title}</div>
+                <p class="lkpd-item-feedback">Peringkat #{userRankPosition} dari {totalStudentsCount} Siswa Terdaftar</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="subject-card-action">
+            {isRplSqlEnrolled ? (
+              <a href="/belajar/sql" class="btn btn-outline btn-sm recap-btn">
+                Buka Mata Pelajaran Pemrograman Web & Basis Data &rarr;
+              </a>
+            ) : (
+              <button
+                type="button"
+                class="btn btn-primary btn-sm btn-enroll-trigger recap-btn"
+                data-course-id="rpl_web_sql"
+                data-course-title="Mata Pelajaran: Pemrograman Web & Basis Data (RPL)"
+              >
+                🔒 Enroll Mata Pelajaran Ini (Kode Akses)
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -591,7 +621,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     </div>
   </div>
 
-  <!-- Modal Access Code / Enroll Modul -->
+  <!-- Modal Access Code / Enroll Mata Pelajaran -->
   <div id="enroll-access-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-card glass-card">
       <div class="modal-header">
@@ -603,8 +633,8 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
             </svg>
           </div>
           <div>
-            <h2 class="modal-title">Enroll Modul Pembelajaran</h2>
-            <p class="modal-sub">Masukkan kode akses dari Guru untuk membuka modul ini.</p>
+            <h2 class="modal-title">Enroll Mata Pelajaran</h2>
+            <p class="modal-sub">Masukkan kode akses dari Guru untuk mendaftar dan membuka mata pelajaran ini.</p>
           </div>
         </div>
         <button id="close-enroll-modal-btn" class="modal-close" type="button" aria-label="Tutup Modal">&times;</button>
@@ -616,7 +646,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
       <form id="enroll-access-form" class="modal-form">
         <input type="hidden" id="enroll-course-id" name="courseId" value="" />
         <div class="form-group">
-          <label for="enroll-course-title">Modul Pembelajaran</label>
+          <label for="enroll-course-title">Mata Pelajaran</label>
           <input
             type="text"
             id="enroll-course-title"
@@ -631,7 +661,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
             type="text"
             id="enroll-access-code"
             name="accessCode"
-            placeholder="Contoh: SK2026 atau RPL2026"
+            placeholder="Contoh: INFORMATIKA2026 atau RPL2026"
             required
             autocomplete="off"
           />
@@ -802,13 +832,13 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
       const res = await fetch('/api/courses/enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId, accessCode })
+        body: JSON.stringify({ subjectId: courseId, accessCode })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal mendaftar modul.');
+      if (!res.ok) throw new Error(data.error || 'Gagal mendaftar Mata Pelajaran.');
 
       if (enrollSuccessBanner) {
-        enrollSuccessBanner.innerText = data.message || 'Berhasil mendaftar pada modul pembelajaran!';
+        enrollSuccessBanner.innerText = data.message || 'Berhasil terdaftar pada Mata Pelajaran!';
         enrollSuccessBanner.style.display = 'block';
       }
 
@@ -1553,106 +1583,141 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
   }
 
-  /* Recap & Enroll Section */
-  .recap-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .recap-grid {
+  /* Subject Cards & Grid */
+  .subject-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 1.25rem;
   }
 
-  .recap-card {
-    padding: 1.5rem;
+  @media (max-width: 640px) {
+    .subject-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .subject-card {
+    padding: 1.75rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 1.25rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  .recap-card.is-locked {
-    opacity: 0.85;
+  .subject-card.is-locked {
+    opacity: 0.9;
     border-style: dashed;
   }
 
-  .recap-card:hover {
+  .subject-card:hover {
     transform: translateY(-2px);
   }
 
-  .recap-card-top {
+  .subject-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 0.75rem;
   }
 
-  .recap-icon-title {
+  .subject-title-wrap {
     display: flex;
     gap: 0.75rem;
     align-items: flex-start;
   }
 
-  .recap-icon {
-    font-size: 1.5rem;
+  .subject-icon {
+    font-size: 1.75rem;
     line-height: 1;
     display: inline-block;
   }
 
-  .recap-card-title {
-    font-size: 0.95rem;
+  .subject-title {
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.3;
   }
 
-  .recap-card-sub {
-    font-size: 0.775rem;
+  .subject-sub {
+    font-size: 0.8rem;
     color: var(--text-muted);
-    margin-top: 0.2rem;
+    margin-top: 0.25rem;
     line-height: 1.35;
   }
 
-  .recap-score-box {
+  .subject-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .lkpd-items-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 500px) {
+    .lkpd-items-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .lkpd-item-box {
     background: var(--bg-secondary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     padding: 0.875rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 
-  .recap-score-label {
-    font-size: 0.6875rem;
+  .lkpd-item-title {
+    font-size: 0.725rem;
     font-weight: 700;
     color: var(--text-muted);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
-  .recap-score-val {
-    font-size: 1.25rem;
+  .lkpd-item-score {
+    font-size: 1.15rem;
     font-weight: 800;
-    margin-top: 0.25rem;
   }
 
-  .recap-score-feedback {
-    font-size: 0.8125rem;
+  .lkpd-item-feedback {
+    font-size: 0.775rem;
     color: var(--text-secondary);
-    margin-top: 0.35rem;
-    line-height: 1.4;
+    line-height: 1.35;
   }
 
-  .recap-card-action {
+  .average-grade-box {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .avg-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+  }
+
+  .avg-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+
+  .subject-card-action {
     margin-top: auto;
-  }
-
-  .recap-btn {
-    width: 100%;
-    justify-content: center;
-    text-align: center;
   }
 
   .badge-success {
