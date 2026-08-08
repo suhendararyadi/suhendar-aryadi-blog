@@ -7,27 +7,38 @@ if (sessionId) {
   try {
     const user = await getSessionUser(sessionId);
     if (user) {
-      const redirectTarget = Astro.url.searchParams.get('redirect') || '/belajar';
-      return Astro.redirect(redirectTarget);
+      if (user.role !== 'admin' && user.role !== 'teacher' && (!user.class_name || user.class_name.trim() === '')) {
+        Astro.cookies.delete('session_id', { path: '/' });
+      } else {
+        const redirectTarget = Astro.url.searchParams.get('redirect') || '/belajar';
+        return Astro.redirect(redirectTarget);
+      }
     }
   } catch (e) {
     // Ignore error if DB unreachable during build
   }
 }
+
+const reason = Astro.url.searchParams.get('reason');
+const errorParam = Astro.url.searchParams.get('error');
+const isMissingClass = reason === 'missing_class' || errorParam === 'missing_class';
 ---
 
 <MainLayout title="Masuk Akun | Platform Pembelajaran Informatika & RPL" description="Halaman masuk (login) akun siswa untuk mengakses modul pembelajaran & praktikum interaktif.">
   <div class="auth-container">
     <div class="auth-card glass-panel">
       <div class="auth-header">
-        <div class="auth-badge">AKSES MASUK</div>
-        <h1>Selamat Datang Kembali</h1>
-        <p>Masuk ke akun Anda untuk mengakses modul pembelajaran &amp; praktikum interaktif.</p>
+        <div class="auth-badge" id="auth-badge">AKSES MASUK</div>
+        <h1 id="auth-title">Selamat Datang Kembali</h1>
+        <p id="auth-desc">Masuk ke akun Anda untuk mengakses modul pembelajaran &amp; praktikum interaktif.</p>
       </div>
 
-      <div id="error-banner" class="alert alert-error" style="display: none;"></div>
+      <div id="error-banner" class="alert alert-error" style={isMissingClass ? "display: block;" : "display: none;"}>
+        {isMissingClass ? "Identitas Kelas wajib diisi. Silakan login kembali dan pilih kelas Anda." : ""}
+      </div>
       <div id="success-banner" class="alert alert-success" style="display: none;"></div>
 
+      <!-- Step 1: Login Form -->
       <form id="login-form" class="auth-form">
         <div class="form-group">
           <label for="email">Alamat Email</label>
@@ -59,7 +70,34 @@ if (sessionId) {
         </button>
       </form>
 
-      <div class="auth-footer">
+      <!-- Step 2: Complete Class Identity Form (Interception) -->
+      <div id="class-step" style="display: none;">
+        <form id="class-form" class="auth-form">
+          <input type="hidden" id="class-user-id" name="userId" value="" />
+          
+          <div class="form-group">
+            <label for="class-select">Pilih Kelas / Rombel Anda</label>
+            <select id="class-select" name="className" required>
+              <option value="" disabled selected>-- Pilih Kelas / Rombel --</option>
+              <option value="X RPL 1">X RPL 1</option>
+              <option value="X RPL 2">X RPL 2</option>
+              <option value="X TKT 1">X TKT 1</option>
+              <option value="X TKT 2">X TKT 2</option>
+              <option value="XI RPL 1">XI RPL 1</option>
+              <option value="XI RPL 2">XI RPL 2</option>
+              <option value="XII RPL 1">XII RPL 1</option>
+              <option value="XII RPL 2">XII RPL 2</option>
+            </select>
+          </div>
+
+          <button type="submit" id="class-submit-btn" class="btn btn-primary">
+            <span class="btn-text">Simpan Kelas &amp; Lanjutkan</span>
+            <span class="btn-spinner" style="display: none;">Memproses...</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="auth-footer" id="auth-footer">
         <p>Belum memiliki akun? <a href="/auth/register">Daftar sekarang</a></p>
       </div>
     </div>
@@ -71,6 +109,15 @@ if (sessionId) {
   const errorBanner = document.getElementById('error-banner') as HTMLDivElement | null;
   const successBanner = document.getElementById('success-banner') as HTMLDivElement | null;
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+
+  // Check URL parameters for missing_class error banner
+  const urlParams = new URLSearchParams(window.location.search);
+  const reason = urlParams.get('reason');
+  const errorParam = urlParams.get('error');
+  if ((reason === 'missing_class' || errorParam === 'missing_class') && errorBanner) {
+    errorBanner.innerText = 'Identitas Kelas wajib diisi. Silakan login kembali dan pilih kelas Anda.';
+    errorBanner.style.display = 'block';
+  }
 
   if (form && submitBtn && errorBanner && successBanner) {
     form.addEventListener('submit', async (e) => {
@@ -105,11 +152,35 @@ if (sessionId) {
           throw new Error(data.error || 'Login gagal');
         }
 
+        // Intercept requiresClass response from login endpoint
+        if (data.requiresClass) {
+          const classStep = document.getElementById('class-step');
+          const classUserIdInput = document.getElementById('class-user-id') as HTMLInputElement | null;
+          const authBadge = document.getElementById('auth-badge');
+          const authTitle = document.getElementById('auth-title');
+          const authDesc = document.getElementById('auth-desc');
+
+          if (classUserIdInput) {
+            classUserIdInput.value = data.userId || '';
+          }
+
+          if (authBadge) authBadge.innerText = 'LANGKAH 2 DARI 2';
+          if (authTitle) authTitle.innerText = 'Lengkapi Identitas Kelas';
+          if (authDesc) authDesc.innerText = 'Identitas kelas wajib diisi untuk mengakses platform pembelajaran.';
+
+          form.style.display = 'none';
+          if (classStep) classStep.style.display = 'block';
+
+          errorBanner.innerText = data.message || 'Identitas kelas wajib diisi. Silakan pilih kelas Anda.';
+          errorBanner.style.display = 'block';
+
+          return;
+        }
+
         successBanner.innerText = 'Login berhasil! Mengalihkan ke platform...';
         successBanner.style.display = 'block';
 
         setTimeout(() => {
-          const urlParams = new URLSearchParams(window.location.search);
           const redirectTarget = urlParams.get('redirect') || '/belajar';
           window.location.href = redirectTarget;
         }, 1000);
@@ -117,6 +188,72 @@ if (sessionId) {
         errorBanner.innerText = err.message || 'Terjadi kesalahan. Silakan coba lagi.';
         errorBanner.style.display = 'block';
         submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'inline';
+        if (btnSpinner) btnSpinner.style.display = 'none';
+      }
+    });
+  }
+
+  // Handle Step 2 Class Form Submit
+  const classForm = document.getElementById('class-form') as HTMLFormElement | null;
+  const classSubmitBtn = document.getElementById('class-submit-btn') as HTMLButtonElement | null;
+
+  if (classForm && classSubmitBtn) {
+    classForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const classSelect = document.getElementById('class-select') as HTMLSelectElement | null;
+      const userIdInput = document.getElementById('class-user-id') as HTMLInputElement | null;
+
+      const className = classSelect?.value.trim() || '';
+      const userId = userIdInput?.value || '';
+
+      if (!className) {
+        if (errorBanner) {
+          errorBanner.innerText = 'Silakan pilih kelas Anda terlebih dahulu';
+          errorBanner.style.display = 'block';
+        }
+        return;
+      }
+
+      if (errorBanner) errorBanner.style.display = 'none';
+      if (successBanner) successBanner.style.display = 'none';
+
+      const btnText = classSubmitBtn.querySelector('.btn-text') as HTMLSpanElement;
+      const btnSpinner = classSubmitBtn.querySelector('.btn-spinner') as HTMLSpanElement;
+
+      classSubmitBtn.disabled = true;
+      if (btnText) btnText.style.display = 'none';
+      if (btnSpinner) btnSpinner.style.display = 'inline';
+
+      try {
+        const response = await fetch('/api/auth/update-class', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, className }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Gagal menyelaraskan kelas');
+        }
+
+        if (successBanner) {
+          successBanner.innerText = 'Identitas kelas berhasil disimpan! Mengalihkan ke platform...';
+          successBanner.style.display = 'block';
+        }
+
+        setTimeout(() => {
+          const redirectTarget = urlParams.get('redirect') || '/belajar';
+          window.location.href = redirectTarget;
+        }, 1000);
+      } catch (err: any) {
+        if (errorBanner) {
+          errorBanner.innerText = err.message || 'Terjadi kesalahan saat menyimpan kelas.';
+          errorBanner.style.display = 'block';
+        }
+        classSubmitBtn.disabled = false;
         if (btnText) btnText.style.display = 'inline';
         if (btnSpinner) btnSpinner.style.display = 'none';
       }
@@ -210,7 +347,8 @@ if (sessionId) {
     color: var(--text-primary);
   }
 
-  .form-group input {
+  .form-group input,
+  .form-group select {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: var(--radius-md);
@@ -221,7 +359,8 @@ if (sessionId) {
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .form-group input:focus {
+  .form-group input:focus,
+  .form-group select:focus {
     outline: none;
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
@@ -273,3 +412,4 @@ if (sessionId) {
     text-decoration: underline;
   }
 </style>
+

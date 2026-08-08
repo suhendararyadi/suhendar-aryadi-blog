@@ -11,6 +11,11 @@ if (!user) {
   return Astro.redirect('/auth/login');
 }
 
+if (user.role !== 'admin' && user.role !== 'teacher' && (!user.class_name || user.class_name.trim() === '')) {
+  Astro.cookies.delete('session_id', { path: '/' });
+  return Astro.redirect('/auth/login?reason=missing_class');
+}
+
 let completedModules: any[] = [];
 let topLeaderboard: any[] = [];
 let totalLessonsCount = seedLessons.length;
