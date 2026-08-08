@@ -42,6 +42,21 @@ if (sessionId) {
         </div>
 
         <div class="form-group">
+          <label for="className">Kelas / Rombel</label>
+          <select id="className" name="className" required>
+            <option value="" disabled selected>-- Pilih Kelas / Rombel --</option>
+            <option value="X RPL 1">X RPL 1</option>
+            <option value="X RPL 2">X RPL 2</option>
+            <option value="X TKT 1">X TKT 1</option>
+            <option value="X TKT 2">X TKT 2</option>
+            <option value="XI RPL 1">XI RPL 1</option>
+            <option value="XI RPL 2">XI RPL 2</option>
+            <option value="XII RPL 1">XII RPL 1</option>
+            <option value="XII RPL 2">XII RPL 2</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label for="email">Alamat Email</label>
           <input
             type="email"
@@ -102,17 +117,25 @@ if (sessionId) {
       e.preventDefault();
 
       const nameInput = document.getElementById('name') as HTMLInputElement;
+      const classSelect = document.getElementById('className') as HTMLSelectElement;
       const emailInput = document.getElementById('email') as HTMLInputElement;
       const passwordInput = document.getElementById('password') as HTMLInputElement;
       const confirmInput = document.getElementById('confirmPassword') as HTMLInputElement;
 
       const name = nameInput.value.trim();
+      const className = classSelect.value.trim();
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const confirmPassword = confirmInput.value;
 
       errorBanner.style.display = 'none';
       successBanner.style.display = 'none';
+
+      if (!className) {
+        errorBanner.innerText = 'Silakan pilih kelas Anda terlebih dahulu';
+        errorBanner.style.display = 'block';
+        return;
+      }
 
       if (password !== confirmPassword) {
         errorBanner.innerText = 'Konfirmasi password tidak cocok';
@@ -137,7 +160,7 @@ if (sessionId) {
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify({ name, className, email, password }),
         });
 
         const data = await response.json();
@@ -251,7 +274,8 @@ if (sessionId) {
     color: var(--text-primary);
   }
 
-  .form-group input {
+  .form-group input,
+  .form-group select {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: var(--radius-md);
@@ -262,7 +286,8 @@ if (sessionId) {
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .form-group input:focus {
+  .form-group input:focus,
+  .form-group select:focus {
     outline: none;
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);

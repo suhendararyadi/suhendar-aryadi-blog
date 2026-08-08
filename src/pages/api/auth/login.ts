@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    const res = await query('SELECT id, name, email, password_hash, role FROM users WHERE email = $1', [email]);
+    const res = await query('SELECT id, name, email, password_hash, role, class_name FROM users WHERE email = $1', [email]);
     if (res.rows.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Email atau password salah.' }),
@@ -42,6 +42,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    if ((!user.class_name || user.class_name.trim() === '') && (user.role === 'student' || !user.role)) {
+      return new Response(
+        JSON.stringify({
+          requiresClass: true,
+          userId: user.id,
+          message: 'Identitas kelas wajib diisi.',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const sessionId = await createSession(user.id);
     cookies.set('session_id', sessionId, {
       path: '/',
@@ -54,7 +65,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return new Response(
       JSON.stringify({
         success: true,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role }
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, class_name: user.class_name }
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

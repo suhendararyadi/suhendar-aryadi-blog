@@ -7,6 +7,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     let name = '';
     let email = '';
     let password = '';
+    let className = '';
 
     const contentType = request.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -14,16 +15,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       name = body.name?.trim() || '';
       email = body.email?.trim().toLowerCase() || '';
       password = body.password || '';
+      className = body.className?.trim() || body.class_name?.trim() || '';
     } else if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       name = (formData.get('name') as string || '').trim();
       email = (formData.get('email') as string || '').trim().toLowerCase();
       password = (formData.get('password') as string || '');
+      className = (formData.get('className') as string || formData.get('class_name') as string || '').trim();
     }
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !className) {
       return new Response(
-        JSON.stringify({ error: 'Nama, email, dan password wajib diisi' }),
+        JSON.stringify({ error: 'Nama, email, password, dan kelas wajib diisi' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -54,10 +57,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     const passwordHash = await hashPassword(password);
     const insertResult = await query(
-      `INSERT INTO users (name, email, password_hash, role)
-       VALUES ($1, $2, $3, 'student')
-       RETURNING id, name, email, role, created_at`,
-      [name, email, passwordHash]
+      `INSERT INTO users (name, email, password_hash, role, class_name)
+       VALUES ($1, $2, $3, 'student', $4)
+       RETURNING id, name, email, role, class_name, created_at`,
+      [name, email, passwordHash, className]
     );
 
     const user = insertResult.rows[0];
@@ -79,6 +82,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          class_name: user.class_name,
         },
       }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
