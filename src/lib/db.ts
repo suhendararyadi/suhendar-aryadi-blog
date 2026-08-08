@@ -75,6 +75,26 @@ const CREATE_TABLES_PG = `
     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, lesson_id)
   );
+
+  CREATE TABLE IF NOT EXISTS course_enrollments (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    course_id VARCHAR(50) NOT NULL,
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, course_id)
+  );
+
+  INSERT INTO course_enrollments (user_id, course_id)
+  SELECT DISTINCT user_id, 'bk' FROM lkpd_submissions
+  ON CONFLICT (user_id, course_id) DO NOTHING;
+
+  INSERT INTO course_enrollments (user_id, course_id)
+  SELECT DISTINCT user_id, 'tik' FROM lkpd_tik_submissions
+  ON CONFLICT (user_id, course_id) DO NOTHING;
+
+  INSERT INTO course_enrollments (user_id, course_id)
+  SELECT DISTINCT user_id, 'sql' FROM user_progress
+  ON CONFLICT (user_id, course_id) DO NOTHING;
 `;
 
 async function seedLessonsPg(client: any) {
