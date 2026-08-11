@@ -13,11 +13,35 @@ if (!currentUser) {
 
 const totalLessonsCount = seedLessons.length || 40;
 
+const COURSE_MAP: Record<string, { label: string; codes: string[] }> = {
+  rpl_web_sql: { label: 'Basis Data & Web SQL', codes: ['rpl_web_sql', 'sql'] },
+  informatika: { label: 'Informatika SMK', codes: ['informatika', 'bk', 'tik', 'sk', 'ap'] },
+  pbo: { label: 'Pemrograman Berorientasi Objek (PBO)', codes: ['pbo'] },
+  all: { label: 'Semua Mata Pelajaran', codes: [] }
+};
+
+const selectedCourse = Astro.url.searchParams.get('course') || 'rpl_web_sql';
+const rawSelectedClass = Astro.url.searchParams.get('class');
+const selectedClass = rawSelectedClass !== null ? rawSelectedClass : (currentUser?.class_name || 'all');
+
+let activeClasses: string[] = [];
+try {
+  const cRes = await query(
+    `SELECT DISTINCT class_name FROM users WHERE role = 'student' AND class_name IS NOT NULL AND class_name != '' ORDER BY class_name ASC`
+  );
+  if (cRes.rows) {
+    activeClasses = cRes.rows.map((r: any) => r.class_name);
+  }
+} catch (e) {
+  console.warn('Error fetching active classes for leaderboard:', e);
+}
+
 interface LeaderboardUser {
   id: number;
   name: string;
   email: string;
   role: string;
+  class_name: string;
   completed_count: number;
   last_completed_at: string | null;
   percentage: number;
@@ -28,15 +52,70 @@ interface LeaderboardUser {
 let leaderboard: LeaderboardUser[] = [];
 
 try {
-  const res = await query(
-    `SELECT u.id, u.name, u.email, u.role,
-            COUNT(up.id) as completed_count,
-            MAX(up.completed_at) as last_completed_at
-     FROM users u
-     LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
-     GROUP BY u.id, u.name, u.email, u.role
-     ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC`
-  );
+  const targetCourseConfig = COURSE_MAP[selectedCourse] || COURSE_MAP['rpl_web_sql'];
+  const courseCodes = targetCourseConfig.codes;
+
+  let sqlQuery = '';
+  let sqlParams: any[] = [];
+
+  if (courseCodes.length > 0) {
+    if (selectedClass !== 'all') {
+      sqlQuery = `
+        SELECT u.id, u.name, u.email, u.role, u.class_name,
+               COUNT(DISTINCT up.lesson_id) as completed_count,
+               MAX(up.completed_at) as last_completed_at
+        FROM users u
+        JOIN course_enrollments ce ON u.id = ce.user_id AND ce.course_id = ANY($1::text[])
+        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+        WHERE u.role = 'student' AND u.class_name = $2
+        GROUP BY u.id, u.name, u.email, u.role, u.class_name
+        ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+      `;
+      sqlParams = [courseCodes, selectedClass];
+    } else {
+      sqlQuery = `
+        SELECT u.id, u.name, u.email, u.role, u.class_name,
+               COUNT(DISTINCT up.lesson_id) as completed_count,
+               MAX(up.completed_at) as last_completed_at
+        FROM users u
+        JOIN course_enrollments ce ON u.id = ce.user_id AND ce.course_id = ANY($1::text[])
+        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+        WHERE u.role = 'student'
+        GROUP BY u.id, u.name, u.email, u.role, u.class_name
+        ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+      `;
+      sqlParams = [courseCodes];
+    }
+  } else {
+    // All courses
+    if (selectedClass !== 'all') {
+      sqlQuery = `
+        SELECT u.id, u.name, u.email, u.role, u.class_name,
+               COUNT(DISTINCT up.lesson_id) as completed_count,
+               MAX(up.completed_at) as last_completed_at
+        FROM users u
+        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+        WHERE u.role = 'student' AND u.class_name = $1
+        GROUP BY u.id, u.name, u.email, u.role, u.class_name
+        ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+      `;
+      sqlParams = [selectedClass];
+    } else {
+      sqlQuery = `
+        SELECT u.id, u.name, u.email, u.role, u.class_name,
+               COUNT(DISTINCT up.lesson_id) as completed_count,
+               MAX(up.completed_at) as last_completed_at
+        FROM users u
+        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+        WHERE u.role = 'student'
+        GROUP BY u.id, u.name, u.email, u.role, u.class_name
+        ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+      `;
+      sqlParams = [];
+    }
+  }
+
+  const res = await query(sqlQuery, sqlParams);
 
   if (res.rows) {
     leaderboard = res.rows.map((row: any) => {
@@ -62,6 +141,7 @@ try {
         name: row.name,
         email: row.email,
         role: row.role,
+        class_name: row.class_name || '-',
         completed_count: count,
         last_completed_at: row.last_completed_at,
         percentage,
@@ -99,6 +179,33 @@ const remainingLeaderboard = leaderboard.slice(3);
       </div>
     </div>
 
+    <!-- Filter Controls Bar -->
+    <div class="filter-controls-card glass-card">
+      <div class="filter-group-left">
+        <span class="filter-label">Mata Pelajaran:</span>
+        <div class="course-tabs">
+          {Object.entries(COURSE_MAP).map(([key, config]) => (
+            <a
+              href={`/belajar/sql/leaderboard?course=${key}&class=${encodeURIComponent(selectedClass)}`}
+              class={`tab-btn ${selectedCourse === key ? 'active' : ''}`}
+            >
+              {config.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div class="filter-group-right">
+        <label for="class-select-filter" class="filter-label">Kelas Rombel:</label>
+        <select id="class-select-filter" class="filter-select">
+          <option value="all" selected={selectedClass === 'all'}>Semua Kelas Rombel</option>
+          {activeClasses.map(cls => (
+            <option value={cls} selected={selectedClass === cls}>{cls}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
     <!-- Podium Top 3 -->
     {top3.length > 0 && (
       <div class="podium-grid">
@@ -108,6 +215,7 @@ const remainingLeaderboard = leaderboard.slice(3);
             <div class="podium-badge">🥈 #2</div>
             <div class="podium-avatar">{top3[1].name.charAt(0).toUpperCase()}</div>
             <h3 class="podium-name">{top3[1].name}</h3>
+            <span class="badge badge-outline" style="margin-bottom: 0.35rem;">{top3[1].class_name}</span>
             <span class={`badge ${top3[1].badgeClass}`}>{top3[1].rankTitle}</span>
             <div class="podium-score">
               <strong>{top3[1].completed_count}</strong> / {totalLessonsCount} Modul
@@ -129,6 +237,7 @@ const remainingLeaderboard = leaderboard.slice(3);
             <div class="podium-badge top-gold">🥇 #1 Champion</div>
             <div class="podium-avatar gold-avatar">{top3[0].name.charAt(0).toUpperCase()}</div>
             <h3 class="podium-name gold-name">{top3[0].name}</h3>
+            <span class="badge badge-outline" style="margin-bottom: 0.35rem;">{top3[0].class_name}</span>
             <span class={`badge ${top3[0].badgeClass}`}>{top3[0].rankTitle}</span>
             <div class="podium-score gold-score">
               <strong>{top3[0].completed_count}</strong> / {totalLessonsCount} Modul Selesai
@@ -150,6 +259,7 @@ const remainingLeaderboard = leaderboard.slice(3);
             <div class="podium-badge">🥉 #3</div>
             <div class="podium-avatar">{top3[2].name.charAt(0).toUpperCase()}</div>
             <h3 class="podium-name">{top3[2].name}</h3>
+            <span class="badge badge-outline" style="margin-bottom: 0.35rem;">{top3[2].class_name}</span>
             <span class={`badge ${top3[2].badgeClass}`}>{top3[2].rankTitle}</span>
             <div class="podium-score">
               <strong>{top3[2].completed_count}</strong> / {totalLessonsCount} Modul
@@ -170,7 +280,12 @@ const remainingLeaderboard = leaderboard.slice(3);
     <!-- Full Leaderboard Table -->
     <div class="table-section glass-card">
       <div class="table-header">
-        <h2>Peringkat Keseluruhan Siswa</h2>
+        <div>
+          <h2>Peringkat Siswa — {COURSE_MAP[selectedCourse]?.label || 'Semua Mata Pelajaran'}</h2>
+          <p class="table-sub-info">
+            Filter Kelas: <strong>{selectedClass === 'all' ? 'Semua Kelas' : selectedClass}</strong>
+          </p>
+        </div>
         <span class="total-students">{leaderboard.length} Siswa Terdaftar</span>
       </div>
 
@@ -181,6 +296,7 @@ const remainingLeaderboard = leaderboard.slice(3);
               <tr>
                 <th>Peringkat</th>
                 <th>Siswa</th>
+                <th>Kelas</th>
                 <th>Tingkat Rank</th>
                 <th>Progres Modul</th>
                 <th>Persentase</th>
@@ -205,6 +321,9 @@ const remainingLeaderboard = leaderboard.slice(3);
                           <span class="student-role">{item.role.toUpperCase()}</span>
                         </div>
                       </div>
+                    </td>
+                    <td>
+                      <span class="badge badge-purple">{item.class_name}</span>
                     </td>
                     <td>
                       <span class={`badge ${item.badgeClass}`}>{item.rankTitle}</span>
@@ -235,12 +354,25 @@ const remainingLeaderboard = leaderboard.slice(3);
         </div>
       ) : (
         <div class="empty-state">
-          <p>Belum ada data siswa terdaftar saat ini.</p>
+          <p>Belum ada data siswa terdaftar pada filter mata pelajaran dan kelas ini.</p>
         </div>
       )}
     </div>
   </div>
 </MainLayout>
+
+<script is:inline define:vars={{ selectedCourse }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const classSelect = document.getElementById('class-select-filter');
+    classSelect?.addEventListener('change', (e) => {
+      const classVal = e.target.value;
+      const url = new URL(window.location.href);
+      url.searchParams.set('course', selectedCourse);
+      url.searchParams.set('class', classVal);
+      window.location.href = url.toString();
+    });
+  });
+</script>
 
 <style>
   .leaderboard-container {
@@ -249,6 +381,87 @@ const remainingLeaderboard = leaderboard.slice(3);
     display: flex;
     flex-direction: column;
     gap: 2rem;
+  }
+
+  /* Filter Controls Card */
+  .filter-controls-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-xl);
+    flex-wrap: wrap;
+  }
+
+  .filter-group-left, .filter-group-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .course-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--bg-tertiary);
+    padding: 0.25rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .tab-btn.active {
+    background: var(--accent-gradient);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3);
+  }
+
+  .filter-select {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    min-width: 180px;
+    outline: none;
+  }
+
+  .filter-select:focus {
+    border-color: var(--accent-cyan);
+  }
+
+  .table-sub-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
   }
 
   .header-banner {
