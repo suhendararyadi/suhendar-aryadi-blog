@@ -57,10 +57,13 @@ interface LeaderboardUser {
   role: string;
   class_name: string;
   completed_count: number;
+  total_target: number;
+  unit_label: string;
   last_completed_at: string | null;
   percentage: number;
   rankTitle: string;
   badgeClass: string;
+  displayScore: string;
 }
 
 let leaderboard: LeaderboardUser[] = [];
@@ -70,100 +73,191 @@ if (canViewLeaderboard) {
     const targetCourseConfig = COURSE_MAP[selectedCourse] || COURSE_MAP['rpl_web_sql'];
     const courseCodes = targetCourseConfig.codes;
 
-    let sqlQuery = '';
-    let sqlParams: any[] = [];
+    if (selectedCourse === 'informatika') {
+      // Informatika leaderboard logic (LKPD 1 BK & LKPD 2 TIK score + submission count)
+      let sqlQuery = '';
+      let sqlParams: any[] = [];
 
-    if (courseCodes.length > 0) {
       if (selectedClass !== 'all') {
         sqlQuery = `
           SELECT u.id, u.name, u.email, u.role, u.class_name,
-                 COUNT(DISTINCT up.lesson_id) as completed_count,
-                 MAX(up.completed_at) as last_completed_at
+                 (CASE WHEN l1.id IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN l2.id IS NOT NULL THEN 1 ELSE 0 END) as total_submissions,
+                 GREATEST(l1.score, l2.score) as max_score,
+                 GREATEST(l1.created_at, l2.created_at) as last_completed_at
           FROM users u
-          JOIN course_enrollments ce ON u.id = ce.user_id AND ce.course_id = ANY($1::text[])
-          LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
-          WHERE u.role = 'student' AND u.class_name = $2
-          GROUP BY u.id, u.name, u.email, u.role, u.class_name
-          ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
-        `;
-        sqlParams = [courseCodes, selectedClass];
-      } else {
-        sqlQuery = `
-          SELECT u.id, u.name, u.email, u.role, u.class_name,
-                 COUNT(DISTINCT up.lesson_id) as completed_count,
-                 MAX(up.completed_at) as last_completed_at
-          FROM users u
-          JOIN course_enrollments ce ON u.id = ce.user_id AND ce.course_id = ANY($1::text[])
-          LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+          LEFT JOIN lkpd_submissions l1 ON u.id = l1.user_id
+          LEFT JOIN lkpd_tik_submissions l2 ON u.id = l2.user_id
           WHERE u.role = 'student'
-          GROUP BY u.id, u.name, u.email, u.role, u.class_name
-          ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
-        `;
-        sqlParams = [courseCodes];
-      }
-    } else {
-      // All courses
-      if (selectedClass !== 'all') {
-        sqlQuery = `
-          SELECT u.id, u.name, u.email, u.role, u.class_name,
-                 COUNT(DISTINCT up.lesson_id) as completed_count,
-                 MAX(up.completed_at) as last_completed_at
-          FROM users u
-          LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
-          WHERE u.role = 'student' AND u.class_name = $1
-          GROUP BY u.id, u.name, u.email, u.role, u.class_name
-          ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+            AND u.class_name = $1
+            AND EXISTS (SELECT 1 FROM course_enrollments ce WHERE ce.user_id = u.id AND ce.course_id IN ('informatika', 'bk', 'tik', 'sk', 'ap'))
+          ORDER BY max_score DESC NULLS LAST, total_submissions DESC, last_completed_at ASC, u.id ASC
         `;
         sqlParams = [selectedClass];
       } else {
         sqlQuery = `
           SELECT u.id, u.name, u.email, u.role, u.class_name,
-                 COUNT(DISTINCT up.lesson_id) as completed_count,
-                 MAX(up.completed_at) as last_completed_at
+                 (CASE WHEN l1.id IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN l2.id IS NOT NULL THEN 1 ELSE 0 END) as total_submissions,
+                 GREATEST(l1.score, l2.score) as max_score,
+                 GREATEST(l1.created_at, l2.created_at) as last_completed_at
           FROM users u
-          LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+          LEFT JOIN lkpd_submissions l1 ON u.id = l1.user_id
+          LEFT JOIN lkpd_tik_submissions l2 ON u.id = l2.user_id
           WHERE u.role = 'student'
-          GROUP BY u.id, u.name, u.email, u.role, u.class_name
-          ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+            AND EXISTS (SELECT 1 FROM course_enrollments ce WHERE ce.user_id = u.id AND ce.course_id IN ('informatika', 'bk', 'tik', 'sk', 'ap'))
+          ORDER BY max_score DESC NULLS LAST, total_submissions DESC, last_completed_at ASC, u.id ASC
         `;
         sqlParams = [];
       }
-    }
 
-    const res = await query(sqlQuery, sqlParams);
+      const res = await query(sqlQuery, sqlParams);
+      if (res.rows) {
+        leaderboard = res.rows.map((row: any) => {
+          const subs = parseInt(row.total_submissions || '0', 10);
+          const maxScore = row.max_score !== null ? parseInt(row.max_score, 10) : null;
 
-    if (res.rows) {
-      leaderboard = res.rows.map((row: any) => {
-        const count = parseInt(row.completed_count || '0', 10);
-        const percentage = Math.round((count / totalLessonsCount) * 100);
+          let rankTitle = 'Belum Kumpul LKPD';
+          let badgeClass = 'badge-novice';
+          let displayScore = '-';
+          let pct = 0;
 
-        let rankTitle = 'SQL Novice';
-        let badgeClass = 'badge-novice';
+          if (maxScore !== null) {
+            displayScore = `Nilai: ${maxScore} / 100`;
+            pct = maxScore;
+            if (maxScore >= 95) {
+              rankTitle = 'Master Informatika';
+              badgeClass = 'badge-master';
+            } else if (maxScore >= 85) {
+              rankTitle = 'Informatika Advanced';
+              badgeClass = 'badge-advanced';
+            } else {
+              rankTitle = 'Informatika Competent';
+              badgeClass = 'badge-intermediate';
+            }
+          } else if (subs > 0) {
+            rankTitle = 'Dikumpulkan (Proses Nilai)';
+            badgeClass = 'badge-intermediate';
+            displayScore = 'Proses Penilaian';
+            pct = 50;
+          }
 
-        if (count >= 40) {
-          rankTitle = 'Master SQL Engineer';
-          badgeClass = 'badge-master';
-        } else if (count >= 25) {
-          rankTitle = 'SQL Advanced';
-          badgeClass = 'badge-advanced';
-        } else if (count >= 11) {
-          rankTitle = 'SQL Intermediate';
-          badgeClass = 'badge-intermediate';
+          return {
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            role: row.role,
+            class_name: row.class_name || '-',
+            completed_count: subs,
+            total_target: 2,
+            unit_label: 'LKPD',
+            last_completed_at: row.last_completed_at,
+            percentage: pct,
+            rankTitle,
+            badgeClass,
+            displayScore
+          };
+        });
+      }
+    } else {
+      // Basis Data & Web SQL or All or PBO
+      let sqlQuery = '';
+      let sqlParams: any[] = [];
+
+      if (courseCodes.length > 0) {
+        if (selectedClass !== 'all') {
+          sqlQuery = `
+            SELECT u.id, u.name, u.email, u.role, u.class_name,
+                   COUNT(DISTINCT up.lesson_id) as completed_count,
+                   MAX(up.completed_at) as last_completed_at
+            FROM users u
+            LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+            WHERE u.role = 'student'
+              AND u.class_name = $1
+              AND EXISTS (SELECT 1 FROM course_enrollments ce WHERE ce.user_id = u.id AND ce.course_id IN ('rpl_web_sql', 'sql'))
+            GROUP BY u.id, u.name, u.email, u.role, u.class_name
+            ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+          `;
+          sqlParams = [selectedClass];
+        } else {
+          sqlQuery = `
+            SELECT u.id, u.name, u.email, u.role, u.class_name,
+                   COUNT(DISTINCT up.lesson_id) as completed_count,
+                   MAX(up.completed_at) as last_completed_at
+            FROM users u
+            LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+            WHERE u.role = 'student'
+              AND EXISTS (SELECT 1 FROM course_enrollments ce WHERE ce.user_id = u.id AND ce.course_id IN ('rpl_web_sql', 'sql'))
+            GROUP BY u.id, u.name, u.email, u.role, u.class_name
+            ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+          `;
+          sqlParams = [];
         }
+      } else {
+        // All courses
+        if (selectedClass !== 'all') {
+          sqlQuery = `
+            SELECT u.id, u.name, u.email, u.role, u.class_name,
+                   COUNT(DISTINCT up.lesson_id) as completed_count,
+                   MAX(up.completed_at) as last_completed_at
+            FROM users u
+            LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+            WHERE u.role = 'student' AND u.class_name = $1
+            GROUP BY u.id, u.name, u.email, u.role, u.class_name
+            ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+          `;
+          sqlParams = [selectedClass];
+        } else {
+          sqlQuery = `
+            SELECT u.id, u.name, u.email, u.role, u.class_name,
+                   COUNT(DISTINCT up.lesson_id) as completed_count,
+                   MAX(up.completed_at) as last_completed_at
+            FROM users u
+            LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
+            WHERE u.role = 'student'
+            GROUP BY u.id, u.name, u.email, u.role, u.class_name
+            ORDER BY completed_count DESC, last_completed_at ASC, u.id ASC
+          `;
+          sqlParams = [];
+        }
+      }
 
-        return {
-          id: row.id,
-          name: row.name,
-          email: row.email,
-          role: row.role,
-          class_name: row.class_name || '-',
-          completed_count: count,
-          last_completed_at: row.last_completed_at,
-          percentage,
-          rankTitle,
-          badgeClass
-        };
-      });
+      const res = await query(sqlQuery, sqlParams);
+
+      if (res.rows) {
+        leaderboard = res.rows.map((row: any) => {
+          const count = parseInt(row.completed_count || '0', 10);
+          const percentage = Math.round((count / totalLessonsCount) * 100);
+
+          let rankTitle = 'SQL Novice';
+          let badgeClass = 'badge-novice';
+
+          if (count >= 40) {
+            rankTitle = 'Master SQL Engineer';
+            badgeClass = 'badge-master';
+          } else if (count >= 25) {
+            rankTitle = 'SQL Advanced';
+            badgeClass = 'badge-advanced';
+          } else if (count >= 11) {
+            rankTitle = 'SQL Intermediate';
+            badgeClass = 'badge-intermediate';
+          }
+
+          return {
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            role: row.role,
+            class_name: row.class_name || '-',
+            completed_count: count,
+            total_target: totalLessonsCount,
+            unit_label: 'Modul',
+            last_completed_at: row.last_completed_at,
+            percentage,
+            rankTitle,
+            badgeClass,
+            displayScore: `${count} / ${totalLessonsCount} Modul`
+          };
+        });
+      }
     }
   } catch (err) {
     console.warn('Leaderboard db query error:', err);
@@ -175,7 +269,7 @@ const top3 = leaderboard.slice(0, 3);
 
 <MainLayout 
   title="Leaderboard Siswa Vokasi RPL & Informatika | Suhendar Aryadi"
-  description="Papan peringkat kelulusan modul pembelajaran siswa SMK RPL & Informatika."
+  description="Papan peringkat kelulusan modul dan LKPD siswa SMK RPL & Informatika."
 >
   <div class="container leaderboard-container">
     <div class="header-banner glass-card">
@@ -183,7 +277,7 @@ const top3 = leaderboard.slice(0, 3);
         <span class="badge badge-cyan">Papan Peringkat Pembelajaran</span>
         <h1 class="header-title">Leaderboard <span class="text-gradient">Vokasi RPL &amp; Informatika</span></h1>
         <p class="header-sub">
-          Peringkat ketercapaian modul pembelajaran oleh seluruh siswa SMK. Selesaikan latihan dan tingkatkan peringkat kelulusan Anda!
+          Peringkat ketercapaian modul pembelajaran dan hasil evaluasi LKPD oleh seluruh siswa SMK. Selesaikan latihan dan tingkatkan peringkat kelulusan Anda!
         </p>
         <div class="header-actions">
           <a href="/belajar" class="btn btn-primary btn-sm">Katalog Mata Pelajaran</a>
@@ -254,7 +348,7 @@ const top3 = leaderboard.slice(0, 3);
                 <span class="badge badge-outline" style="margin-bottom: 0.35rem;">{top3[1].class_name}</span>
                 <span class={`badge ${top3[1].badgeClass}`}>{top3[1].rankTitle}</span>
                 <div class="podium-score">
-                  <strong>{top3[1].completed_count}</strong> / {totalLessonsCount} Modul
+                  <strong>{top3[1].completed_count}</strong> / {top3[1].total_target} {top3[1].unit_label}
                 </div>
                 <div class="podium-bar-track">
                   <div class="podium-bar-fill" style={`width: ${top3[1].percentage}%`}></div>
@@ -276,7 +370,7 @@ const top3 = leaderboard.slice(0, 3);
                 <span class="badge badge-outline" style="margin-bottom: 0.35rem;">{top3[0].class_name}</span>
                 <span class={`badge ${top3[0].badgeClass}`}>{top3[0].rankTitle}</span>
                 <div class="podium-score gold-score">
-                  <strong>{top3[0].completed_count}</strong> / {totalLessonsCount} Modul Selesai
+                  <strong>{top3[0].displayScore}</strong>
                 </div>
                 <div class="podium-bar-track">
                   <div class="podium-bar-fill gold-fill" style={`width: ${top3[0].percentage}%`}></div>
@@ -298,7 +392,7 @@ const top3 = leaderboard.slice(0, 3);
                 <span class="badge badge-outline" style="margin-bottom: 0.35rem;">{top3[2].class_name}</span>
                 <span class={`badge ${top3[2].badgeClass}`}>{top3[2].rankTitle}</span>
                 <div class="podium-score">
-                  <strong>{top3[2].completed_count}</strong> / {totalLessonsCount} Modul
+                  <strong>{top3[2].completed_count}</strong> / {top3[2].total_target} {top3[2].unit_label}
                 </div>
                 <div class="podium-bar-track">
                   <div class="podium-bar-fill" style={`width: ${top3[2].percentage}%`}></div>
@@ -333,8 +427,8 @@ const top3 = leaderboard.slice(0, 3);
                     <th>Peringkat</th>
                     <th>Siswa</th>
                     <th>Kelas</th>
-                    <th>Tingkat Rank</th>
-                    <th>Progres Modul</th>
+                    <th>Status / Rank</th>
+                    <th>Progres / Capaian</th>
                     <th>Persentase</th>
                     <th>Terakhir Aktif</th>
                   </tr>
@@ -366,7 +460,7 @@ const top3 = leaderboard.slice(0, 3);
                         </td>
                         <td>
                           <span class="module-score font-mono">
-                            <strong>{item.completed_count}</strong> / {totalLessonsCount}
+                            <strong>{item.completed_count}</strong> / {item.total_target} {item.unit_label}
                           </span>
                         </td>
                         <td class="pct-col">
