@@ -139,13 +139,13 @@ const curricula = [
 
         if (item.status === 'active') {
           if (!user) {
-            badgeLabel = 'SIAP & AKTIF';
+            badgeLabel = 'Siap & Aktif';
             badgeClass = 'badge-status-active';
           } else if (isEnrolled) {
-            badgeLabel = '✓ TERDAFTAR MATA PELAJARAN';
+            badgeLabel = 'Terdaftar';
             badgeClass = 'badge-status-enrolled';
           } else {
-            badgeLabel = '🔒 BELUM ENROLL';
+            badgeLabel = 'Belum Enroll';
             badgeClass = 'badge-status-locked';
           }
         }

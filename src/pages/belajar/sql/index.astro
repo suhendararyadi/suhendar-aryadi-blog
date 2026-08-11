@@ -236,7 +236,7 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                   <div class="card-top">
                     <span class="module-number">Modul #{lesson.order_index}</span>
                     {isLocked ? (
-                      <span class="badge badge-locked-sm" title="Selesaikan modul sebelumnya terlebih dahulu">🔒 Terkunci</span>
+                      <span class="badge badge-locked-sm" title="Selesaikan modul sebelumnya terlebih dahulu">Terkunci</span>
                     ) : evaluatorType === 'schema_match' ? (
                       <span class="badge badge-purple" title="Evaluasi struktur tabel / skema DDL">Schema Match</span>
                     ) : (
@@ -256,10 +256,10 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                         Selesai
                       </span>
                     ) : isTeacherOrAdmin ? (
-                      <span class="status-teacher-access">🔓 Full Access Guru</span>
+                      <span class="status-teacher-access">Full Access Guru</span>
                     ) : isLocked ? (
                       <span class="status-locked" title={`Selesaikan Modul #${prevLessonInOrder?.order_index} terlebih dahulu`}>
-                        🔒 Terkunci
+                        Terkunci
                       </span>
                     ) : (
                       <span class="status-pending">Belum Dikerjakan</span>
@@ -268,7 +268,7 @@ const pathGroups = LEARNING_PATHS.map((path) => {
                       href={`/belajar/sql/${lesson.slug}`} 
                       class:list={['btn', 'btn-sm', 'cta-btn', isCompleted ? 'btn-primary' : isLocked ? 'btn-secondary btn-locked-cta' : 'btn-primary']}
                     >
-                      {isCompleted ? 'Ulangi Modul' : isTeacherOrAdmin ? 'Pratinjau Modul →' : isLocked ? '🔒 Terkunci' : 'Mulai Latihan'}
+                      {isCompleted ? 'Ulangi Modul' : isTeacherOrAdmin ? 'Pratinjau Modul →' : isLocked ? 'Terkunci' : 'Mulai Latihan'}
                     </a>
                   </div>
                 </div>
