@@ -86,6 +86,35 @@ try {
       </div>
     )}
 
+    <!-- Submitted Task Status Indicator Banner -->
+    {existingSubmission && (
+      <div class="submitted-status-card glass-card no-print">
+        <div class="status-banner-flex">
+          <div class="status-left">
+            <div class="badge-row">
+              <span class="badge badge-success">✓ BERHASIL MENGUMPULKAN TUGAS</span>
+              {isGraded ? (
+                <span class="badge badge-purple">SUDAH DINILAI GURU</span>
+              ) : (
+                <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
+              )}
+            </div>
+            <h3 class="status-title">Tugas LKPD 1 (BK) Terdaftar &amp; Tersimpan</h3>
+            <p class="status-sub">
+              Dikirim pada: <strong>{new Date(existingSubmission.updated_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
+              | Tim: <strong>{existingSubmission.team_name || 'Mandiri'}</strong>
+            </p>
+          </div>
+          {isGraded && (
+            <div class="status-grade-pill">
+              <span class="grade-pill-label">NILAI AKHIR</span>
+              <span class="grade-pill-value">{existingSubmission.score} / 100</span>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
     <!-- Teacher Evaluation Banner (If Graded) -->
     {isGraded && (
       <div class="grade-banner glass-card no-print">
@@ -287,6 +316,25 @@ END"></textarea>
           )}
         </div>
       </form>
+    <!-- Success Notification Modal -->
+    <div id="submit-success-modal" class="modal-backdrop" style="display: none;">
+      <div class="modal-card glass-card text-center" style="max-width: 460px;">
+        <div class="modal-success-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2 class="modal-title margin-top-sm">Pengumpulan Berhasil!</h2>
+        <p class="modal-sub margin-top-xs" style="color: var(--text-secondary); font-size: 0.925rem; line-height: 1.5;">
+          Tugas <strong>LKPD 1 Berpikir Komputasional</strong> tim Anda telah berhasil terkirim dan tersimpan di LMS Guru (Pak Suhendar Aryadi, S.Pd.,Gr.).
+        </p>
+        <div class="margin-top">
+          <button id="success-modal-close-btn" class="btn btn-primary btn-full" type="button">
+            Selesai &amp; Lihat Status Tugas
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </MainLayout>
@@ -315,9 +363,9 @@ END"></textarea>
       try {
         const deco = JSON.parse(existingSubmission.decomposition_json || '[]');
         if (deco[0]) { document.getElementById('deco-mod-1').value = deco[0].mod || ''; document.getElementById('deco-func-1').value = deco[0].func || ''; }
-        if (deco[1]) { document.getElementById('deco-mod-2').value = deco[0].mod || ''; document.getElementById('deco-func-2').value = deco[1].func || ''; }
-        if (deco[2]) { document.getElementById('deco-mod-3').value = deco[0].mod || ''; document.getElementById('deco-func-3').value = deco[2].func || ''; }
-        if (deco[3]) { document.getElementById('deco-mod-4').value = deco[0].mod || ''; document.getElementById('deco-func-4').value = deco[3].func || ''; }
+        if (deco[1]) { document.getElementById('deco-mod-2').value = deco[1].mod || ''; document.getElementById('deco-func-2').value = deco[1].func || ''; }
+        if (deco[2]) { document.getElementById('deco-mod-3').value = deco[2].mod || ''; document.getElementById('deco-func-3').value = deco[2].func || ''; }
+        if (deco[3]) { document.getElementById('deco-mod-4').value = deco[3].mod || ''; document.getElementById('deco-func-4').value = deco[3].func || ''; }
 
         const patt = JSON.parse(existingSubmission.pattern_json || '[]');
         if (patt[0]) { document.getElementById('patt-name-1').value = patt[0].name || ''; document.getElementById('patt-sol-1').value = patt[0].sol || ''; }
@@ -346,7 +394,7 @@ END"></textarea>
       e.preventDefault();
 
       if (isPastDeadline) {
-        alert('❌ Pengumpulan Ditutup! Batas waktu (deadline) pengumpulan LKPD dari Guru telah berakhir.');
+        alert('Pengumpulan Ditutup! Batas waktu (deadline) pengumpulan LKPD dari Guru telah berakhir.');
         return;
       }
 
@@ -380,7 +428,7 @@ END"></textarea>
 
       const submitBtn = document.getElementById('submit-lkpd-btn');
       submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ Mengirim LKPD...';
+      submitBtn.textContent = 'Mengirim LKPD...';
 
       try {
         const res = await fetch('/api/lkpd/submit', {
@@ -399,8 +447,17 @@ END"></textarea>
 
         const data = await res.json();
         if (res.ok && data.success) {
-          alert('✅ ' + data.message);
-          window.location.reload();
+          const modal = document.getElementById('submit-success-modal');
+          const closeBtn = document.getElementById('success-modal-close-btn');
+          if (modal) {
+            modal.style.display = 'flex';
+            closeBtn?.addEventListener('click', () => {
+              window.location.reload();
+            });
+          } else {
+            alert('✅ ' + data.message);
+            window.location.reload();
+          }
         } else {
           alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan.'));
         }
@@ -408,7 +465,7 @@ END"></textarea>
         alert('❌ Error koneksi ke server.');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = '🚀 Kirim Tugas LKPD ke LMS Guru';
+        submitBtn.textContent = 'Kirim Tugas LKPD ke LMS Guru';
       }
     });
   });
@@ -827,6 +884,81 @@ END"></textarea>
       justify-content: center;
       font-size: 0.95rem;
     }
+  }
+
+  /* Submitted Task Status Indicator Banner */
+  .submitted-status-card {
+    padding: 1.5rem 1.75rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+  }
+
+  .status-banner-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+
+  .status-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .status-sub {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .status-grade-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: var(--radius-lg);
+    min-width: 130px;
+  }
+
+  .grade-pill-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #10b981;
+  }
+
+  .grade-pill-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #34d399;
+    margin-top: 0.15rem;
+  }
+
+  .modal-success-icon-wrap {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto;
+    border-radius: var(--radius-full);
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Print Stylesheet */
