@@ -153,10 +153,7 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
       try {
         if (!tablesInitializedPg) {
           await client.query(CREATE_TABLES_PG);
-          const countRes = await client.query('SELECT COUNT(*) FROM sql_lessons');
-          if (!countRes.rows[0]?.count || parseInt(countRes.rows[0].count, 10) === 0) {
-            await seedLessonsPg(client);
-          }
+          await seedLessonsPg(client);
           tablesInitializedPg = true;
         }
         const result = await client.query(text, params);
