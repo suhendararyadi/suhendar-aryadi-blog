@@ -314,7 +314,7 @@ LIMIT number;
 \`\`\``,
     instructions_markdown: 'Tampilkan **3 pelanggan pertama** dari tabel `customers` diurutkan berdasarkan `id` secara menaik (`ASC`).',
     seed_sql: `CREATE TABLE customers (id INT, name TEXT, city TEXT);
-INSERT INTO customers VALUES (1, 'Budi'), (2, 'Siti'), (3, 'Andi'), (4, 'Dewi'), (5, 'Eko');`,
+INSERT INTO customers VALUES (1, 'Budi', 'Jakarta'), (2, 'Siti', 'Bandung'), (3, 'Andi', 'Surabaya'), (4, 'Dewi', 'Medan'), (5, 'Eko', 'Semarang');`,
     expected_sql: 'SELECT * FROM customers ORDER BY id ASC LIMIT 3;',
     initial_code: '-- Tulis query dengan klausul LIMIT di bawah ini:\n',
     evaluator_type: 'data_match',
