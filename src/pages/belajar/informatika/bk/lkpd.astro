@@ -60,7 +60,7 @@ try {
         <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
           Cetak / Unduh PDF
         </button>
-        <span class="badge badge-purple">LKPD 1 DIGITAL</span>
+        <span class="badge badge-cyan">LKPD 1 DIGITAL</span>
       </div>
     </div>
 
@@ -98,9 +98,9 @@ try {
         <div class="status-banner-flex">
           <div class="status-left">
             <div class="badge-row">
-              <span class="badge badge-success">✓ BERHASIL MENGUMPULKAN TUGAS</span>
+              <span class="badge badge-success">BERHASIL MENGUMPULKAN TUGAS</span>
               {isGraded ? (
-                <span class="badge badge-purple">SUDAH DINILAI GURU</span>
+                <span class="badge badge-cyan">SUDAH DINILAI GURU</span>
               ) : (
                 <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
               )}
@@ -128,7 +128,7 @@ try {
           <span class="grade-label">NILAI AKHIR LKPD</span>
           <span class="grade-score">{existingSubmission.score} / 100</span>
           {isKkmPassed ? (
-            <span class="badge badge-success">✓ TUNTAS KKM ({KKM_THRESHOLD})</span>
+            <span class="badge badge-success">TUNTAS KKM ({KKM_THRESHOLD})</span>
           ) : (
             <span class="badge badge-amber">BELUM TUNTAS KKM ({KKM_THRESHOLD}) — REMEDIASI</span>
           )}

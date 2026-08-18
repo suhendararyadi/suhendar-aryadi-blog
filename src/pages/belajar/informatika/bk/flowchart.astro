@@ -68,11 +68,10 @@ const flowchartPalette = [
         <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
           Cetak / Unduh PDF
         </button>
-        <span class="badge badge-purple">LKPD 2 DIGITAL</span>
+        <span class="badge badge-cyan">LKPD 2 DIGITAL</span>
       </div>
     </div>
 
-    <!-- Deadline Notice Banner -->
     {lkpdDeadlineStr && (
       <div class={`deadline-notice-card glass-card no-print ${isPastDeadline ? 'banner-expired' : 'banner-active'}`}>
         {isPastDeadline ? (
@@ -82,7 +81,6 @@ const flowchartPalette = [
               <strong class="notice-title">Tenggat Waktu Pengumpulan LKPD Telah Berakhir</strong>
               <p class="notice-desc">
                 Batas pengumpulan: {new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB.
-                {!existingSubmission && ' Pengajuan formulir LKPD baru telah ditutup oleh Guru.'}
               </p>
             </div>
           </div>
@@ -100,15 +98,14 @@ const flowchartPalette = [
       </div>
     )}
 
-    <!-- Submitted Task Status Indicator Banner -->
     {existingSubmission && (
       <div class="submitted-status-card glass-card no-print">
         <div class="status-banner-flex">
           <div class="status-left">
             <div class="badge-row">
-              <span class="badge badge-success">✓ BERHASIL MENGUMPULKAN TUGAS</span>
+              <span class="badge badge-success">BERHASIL MENGUMPULKAN TUGAS</span>
               {isGraded ? (
-                <span class="badge badge-purple">SUDAH DINILAI GURU</span>
+                <span class="badge badge-cyan">SUDAH DINILAI GURU</span>
               ) : (
                 <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
               )}
@@ -119,46 +116,38 @@ const flowchartPalette = [
               | Tim: <strong>{existingSubmission.team_name || 'Mandiri'}</strong>
             </p>
           </div>
-          {isGraded && (
-            <div class="status-grade-pill">
-              <span class="grade-pill-label">NILAI AKHIR</span>
-              <span class="grade-pill-value">{existingSubmission.score} / 100</span>
-            </div>
-          )}
         </div>
       </div>
     )}
 
-    <!-- Teacher Evaluation Banner (If Graded) -->
     {isGraded && (
       <div class="grade-banner glass-card no-print">
         <div class={`grade-badge-box ${isKkmPassed ? 'grade-badge-pass' : 'grade-badge-remedial'}`}>
           <span class="grade-label">NILAI AKHIR LKPD</span>
           <span class="grade-score">{existingSubmission.score} / 100</span>
           {isKkmPassed ? (
-            <span class="badge badge-success">✓ TUNTAS KKM ({KKM_THRESHOLD})</span>
+            <span class="badge badge-success">TUNTAS KKM ({KKM_THRESHOLD})</span>
           ) : (
             <span class="badge badge-amber">BELUM TUNTAS KKM ({KKM_THRESHOLD}) — REMEDIASI</span>
           )}
         </div>
         <div class="grade-feedback-box">
           <strong>Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
-          <p>{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan alur logika flowchart dan pseudocode tim kalian.'}</p>
+          <p>{existingSubmission.teacher_feedback || 'Bagus! Perancangan alur diagram alir dan pseudocode sudah memenuhi logika komputasional.'}</p>
           {!isKkmPassed && (
-            <p class="remedial-note">Nilai kamu belum mencapai KKM. Silakan perbaiki flowchart/pseudocode pada workspace di bawah, lalu kirim ulang untuk dinilai kembali.</p>
+            <p class="remedial-note">Nilai kamu belum mencapai KKM. Silakan lengkapi diagram flowchart dan pseudocode di bawah, lalu kumpulkan kembali.</p>
           )}
         </div>
       </div>
     )}
 
-    <!-- LKPD Document Body -->
     <div class="lkpd-document-paper" id="lkpd-document">
       <div class="doc-header">
         <div class="header-logo-wrap">
           <div class="doc-badge">SMK RPL</div>
           <div>
             <h1 class="doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL 2</h1>
-            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 1: Perancangan Algoritma (Flowchart &amp; Pseudocode)</p>
+            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 1: Berpikir Komputasional (BK) — Perancangan Algoritma</p>
           </div>
         </div>
         <div class="doc-meta-right">
@@ -168,7 +157,6 @@ const flowchartPalette = [
       </div>
 
       <form id="lkpd-form">
-        <!-- Part 1: Team & Case Study Identity -->
         <section class="doc-section">
           <h2 class="section-title">1. IDENTITAS TIM &amp; STUDI KASUS</h2>
           <div class="identity-grid">
@@ -177,31 +165,25 @@ const flowchartPalette = [
               <input type="text" id="team-name" class="doc-input" placeholder="Misal: Tim Cypher RPL 1" value={existingSubmission?.team_name || ''} required />
             </div>
             <div class="form-group">
-              <label for="class-identity">Kelas &amp; Rombel:</label>
-              <input type="text" class="doc-input" value={user.class_name || 'X RPL'} readonly />
+              <label for="case-study-select">Pilihan Topik Studi Kasus:</label>
+              <select id="case-study-select" class="doc-select" required>
+                <option value="" disabled selected={!existingSubmission}>-- Pilih Studi Kasus --</option>
+                <option value="kiosk" selected={existingSubmission?.case_study_id === 'kiosk'}>Studi Kasus A: Kiosk Self-Service Restoran (FoodExpress)</option>
+                <option value="ekantin" selected={existingSubmission?.case_study_id === 'ekantin'}>Studi Kasus B: Marketplace E-Kantin Sekolah (E-Kantin RPL)</option>
+                <option value="klinik" selected={existingSubmission?.case_study_id === 'klinik'}>Studi Kasus C: Sistem Antrean Klinik Digital (SmartKlinik)</option>
+                <option value="custom" selected={existingSubmission?.case_study_id === 'custom'}>Studi Kasus D: Proyek Perangkat Lunak Mandiri Tim</option>
+              </select>
             </div>
-          </div>
-
-          <div class="form-group margin-top">
-            <label for="case-study-select">Pilih Studi Kasus Sistem Perangkat Lunak:</label>
-            <select id="case-study-select" class="doc-select">
-              <option value="kiosk" selected={existingSubmission?.case_study_id === 'kiosk'}>Studi Kasus A: Kiosk Self-Service Restoran (FoodExpress)</option>
-              <option value="ekantin" selected={existingSubmission?.case_study_id === 'ekantin'}>Studi Kasus B: Marketplace E-Kantin Sekolah (E-Kantin RPL)</option>
-              <option value="klinik" selected={existingSubmission?.case_study_id === 'klinik'}>Studi Kasus C: Sistem Antrean Klinik Digital (SmartKlinik)</option>
-              <option value="custom" selected={existingSubmission?.case_study_id === 'custom'}>Studi Kasus D: Proyek Perangkat Lunak Mandiri Tim</option>
-            </select>
           </div>
         </section>
 
-        <!-- Part 2: Flowchart Builder Workspace -->
         <section class="doc-section">
-          <h2 class="section-title">2. WORKSPACE PENYUSUNAN FLOWCHART</h2>
+          <h2 class="section-title">2. PERANCANGAN DIAGRAM ALIR (FLOWCHART INTERAKTIF)</h2>
           <p class="pillar-instruction">
             Klik salah satu simbol pada palet di bawah untuk menambahkannya ke susunan flowchart. Isikan teks/label untuk tiap simbol, lalu atur urutannya menggunakan tombol naik/turun. Susun alur logika lengkap dari studi kasus yang kalian pilih (minimal 5 simbol, wajib mengandung minimal 1 Decision).
           </p>
 
           <div class="flowchart-builder">
-            <!-- Symbol Palette -->
             <div class="flow-palette">
               <span class="flow-palette-label">Palet Simbol (Klik untuk Tambah)</span>
               <div class="flow-palette-grid">
@@ -213,7 +195,6 @@ const flowchartPalette = [
               </div>
             </div>
 
-            <!-- Canvas: Assembled Flowchart -->
             <div class="flow-canvas-wrap">
               <span class="flow-palette-label">Susunan Flowchart Kalian</span>
               <div id="flow-canvas" class="flow-canvas">
@@ -222,116 +203,67 @@ const flowchartPalette = [
             </div>
           </div>
 
-          <!-- Hidden input carrying the serialized flowchart JSON, submitted with the form -->
-          <input type="hidden" id="flowchart-data" name="flowchart-data" />
+          <input type="hidden" id="flowchart-data" name="flowchart_json" value={existingSubmission?.flowchart_json || '[]'} />
         </section>
 
-        <!-- Part 3: Pseudocode Workspace (same format as LKPD 1) -->
         <section class="doc-section">
-          <h2 class="section-title">3. WORKSPACE PENULISAN PSEUDOCODE</h2>
+          <h2 class="section-title">3. NOTASI ALGORITMA (PSEUDOCODE)</h2>
           <div class="pillar-box">
-            <h3 class="pillar-heading">Pseudocode / Notasi Algoritma Alur Utama Sistem</h3>
-            <p class="pillar-instruction">Tuliskan pseudocode yang merepresentasikan flowchart yang sudah kalian susun di atas:</p>
+            <h3 class="pillar-heading">Tuliskan Notasi Pseudocode Terstruktur</h3>
+            <p class="pillar-instruction">
+              Tuliskan alur algoritma studi kasus kalian dalam notasi pseudocode terstruktur (Gunakan kata kunci standar: <code>START</code>, <code>INPUT</code>, <code>IF ... THEN ... ELSE</code>, <code>WHILE / FOR</code>, <code>DISPLAY / OUTPUT</code>, <code>END</code>).
+            </p>
             <div class="form-group">
-              <textarea id="alg-pseudocode" class="doc-textarea font-mono" rows="10" placeholder="ALGORITMA Proses_Pemesanan_Kantin
-START
-  INPUT id_menu, jumlah
-  CEK stok_menu
-  IF stok_menu >= jumlah THEN
-     Hitung total_bayar
-     Potong saldo_siswa
-     MASUKKAN antrean_dapur (QUEUE)
-  ELSE
-     TAMPILKAN 'Stok Tidak Cukup'
-  ENDIF
-END">{existingSubmission?.pseudocode_text || ''}</textarea>
+              <textarea id="pseudocode-text" class="doc-textarea font-mono" rows="9" placeholder="CONTOH NOTASI:&#10;&#10;START&#10;  INPUT kode_pesanan&#10;  IF stok_tersedia == TRUE THEN&#10;    DISPLAY 'Stok ada, lanjutkan pembayaran'&#10;    HITUNG total_tagihan&#10;  ELSE&#10;    DISPLAY 'Maaf, stok menu habis'&#10;  ENDIF&#10;END" required>{existingSubmission?.pseudocode_text || ''}</textarea>
             </div>
           </div>
         </section>
 
-        <!-- Submit Button (Hidden on print) -->
         <div class="doc-actions no-print">
-          {isFormLocked ? (
-            <button id="submit-lkpd-btn" class="btn btn-secondary btn-lg btn-disabled" type="button" disabled title={`Nilai sudah mencapai KKM ${KKM_THRESHOLD}, pengumpulan ulang tidak diperlukan`}>
-              ✓ Tugas Tuntas KKM — Pengumpulan Ulang Tidak Diperlukan
-            </button>
-          ) : isPastDeadline ? (
-            <button id="submit-lkpd-btn" class="btn btn-secondary btn-lg btn-disabled" type="button" disabled>
-              Pengumpulan Ditutup (Batas Waktu Berakhir)
-            </button>
-          ) : isGraded ? (
-            <button id="submit-lkpd-btn" class="btn btn-primary btn-lg" type="submit">
-              Kirim Ulang untuk Remediasi (Belum Tuntas KKM)
+          {isPastDeadline && !existingSubmission ? (
+            <button type="button" class="btn btn-secondary btn-lg btn-disabled" disabled>
+              Pengumpulan Ditutup (Melewati Batas Waktu)
             </button>
           ) : (
-            <button id="submit-lkpd-btn" class="btn btn-primary btn-lg" type="submit">
-              Kirim Tugas LKPD 2 ke LMS Guru
+            <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
+              {existingSubmission ? 'Perbarui & Kirim Ulang Jawaban LKPD 2' : 'Simpan & Kirim Jawaban LKPD 2'}
             </button>
           )}
         </div>
       </form>
-    <!-- Success Notification Modal -->
-    <div id="submit-success-modal" class="modal-backdrop" style="display: none;">
-      <div class="modal-card glass-card text-center" style="max-width: 460px;">
-        <div class="modal-success-icon-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-        </div>
-        <h2 class="modal-title margin-top-sm">Pengumpulan Berhasil!</h2>
-        <p class="modal-sub margin-top-xs" style="color: var(--text-secondary); font-size: 0.925rem; line-height: 1.5;">
-          Tugas <strong>LKPD 2 Flowchart &amp; Pseudocode</strong> tim Anda telah berhasil terkirim dan tersimpan di LMS Guru (Pak Suhendar Aryadi, S.Pd.,Gr.).
-        </p>
-        <div class="margin-top">
-          <button id="success-modal-close-btn" class="btn btn-primary btn-full" type="button">
-            Selesai &amp; Lihat Status Tugas
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ existingFlowchartJson: existingSubmission?.flowchart_json || '[]', isPastDeadline, isFormLocked, kkmThreshold: KKM_THRESHOLD }}>
+<script is:inline define:vars={{ existingFlowchartJson: existingSubmission?.flowchart_json || '[]' }}>
   document.addEventListener('DOMContentLoaded', () => {
-    const printBtn = document.getElementById('print-lkpd-btn');
     const form = document.getElementById('lkpd-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const printBtn = document.getElementById('print-lkpd-btn');
 
-    // Anti-Paste Protection for text inputs (consistent with LKPD 1)
-    const lkpdFields = document.querySelectorAll('#lkpd-form input[type="text"], #lkpd-form textarea');
-    lkpdFields.forEach((field) => {
-      field.addEventListener('paste', (e) => {
-        e.preventDefault();
-        alert('⚠️ Fitur Paste Dinonaktifkan! Siswa diwajibkan mengetik/menyusun hasil analisis LKPD secara langsung untuk melatih pemahaman mendalam.');
-        return false;
-      });
-      field.addEventListener('drop', (e) => {
+    const textareas = document.querySelectorAll('#lkpd-form textarea');
+    textareas.forEach((ta) => {
+      ta.addEventListener('paste', (e) => {
+        alert('Demi orisinalitas pemikiran kalian, fitur Paste dinonaktifkan pada LKPD Digital ini. Silakan ketikkan notasi logika secara mandiri.');
         e.preventDefault();
         return false;
       });
     });
 
-    // ===== Flowchart Builder Logic =====
     const flowCanvas = document.getElementById('flow-canvas');
     const flowCanvasEmpty = document.getElementById('flow-canvas-empty');
     const flowDataInput = document.getElementById('flowchart-data');
     const paletteBtns = document.querySelectorAll('.flow-palette-btn');
-
     const shapeLabels = { terminal: 'Terminal', io: 'Input/Output', process: 'Proses', decision: 'Decision' };
 
     let flowItems = [];
     try {
       flowItems = JSON.parse(existingFlowchartJson || '[]');
       if (!Array.isArray(flowItems)) flowItems = [];
-    } catch (e) {
-      flowItems = [];
-    }
+    } catch (e) { flowItems = []; }
 
     function renderFlowCanvas() {
-      // Clear canvas except the empty-state placeholder
       flowCanvas.innerHTML = '';
-
       if (flowItems.length === 0) {
         flowCanvas.appendChild(flowCanvasEmpty);
         flowDataInput.value = '[]';
@@ -341,30 +273,21 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
       flowItems.forEach((item, idx) => {
         const row = document.createElement('div');
         row.className = 'flow-canvas-item';
-
-        // 1. Step number badge
+        
         const numBadge = document.createElement('div');
         numBadge.className = 'flow-step-num';
         numBadge.textContent = idx + 1;
         row.appendChild(numBadge);
 
-        // 2. Flow Node in Center
         const nodeWrapper = document.createElement('div');
         nodeWrapper.className = 'flow-node-wrapper';
 
         const shapeEl = document.createElement('div');
         shapeEl.className = `flow-shape flow-shape-${item.shape} flow-shape-interactive`;
-        shapeEl.title = 'Klik untuk mengubah teks/instruksi simbol ini';
+        shapeEl.title = 'Klik untuk mengubah teks simbol ini';
 
         const shapeTextWrap = document.createElement('div');
         shapeTextWrap.className = 'flow-shape-inner';
-
-        if (item.shape === 'decision') {
-          const decIcon = document.createElement('span');
-          decIcon.className = 'flow-decision-icon';
-          decIcon.textContent = '❖ ';
-          shapeTextWrap.appendChild(decIcon);
-        }
 
         const shapeSpan = document.createElement('span');
         shapeSpan.className = 'flow-shape-text';
@@ -372,88 +295,63 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
         shapeTextWrap.appendChild(shapeSpan);
 
         shapeEl.appendChild(shapeTextWrap);
-
         const openEditPrompt = () => {
-          const newText = prompt(`Ubah teks untuk simbol [${shapeLabels[item.shape] || item.shape}]:`, item.text || '');
-          if (newText !== null && newText.trim() !== '') {
+          const newText = prompt(`Ubah teks simbol:`, item.text || '');
+          if (newText !== null) {
             flowItems[idx].text = newText.trim();
             renderFlowCanvas();
           }
         };
-
         shapeEl.addEventListener('click', openEditPrompt);
         nodeWrapper.appendChild(shapeEl);
         row.appendChild(nodeWrapper);
 
-        // 3. Action Controls
         const controls = document.createElement('div');
         controls.className = 'flow-item-controls';
 
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'flow-ctrl-btn flow-ctrl-edit';
-        editBtn.title = 'Edit teks';
-        editBtn.innerHTML = '<span class="ctrl-icon">✏️</span><span class="ctrl-txt">Edit</span>';
+        editBtn.innerHTML = '<span class="ctrl-txt">Edit</span>';
         editBtn.addEventListener('click', openEditPrompt);
 
         const upBtn = document.createElement('button');
         upBtn.type = 'button';
         upBtn.className = 'flow-ctrl-btn';
-        upBtn.title = 'Pindah ke atas';
-        upBtn.innerHTML = '<span class="ctrl-icon">⬆️</span>';
+        upBtn.innerHTML = '<span class="ctrl-icon">▲</span>';
         upBtn.disabled = idx === 0;
         upBtn.addEventListener('click', () => {
-          if (idx > 0) {
-            [flowItems[idx - 1], flowItems[idx]] = [flowItems[idx], flowItems[idx - 1]];
-            renderFlowCanvas();
-          }
+          if (idx > 0) { [flowItems[idx - 1], flowItems[idx]] = [flowItems[idx], flowItems[idx - 1]]; renderFlowCanvas(); }
         });
 
         const downBtn = document.createElement('button');
         downBtn.type = 'button';
         downBtn.className = 'flow-ctrl-btn';
-        downBtn.title = 'Pindah ke bawah';
-        downBtn.innerHTML = '<span class="ctrl-icon">⬇️</span>';
+        downBtn.innerHTML = '<span class="ctrl-icon">▼</span>';
         downBtn.disabled = idx === flowItems.length - 1;
         downBtn.addEventListener('click', () => {
-          if (idx < flowItems.length - 1) {
-            [flowItems[idx + 1], flowItems[idx]] = [flowItems[idx], flowItems[idx + 1]];
-            renderFlowCanvas();
-          }
+          if (idx < flowItems.length - 1) { [flowItems[idx + 1], flowItems[idx]] = [flowItems[idx], flowItems[idx + 1]]; renderFlowCanvas(); }
         });
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.className = 'flow-ctrl-btn flow-ctrl-delete';
-        delBtn.title = 'Hapus simbol';
-        delBtn.innerHTML = '<span class="ctrl-icon">🗑️</span>';
+        delBtn.innerHTML = '<span class="ctrl-icon">✕</span>';
         delBtn.addEventListener('click', () => {
-          if (confirm(`Hapus langkah #${idx + 1} (${shapeLabels[item.shape]}: "${item.text}")?`)) {
-            flowItems.splice(idx, 1);
-            renderFlowCanvas();
-          }
+          if (confirm('Hapus langkah ini?')) { flowItems.splice(idx, 1); renderFlowCanvas(); }
         });
 
-        controls.appendChild(editBtn);
-        controls.appendChild(upBtn);
-        controls.appendChild(downBtn);
-        controls.appendChild(delBtn);
+        controls.appendChild(editBtn); controls.appendChild(upBtn); controls.appendChild(downBtn); controls.appendChild(delBtn);
         row.appendChild(controls);
-
         flowCanvas.appendChild(row);
 
-        // 4. Vertical Connector Arrow
         if (idx < flowItems.length - 1) {
           const connector = document.createElement('div');
           connector.className = 'flow-arrow-connector';
-          connector.innerHTML = `
-            <div class="flow-arrow-line"></div>
-            <div class="flow-arrow-head">↓</div>
-          `;
+          connector.innerHTML = '<div class="flow-arrow-line"></div>';
           flowCanvas.appendChild(connector);
         }
       });
-
       flowDataInput.value = JSON.stringify(flowItems);
     }
 
@@ -488,23 +386,26 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
       }
 
       if (flowItems.length < 5) {
-        alert('⚠️ Susunan flowchart minimal harus terdiri dari 5 simbol. Tambahkan lebih banyak simbol sebelum mengirim.');
+        alert('Susunan flowchart minimal harus terdiri dari 5 simbol. Silakan tambahkan simbol yang diperlukan.');
         return;
       }
 
       const hasDecision = flowItems.some((it) => it.shape === 'decision');
       if (!hasDecision) {
-        alert('⚠️ Flowchart wajib mengandung minimal 1 simbol Decision (percabangan kondisi).');
+        alert('Flowchart wajib mengandung minimal 1 simbol Decision (percabangan kondisi).');
         return;
       }
 
-      const caseStudyId = document.getElementById('case-study-select').value;
-      const teamName = document.getElementById('team-name').value;
-      const pseudocode = document.getElementById('alg-pseudocode').value;
+      const caseStudyId = document.getElementById('case-study-select')?.value || '';
+      const teamName = document.getElementById('team-name')?.value || '';
+      const pseudocodeEl = document.getElementById('pseudocode-text') || document.getElementById('alg-pseudocode');
+      const pseudocode = pseudocodeEl ? pseudocodeEl.value : '';
 
-      const submitBtn = document.getElementById('submit-lkpd-btn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Mengirim LKPD...';
+      const submitBtnEl = document.getElementById('submit-btn') || document.getElementById('submit-lkpd-btn');
+      if (submitBtnEl) {
+        submitBtnEl.disabled = true;
+        submitBtnEl.textContent = 'Menyimpan jawaban...';
+      }
 
       try {
         const res = await fetch('/api/lkpd/submit-flowchart', {
@@ -520,25 +421,18 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
 
         const data = await res.json();
         if (res.ok && data.success) {
-          const modal = document.getElementById('submit-success-modal');
-          const closeBtn = document.getElementById('success-modal-close-btn');
-          if (modal) {
-            modal.style.display = 'flex';
-            closeBtn?.addEventListener('click', () => {
-              window.location.reload();
-            });
-          } else {
-            alert('✅ ' + data.message);
-            window.location.reload();
-          }
+          alert('Jawaban LKPD 2 berhasil disimpan dan dikirim.');
+          window.location.reload();
         } else {
-          alert('❌ Gagal: ' + (data.error || 'Terjadi kesalahan.'));
+          alert('Gagal mengirim: ' + (data.error || 'Terjadi kesalahan.'));
         }
       } catch (err) {
-        alert('❌ Error koneksi ke server.');
+        alert('Gagal menghubungi server. Periksa koneksi internet Anda.');
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Kirim Tugas LKPD 2 ke LMS Guru';
+        if (submitBtnEl) {
+          submitBtnEl.disabled = false;
+          submitBtnEl.textContent = 'Simpan & Kirim Jawaban LKPD 2';
+        }
       }
     });
   });
