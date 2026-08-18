@@ -1156,16 +1156,75 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
 
     .flowchart-builder {
       grid-template-columns: 1fr;
+      gap: 1rem;
     }
 
     .flow-palette-grid {
-      flex-direction: row;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      padding: 0.65rem;
     }
 
     .flow-palette-btn {
-      width: auto;
-      flex: 1 1 45%;
+      width: 100%;
+      flex: unset;
+    }
+
+    :global(.flow-palette-btn .flow-shape) {
+      min-width: unset !important;
+      width: 100% !important;
+      padding: 0.45rem 0.4rem !important;
+      font-size: 0.75rem !important;
+      min-height: 38px !important;
+    }
+
+    :global(.flow-canvas) {
+      padding: 0.85rem 0.5rem !important;
+      min-height: 200px !important;
+    }
+
+    :global(.flow-canvas-item) {
+      padding: 0.55rem 0.65rem !important;
+      gap: 0.4rem !important;
+      flex-wrap: wrap !important;
+    }
+
+    :global(.flow-step-num) {
+      width: 22px !important;
+      height: 22px !important;
+      font-size: 0.7rem !important;
+    }
+
+    :global(.flow-node-wrapper) {
+      flex: 1 1 auto !important;
+      min-width: 110px !important;
+      max-width: calc(100% - 140px) !important;
+    }
+
+    :global(.flow-shape) {
+      min-width: 110px !important;
+      max-width: 100% !important;
+      min-height: 38px !important;
+      padding: 0.4rem 0.65rem !important;
+      font-size: 0.785rem !important;
+      line-height: 1.25 !important;
+    }
+
+    :global(.flow-item-controls) {
+      gap: 0.2rem !important;
+      margin-left: auto !important;
+    }
+
+    :global(.flow-ctrl-btn) {
+      padding: 0.35rem 0.45rem !important;
+      font-size: 0.725rem !important;
+      min-height: 34px !important;
+      border-radius: 0.3rem !important;
+    }
+
+    :global(.flow-ctrl-edit .ctrl-txt) {
+      display: none !important;
     }
 
     /* 16px Font Size on Mobile to Prevent Auto-Zoom & Enable Touch Ergonomics */
