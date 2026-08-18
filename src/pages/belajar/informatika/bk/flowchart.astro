@@ -342,33 +342,65 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
         const row = document.createElement('div');
         row.className = 'flow-canvas-item';
 
-        const shapeEl = document.createElement('div');
-        shapeEl.className = `flow-shape flow-shape-${item.shape} flow-shape-sm flow-shape-editable`;
-        const shapeSpan = document.createElement('span');
-        shapeSpan.textContent = item.text || `(${shapeLabels[item.shape] || item.shape})`;
-        shapeEl.appendChild(shapeSpan);
+        // 1. Step number badge
+        const numBadge = document.createElement('div');
+        numBadge.className = 'flow-step-num';
+        numBadge.textContent = idx + 1;
+        row.appendChild(numBadge);
 
+        // 2. Flow Node in Center
+        const nodeWrapper = document.createElement('div');
+        nodeWrapper.className = 'flow-node-wrapper';
+
+        const shapeEl = document.createElement('div');
+        shapeEl.className = `flow-shape flow-shape-${item.shape} flow-shape-interactive`;
+        shapeEl.title = 'Klik untuk mengubah teks/instruksi simbol ini';
+
+        const shapeTextWrap = document.createElement('div');
+        shapeTextWrap.className = 'flow-shape-inner';
+
+        if (item.shape === 'decision') {
+          const decIcon = document.createElement('span');
+          decIcon.className = 'flow-decision-icon';
+          decIcon.textContent = '❖ ';
+          shapeTextWrap.appendChild(decIcon);
+        }
+
+        const shapeSpan = document.createElement('span');
+        shapeSpan.className = 'flow-shape-text';
+        shapeSpan.textContent = item.text || `(${shapeLabels[item.shape] || item.shape})`;
+        shapeTextWrap.appendChild(shapeSpan);
+
+        shapeEl.appendChild(shapeTextWrap);
+
+        const openEditPrompt = () => {
+          const newText = prompt(`Ubah teks untuk simbol [${shapeLabels[item.shape] || item.shape}]:`, item.text || '');
+          if (newText !== null && newText.trim() !== '') {
+            flowItems[idx].text = newText.trim();
+            renderFlowCanvas();
+          }
+        };
+
+        shapeEl.addEventListener('click', openEditPrompt);
+        nodeWrapper.appendChild(shapeEl);
+        row.appendChild(nodeWrapper);
+
+        // 3. Action Controls
         const controls = document.createElement('div');
         controls.className = 'flow-item-controls';
 
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
-        editBtn.className = 'flow-ctrl-btn';
+        editBtn.className = 'flow-ctrl-btn flow-ctrl-edit';
         editBtn.title = 'Edit teks';
-        editBtn.textContent = '✏️';
-        editBtn.addEventListener('click', () => {
-          const newText = prompt(`Isi teks untuk simbol ${shapeLabels[item.shape] || item.shape}:`, item.text || '');
-          if (newText !== null) {
-            flowItems[idx].text = newText.trim();
-            renderFlowCanvas();
-          }
-        });
+        editBtn.innerHTML = '<span class="ctrl-icon">✏️</span><span class="ctrl-txt">Edit</span>';
+        editBtn.addEventListener('click', openEditPrompt);
 
         const upBtn = document.createElement('button');
         upBtn.type = 'button';
         upBtn.className = 'flow-ctrl-btn';
-        upBtn.title = 'Naikkan urutan';
-        upBtn.textContent = '↑';
+        upBtn.title = 'Pindah ke atas';
+        upBtn.innerHTML = '<span class="ctrl-icon">⬆️</span>';
         upBtn.disabled = idx === 0;
         upBtn.addEventListener('click', () => {
           if (idx > 0) {
@@ -380,8 +412,8 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
         const downBtn = document.createElement('button');
         downBtn.type = 'button';
         downBtn.className = 'flow-ctrl-btn';
-        downBtn.title = 'Turunkan urutan';
-        downBtn.textContent = '↓';
+        downBtn.title = 'Pindah ke bawah';
+        downBtn.innerHTML = '<span class="ctrl-icon">⬇️</span>';
         downBtn.disabled = idx === flowItems.length - 1;
         downBtn.addEventListener('click', () => {
           if (idx < flowItems.length - 1) {
@@ -394,26 +426,31 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
         delBtn.type = 'button';
         delBtn.className = 'flow-ctrl-btn flow-ctrl-delete';
         delBtn.title = 'Hapus simbol';
-        delBtn.textContent = '✕';
+        delBtn.innerHTML = '<span class="ctrl-icon">🗑️</span>';
         delBtn.addEventListener('click', () => {
-          flowItems.splice(idx, 1);
-          renderFlowCanvas();
+          if (confirm(`Hapus langkah #${idx + 1} (${shapeLabels[item.shape]}: "${item.text}")?`)) {
+            flowItems.splice(idx, 1);
+            renderFlowCanvas();
+          }
         });
 
         controls.appendChild(editBtn);
         controls.appendChild(upBtn);
         controls.appendChild(downBtn);
         controls.appendChild(delBtn);
-
-        row.appendChild(shapeEl);
         row.appendChild(controls);
+
         flowCanvas.appendChild(row);
 
+        // 4. Vertical Connector Arrow
         if (idx < flowItems.length - 1) {
-          const arrow = document.createElement('div');
-          arrow.className = 'flow-arrow-down';
-          arrow.innerHTML = '&darr;';
-          flowCanvas.appendChild(arrow);
+          const connector = document.createElement('div');
+          connector.className = 'flow-arrow-connector';
+          connector.innerHTML = `
+            <div class="flow-arrow-line"></div>
+            <div class="flow-arrow-head">↓</div>
+          `;
+          flowCanvas.appendChild(connector);
         }
       });
 
@@ -423,9 +460,10 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
     paletteBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         const shape = btn.getAttribute('data-shape');
-        const text = prompt(`Isi teks/label untuk simbol ${shapeLabels[shape] || shape}:`, '');
+        const defaultText = shape === 'terminal' ? (flowItems.length === 0 ? 'MULAI' : 'SELESAI') : (shape === 'decision' ? 'Kondisi Valid?' : '');
+        const text = prompt(`Isi teks/instruksi untuk simbol [${shapeLabels[shape] || shape}]:`, defaultText);
         if (text === null) return; // user cancelled
-        flowItems.push({ shape, text: text.trim() });
+        flowItems.push({ shape, text: text.trim() || shapeLabels[shape] });
         renderFlowCanvas();
       });
     });
@@ -775,8 +813,8 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
   /* ===== Flowchart Builder Workspace ===== */
   .flowchart-builder {
     display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 1.25rem;
+    grid-template-columns: 240px 1fr;
+    gap: 1.5rem;
     align-items: start;
   }
 
@@ -784,21 +822,25 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
   .flow-canvas-wrap {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.75rem;
   }
 
   .flow-palette-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #475569;
     text-transform: uppercase;
   }
 
   .flow-palette-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.75rem;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
   }
 
   .flow-palette-btn {
@@ -807,125 +849,230 @@ END">{existingSubmission?.pseudocode_text || ''}</textarea>
     padding: 0;
     cursor: pointer;
     width: 100%;
-  }
-
-  .flow-palette-btn:hover .flow-shape {
-    filter: brightness(0.97);
-    transform: translateY(-1px);
-  }
-
-  .flow-canvas {
-    background: #f8fafc;
-    border: 2px dashed #cbd5e1;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .flow-canvas-empty {
-    color: #94a3b8;
-    font-size: 0.85rem;
-    text-align: center;
-    margin: auto;
-  }
-
-  .flow-canvas-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .flow-shape {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.65rem 0.9rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #0f172a;
-    min-height: 2.75rem;
-    min-width: 130px;
-    text-align: center;
-    line-height: 1.3;
     transition: transform 0.15s ease;
   }
 
-  .flow-shape-sm {
-    min-width: 110px;
-    min-height: 2.4rem;
-    font-size: 0.7rem;
-    padding: 0.45rem 0.7rem;
+  .flow-palette-btn:hover {
+    transform: translateY(-2px);
   }
 
-  .flow-shape-editable {
-    cursor: default;
-    word-break: break-word;
+  .flow-palette-btn:hover .flow-shape {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
-  .flow-shape-terminal {
-    background: #e0f2fe;
-    border: 2px solid #0891b2;
-    border-radius: 999px;
-  }
-
-  .flow-shape-io {
-    background: #cffafe;
-    border: 2px solid #06b6d4;
-    clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-  }
-
-  .flow-shape-process {
-    background: #f1f5f9;
-    border: 2px solid #64748b;
-    border-radius: 0.25rem;
-  }
-
-  .flow-shape-decision {
-    background: #fef3c7;
-    border: 2px solid #f59e0b;
-    border-radius: 0.75rem;
-  }
-
-  .flow-arrow-down {
-    text-align: center;
-    font-size: 1.1rem;
-    color: #64748b;
-    font-weight: 700;
-  }
-
-  .flow-item-controls {
+  /* Global styles for Flowchart Canvas & Nodes (Dynamic JS Generated) */
+  :global(.flow-canvas) {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    min-height: 260px;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 0.25rem;
   }
 
-  .flow-ctrl-btn {
+  :global(.flow-canvas-empty) {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: auto;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+
+  :global(.flow-canvas-item) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    width: 100%;
+    max-width: 680px;
     background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.35rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.15s ease;
+  }
+
+  :global(.flow-canvas-item:hover) {
+    border-color: #94a3b8;
+  }
+
+  :global(.flow-step-num) {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #0891b2;
+    color: #ffffff;
+    font-weight: 800;
     font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  :global(.flow-node-wrapper) {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  :global(.flow-shape) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    min-height: 44px;
+    min-width: 180px;
+    max-width: 380px;
+    text-align: center;
+    line-height: 1.35;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+  }
+
+  :global(.flow-shape-sm) {
+    min-width: 130px;
+    min-height: 40px;
+    font-size: 0.785rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  :global(.flow-shape-interactive) {
     cursor: pointer;
+  }
+
+  :global(.flow-shape-interactive:hover) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.flow-shape-inner) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    word-break: break-word;
+  }
+
+  :global(.flow-shape-terminal) {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    border: 2px solid #0284c7;
+    color: #0369a1;
+    border-radius: 9999px;
+  }
+
+  :global(.flow-shape-io) {
+    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+    border: 2px solid #0891b2;
+    color: #0e7490;
+    border-radius: 4px;
+    transform: skew(-12deg);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  :global(.flow-shape-io .flow-shape-inner) {
+    transform: skew(12deg);
+  }
+
+  :global(.flow-shape-process) {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid #475569;
+    color: #1e293b;
+    border-radius: 6px;
+  }
+
+  :global(.flow-shape-decision) {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #d97706;
+    color: #92400e;
+    border-radius: 8px;
+  }
+
+  :global(.flow-decision-icon) {
+    font-size: 0.85rem;
+    color: #d97706;
+  }
+
+  :global(.flow-arrow-connector) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.15rem 0;
+  }
+
+  :global(.flow-arrow-line) {
+    width: 2px;
+    height: 14px;
+    background: #94a3b8;
+  }
+
+  :global(.flow-arrow-head) {
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 800;
+    line-height: 1;
+    margin-top: -3px;
+  }
+
+  :global(.flow-item-controls) {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  :global(.flow-ctrl-btn) {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.375rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
     color: #334155;
+    transition: all 0.15s ease;
   }
 
-  .flow-ctrl-btn:hover:not(:disabled) {
+  :global(.flow-ctrl-btn:hover:not(:disabled)) {
     background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
   }
 
-  .flow-ctrl-btn:disabled {
-    opacity: 0.4;
+  :global(.flow-ctrl-btn:disabled) {
+    opacity: 0.35;
     cursor: not-allowed;
   }
 
-  .flow-ctrl-delete {
+  :global(.flow-ctrl-delete:hover:not(:disabled)) {
+    background: #fee2e2;
+    border-color: #ef4444;
     color: #dc2626;
-    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  :global(.flow-ctrl-edit) {
+    background: #e0f2fe;
+    border-color: #7dd3fc;
+    color: #0284c7;
+  }
+
+  :global(.flow-ctrl-edit:hover:not(:disabled)) {
+    background: #bae6fd;
+    border-color: #38bdf8;
+    color: #0369a1;
   }
 
   /* Mobile Responsive Form UX (< 768px) */
