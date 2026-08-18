@@ -1,0 +1,1231 @@
+---
+import MainLayout from '../../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../../lib/auth';
+import { query } from '../../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect('/auth/login?redirect=/belajar/informatika/bk/lkpd-2');
+}
+
+let existingSubmission: any = null;
+try {
+  const res = await query(
+    `SELECT * FROM lkpd_flowchart_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+  if (res.rows && res.rows.length > 0) {
+    existingSubmission = res.rows[0];
+  }
+} catch (err) {
+  console.warn('Error fetching student flowchart submission:', err);
+}
+
+const KKM_THRESHOLD = 75;
+const isGraded = existingSubmission && existingSubmission.score !== null;
+const isKkmPassed = isGraded && existingSubmission.score >= KKM_THRESHOLD;
+
+let lkpdDeadlineStr = '';
+let isPastDeadline = false;
+try {
+  const dRes = await query(`SELECT setting_value FROM system_settings WHERE setting_key = 'lkpd_deadline'`);
+  if (dRes.rows && dRes.rows.length > 0 && dRes.rows[0].setting_value) {
+    lkpdDeadlineStr = dRes.rows[0].setting_value;
+    if (new Date() > new Date(lkpdDeadlineStr)) {
+      isPastDeadline = true;
+    }
+  }
+} catch (err) {
+  console.warn('Error fetching lkpd_deadline setting:', err);
+}
+
+// Flowchart symbol palette (4 ANSI symbols)
+const flowchartPalette = [
+  { shape: 'terminal', label: 'Terminal', hint: 'Awal / Akhir alur' },
+  { shape: 'io', label: 'Input/Output', hint: 'Input atau tampilkan data' },
+  { shape: 'process', label: 'Proses', hint: 'Langkah pengolahan data' },
+  { shape: 'decision', label: 'Decision', hint: 'Percabangan kondisi Ya/Tidak' }
+];
+---
+
+<MainLayout
+  title="LKPD 2 Digital: Perancangan Algoritma (Flowchart & Pseudocode) | Informatika SMK"
+  description="Lembar Kerja Peserta Didik (LKPD) 2 Interaktif -- susun flowchart secara visual dan tuliskan pseudocode untuk melatih Perancangan Algoritma."
+>
+  <div class="lkpd-page-container">
+    <!-- Top Nav Controls (Hidden on print) -->
+    <div class="page-top-nav no-print">
+      <a href="/belajar/informatika/bk" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Elemen 1 BK
+      </a>
+      <div class="top-nav-actions">
+        <a href="/belajar/informatika/bk/lkpd" class="btn btn-outline btn-sm">
+          &larr; LKPD 1
+        </a>
+        <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
+          Cetak / Unduh PDF
+        </button>
+        <span class="badge badge-cyan">LKPD 2 DIGITAL</span>
+      </div>
+    </div>
+
+    {lkpdDeadlineStr && (
+      <div class={`deadline-notice-card glass-card no-print ${isPastDeadline ? 'banner-expired' : 'banner-active'}`}>
+        {isPastDeadline ? (
+          <div class="deadline-notice-flex">
+            <span class="badge badge-red">PENGUMPULAN DITUTUP</span>
+            <div>
+              <strong class="notice-title">Tenggat Waktu Pengumpulan LKPD Telah Berakhir</strong>
+              <p class="notice-desc">
+                Batas pengumpulan: {new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div class="deadline-notice-flex">
+            <span class="badge badge-cyan">TENGGAT PENGUMPULAN</span>
+            <div>
+              <strong class="notice-title">Batas Waktu Pengumpulan Tugas</strong>
+              <p class="notice-desc">
+                Kumpulkan LKPD sebelum: <strong>{new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {existingSubmission && (
+      <div class="submitted-status-card glass-card no-print">
+        <div class="status-banner-flex">
+          <div class="status-left">
+            <div class="badge-row">
+              <span class="badge badge-success">BERHASIL MENGUMPULKAN TUGAS</span>
+              {isGraded ? (
+                <span class="badge badge-cyan">SUDAH DINILAI GURU</span>
+              ) : (
+                <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
+              )}
+            </div>
+            <h3 class="status-title">Tugas LKPD 2 (Flowchart &amp; Pseudocode) Terdaftar &amp; Tersimpan</h3>
+            <p class="status-sub">
+              Dikirim pada: <strong>{new Date(existingSubmission.updated_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
+              | Tim: <strong>{existingSubmission.team_name || 'Mandiri'}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {isGraded && (
+      <div class="grade-banner glass-card no-print">
+        <div class={`grade-badge-box ${isKkmPassed ? 'grade-badge-pass' : 'grade-badge-remedial'}`}>
+          <span class="grade-label">NILAI AKHIR LKPD</span>
+          <span class="grade-score">{existingSubmission.score} / 100</span>
+          {isKkmPassed ? (
+            <span class="badge badge-success">TUNTAS KKM ({KKM_THRESHOLD})</span>
+          ) : (
+            <span class="badge badge-amber">BELUM TUNTAS KKM ({KKM_THRESHOLD}) — REMEDIASI</span>
+          )}
+        </div>
+        <div class="grade-feedback-box">
+          <strong>Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
+          <p>{existingSubmission.teacher_feedback || 'Bagus! Perancangan alur diagram alir dan pseudocode sudah memenuhi logika komputasional.'}</p>
+          {!isKkmPassed && (
+            <p class="remedial-note">Nilai kamu belum mencapai KKM. Silakan lengkapi diagram flowchart dan pseudocode di bawah, lalu kumpulkan kembali.</p>
+          )}
+        </div>
+      </div>
+    )}
+
+    <div class="lkpd-document-paper" id="lkpd-document">
+      <div class="doc-header">
+        <div class="header-logo-wrap">
+          <div class="doc-badge">SMK RPL</div>
+          <div>
+            <h1 class="doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL 2</h1>
+            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 1: Berpikir Komputasional (BK) — Perancangan Algoritma</p>
+          </div>
+        </div>
+        <div class="doc-meta-right">
+          <span>Pengampu: <strong>Suhendar Aryadi, S.Pd.,Gr.</strong></span>
+          <span>Siswa Login: <strong>{user.name}</strong></span>
+        </div>
+      </div>
+
+      <form id="lkpd-form">
+        <section class="doc-section">
+          <h2 class="section-title">1. IDENTITAS TIM &amp; STUDI KASUS</h2>
+          <div class="identity-grid">
+            <div class="form-group">
+              <label for="team-name">Nama Kelompok / Tim:</label>
+              <input type="text" id="team-name" class="doc-input" placeholder="Misal: Tim Cypher RPL 1" value={existingSubmission?.team_name || ''} required />
+            </div>
+            <div class="form-group">
+              <label for="case-study-select">Pilihan Topik Studi Kasus:</label>
+              <select id="case-study-select" class="doc-select" required>
+                <option value="" disabled selected={!existingSubmission}>-- Pilih Studi Kasus --</option>
+                <option value="kiosk" selected={existingSubmission?.case_study_id === 'kiosk'}>Studi Kasus A: Kiosk Self-Service Restoran (FoodExpress)</option>
+                <option value="ekantin" selected={existingSubmission?.case_study_id === 'ekantin'}>Studi Kasus B: Marketplace E-Kantin Sekolah (E-Kantin RPL)</option>
+                <option value="klinik" selected={existingSubmission?.case_study_id === 'klinik'}>Studi Kasus C: Sistem Antrean Klinik Digital (SmartKlinik)</option>
+                <option value="custom" selected={existingSubmission?.case_study_id === 'custom'}>Studi Kasus D: Proyek Perangkat Lunak Mandiri Tim</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section">
+          <h2 class="section-title">2. PERANCANGAN DIAGRAM ALIR (FLOWCHART INTERAKTIF)</h2>
+          <p class="pillar-instruction">
+            Klik salah satu simbol pada palet di bawah untuk menambahkannya ke susunan flowchart. Isikan teks/label untuk tiap simbol, lalu atur urutannya menggunakan tombol naik/turun. Susun alur logika lengkap dari studi kasus yang kalian pilih (minimal 5 simbol, wajib mengandung minimal 1 Decision).
+          </p>
+
+          <div class="flowchart-builder">
+            <div class="flow-palette">
+              <span class="flow-palette-label">Palet Simbol (Klik untuk Tambah)</span>
+              <div class="flow-palette-grid">
+                {flowchartPalette.map(p => (
+                  <button type="button" class="flow-palette-btn" data-shape={p.shape} title={p.hint}>
+                    <span class={`flow-shape flow-shape-${p.shape} flow-shape-sm`}><span>{p.label}</span></span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div class="flow-canvas-wrap">
+              <span class="flow-palette-label">Susunan Flowchart Kalian</span>
+              <div id="flow-canvas" class="flow-canvas">
+                <p class="flow-canvas-empty" id="flow-canvas-empty">Belum ada simbol. Klik palet di sebelah kiri untuk mulai menyusun.</p>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" id="flowchart-data" name="flowchart_json" value={existingSubmission?.flowchart_json || '[]'} />
+        </section>
+
+        <section class="doc-section">
+          <h2 class="section-title">3. NOTASI ALGORITMA (PSEUDOCODE)</h2>
+          <div class="pillar-box">
+            <h3 class="pillar-heading">Tuliskan Notasi Pseudocode Terstruktur</h3>
+            <p class="pillar-instruction">
+              Tuliskan alur algoritma studi kasus kalian dalam notasi pseudocode terstruktur (Gunakan kata kunci standar: <code>START</code>, <code>INPUT</code>, <code>IF ... THEN ... ELSE</code>, <code>WHILE / FOR</code>, <code>DISPLAY / OUTPUT</code>, <code>END</code>).
+            </p>
+            <div class="form-group">
+              <textarea id="pseudocode-text" class="doc-textarea font-mono" rows="9" placeholder="CONTOH NOTASI:&#10;&#10;START&#10;  INPUT kode_pesanan&#10;  IF stok_tersedia == TRUE THEN&#10;    DISPLAY 'Stok ada, lanjutkan pembayaran'&#10;    HITUNG total_tagihan&#10;  ELSE&#10;    DISPLAY 'Maaf, stok menu habis'&#10;  ENDIF&#10;END" required>{existingSubmission?.pseudocode_text || ''}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <div class="doc-actions no-print">
+          {isPastDeadline && !existingSubmission ? (
+            <button type="button" class="btn btn-secondary btn-lg btn-disabled" disabled>
+              Pengumpulan Ditutup (Melewati Batas Waktu)
+            </button>
+          ) : (
+            <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
+              {existingSubmission ? 'Perbarui & Kirim Ulang Jawaban LKPD 2' : 'Simpan & Kirim Jawaban LKPD 2'}
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline define:vars={{ existingFlowchartJson: existingSubmission?.flowchart_json || '[]' }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('lkpd-form');
+    const printBtn = document.getElementById('print-lkpd-btn');
+
+    const textareas = document.querySelectorAll('#lkpd-form textarea');
+    textareas.forEach((ta) => {
+      ta.addEventListener('paste', (e) => {
+        alert('Demi orisinalitas pemikiran kalian, fitur Paste dinonaktifkan pada LKPD Digital ini. Silakan ketikkan notasi logika secara mandiri.');
+        e.preventDefault();
+        return false;
+      });
+    });
+
+    const flowCanvas = document.getElementById('flow-canvas');
+    const flowCanvasEmpty = document.getElementById('flow-canvas-empty');
+    const flowDataInput = document.getElementById('flowchart-data');
+    const paletteBtns = document.querySelectorAll('.flow-palette-btn');
+    const shapeLabels = { terminal: 'Terminal', io: 'Input/Output', process: 'Proses', decision: 'Decision' };
+
+    let flowItems = [];
+    try {
+      flowItems = JSON.parse(existingFlowchartJson || '[]');
+      if (!Array.isArray(flowItems)) flowItems = [];
+    } catch (e) { flowItems = []; }
+
+    function renderFlowCanvas() {
+      flowCanvas.innerHTML = '';
+      if (flowItems.length === 0) {
+        flowCanvas.appendChild(flowCanvasEmpty);
+        flowDataInput.value = '[]';
+        return;
+      }
+
+      flowItems.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flow-canvas-item';
+        
+        const numBadge = document.createElement('div');
+        numBadge.className = 'flow-step-num';
+        numBadge.textContent = idx + 1;
+        row.appendChild(numBadge);
+
+        const nodeWrapper = document.createElement('div');
+        nodeWrapper.className = 'flow-node-wrapper';
+
+        const shapeEl = document.createElement('div');
+        shapeEl.className = `flow-shape flow-shape-${item.shape} flow-shape-interactive`;
+        shapeEl.title = 'Klik untuk mengubah teks simbol ini';
+
+        const shapeTextWrap = document.createElement('div');
+        shapeTextWrap.className = 'flow-shape-inner';
+
+        const shapeSpan = document.createElement('span');
+        shapeSpan.className = 'flow-shape-text';
+        shapeSpan.textContent = item.text || `(${shapeLabels[item.shape] || item.shape})`;
+        shapeTextWrap.appendChild(shapeSpan);
+
+        shapeEl.appendChild(shapeTextWrap);
+        const openEditPrompt = () => {
+          const newText = prompt(`Ubah teks simbol:`, item.text || '');
+          if (newText !== null) {
+            flowItems[idx].text = newText.trim();
+            renderFlowCanvas();
+          }
+        };
+        shapeEl.addEventListener('click', openEditPrompt);
+        nodeWrapper.appendChild(shapeEl);
+        row.appendChild(nodeWrapper);
+
+        const controls = document.createElement('div');
+        controls.className = 'flow-item-controls';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'flow-ctrl-btn flow-ctrl-edit';
+        editBtn.innerHTML = '<span class="ctrl-txt">Edit</span>';
+        editBtn.addEventListener('click', openEditPrompt);
+
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.className = 'flow-ctrl-btn';
+        upBtn.innerHTML = '<span class="ctrl-icon">▲</span>';
+        upBtn.disabled = idx === 0;
+        upBtn.addEventListener('click', () => {
+          if (idx > 0) { [flowItems[idx - 1], flowItems[idx]] = [flowItems[idx], flowItems[idx - 1]]; renderFlowCanvas(); }
+        });
+
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button';
+        downBtn.className = 'flow-ctrl-btn';
+        downBtn.innerHTML = '<span class="ctrl-icon">▼</span>';
+        downBtn.disabled = idx === flowItems.length - 1;
+        downBtn.addEventListener('click', () => {
+          if (idx < flowItems.length - 1) { [flowItems[idx + 1], flowItems[idx]] = [flowItems[idx], flowItems[idx + 1]]; renderFlowCanvas(); }
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'flow-ctrl-btn flow-ctrl-delete';
+        delBtn.innerHTML = '<span class="ctrl-icon">✕</span>';
+        delBtn.addEventListener('click', () => {
+          if (confirm('Hapus langkah ini?')) { flowItems.splice(idx, 1); renderFlowCanvas(); }
+        });
+
+        controls.appendChild(editBtn); controls.appendChild(upBtn); controls.appendChild(downBtn); controls.appendChild(delBtn);
+        row.appendChild(controls);
+        flowCanvas.appendChild(row);
+
+        if (idx < flowItems.length - 1) {
+          const connector = document.createElement('div');
+          connector.className = 'flow-arrow-connector';
+          connector.innerHTML = '<div class="flow-arrow-line"></div>';
+          flowCanvas.appendChild(connector);
+        }
+      });
+      flowDataInput.value = JSON.stringify(flowItems);
+    }
+
+    paletteBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const shape = btn.getAttribute('data-shape');
+        const defaultText = shape === 'terminal' ? (flowItems.length === 0 ? 'MULAI' : 'SELESAI') : (shape === 'decision' ? 'Kondisi Valid?' : '');
+        const text = prompt(`Isi teks/instruksi untuk simbol [${shapeLabels[shape] || shape}]:`, defaultText);
+        if (text === null) return; // user cancelled
+        flowItems.push({ shape, text: text.trim() || shapeLabels[shape] });
+        renderFlowCanvas();
+      });
+    });
+
+    renderFlowCanvas();
+
+    printBtn?.addEventListener('click', () => {
+      window.print();
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (flowItems.length < 5) {
+        alert('Susunan flowchart minimal harus terdiri dari 5 simbol. Silakan tambahkan simbol yang diperlukan.');
+        return;
+      }
+
+      const hasDecision = flowItems.some((it) => it.shape === 'decision');
+      if (!hasDecision) {
+        alert('Flowchart wajib mengandung minimal 1 simbol Decision (percabangan kondisi).');
+        return;
+      }
+
+      const caseStudyId = document.getElementById('case-study-select')?.value || '';
+      const teamName = document.getElementById('team-name')?.value || '';
+      const pseudocodeEl = document.getElementById('pseudocode-text') || document.getElementById('alg-pseudocode');
+      const pseudocode = pseudocodeEl ? pseudocodeEl.value : '';
+
+      const submitBtnEl = document.getElementById('submit-btn') || document.getElementById('submit-lkpd-btn');
+      if (submitBtnEl) {
+        submitBtnEl.disabled = true;
+        submitBtnEl.textContent = 'Menyimpan jawaban...';
+      }
+
+      try {
+        const res = await fetch('/api/lkpd/submit-flowchart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caseStudyId,
+            teamName,
+            flowchart: flowItems,
+            pseudocode
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('Jawaban LKPD 2 berhasil disimpan dan dikirim.');
+          window.location.reload();
+        } else {
+          alert('Gagal mengirim: ' + (data.error || 'Terjadi kesalahan.'));
+        }
+      } catch (err) {
+        alert('Gagal menghubungi server. Periksa koneksi internet Anda.');
+      } finally {
+        if (submitBtnEl) {
+          submitBtnEl.disabled = false;
+          submitBtnEl.textContent = 'Simpan & Kirim Jawaban LKPD 2';
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .lkpd-page-container {
+    max-width: 1040px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Deadline Notice Banner */
+  .deadline-notice-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-xl);
+  }
+
+  .banner-active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+  }
+
+  .banner-expired {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.12) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .deadline-notice-flex {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .notice-title {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    display: block;
+  }
+
+  .notice-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+
+  .badge-red {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  /* Grade Banner */
+  .grade-banner {
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.12) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-xl);
+  }
+
+  .grade-badge-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #10b981;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-lg);
+    min-width: 140px;
+  }
+
+  .grade-badge-remedial {
+    background: #d97706;
+  }
+
+  .grade-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .grade-score {
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .grade-feedback-box {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
+
+  .remedial-note {
+    margin-top: 0.6rem;
+    padding: 0.6rem 0.85rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: var(--radius-sm);
+    color: #b45309;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .grade-badge-box .badge {
+    margin-top: 0.35rem;
+  }
+
+  /* Paper Document */
+  .lkpd-document-paper {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 2.5rem;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px double #0891b2;
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+
+  .header-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .doc-badge {
+    background: linear-gradient(135deg, #0891b2, #4f46e5);
+    color: #ffffff;
+    font-weight: 800;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .doc-title {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+  }
+
+  .doc-sub {
+    font-size: 0.85rem;
+    color: #0891b2;
+    font-weight: 600;
+  }
+
+  .doc-meta-right {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    font-size: 0.825rem;
+    color: #475569;
+  }
+
+  .doc-section {
+    margin-bottom: 2.25rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0891b2;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .doc-input, .doc-select, .doc-textarea, .doc-table-input {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    line-height: 1.45;
+  }
+
+  textarea.doc-input, .doc-textarea {
+    resize: vertical;
+    field-sizing: content;
+    min-height: 52px;
+  }
+
+  .doc-input:focus, .doc-select:focus, .doc-textarea:focus {
+    outline: none;
+    border-color: #0891b2;
+    background: #ffffff;
+  }
+
+  .margin-top {
+    margin-top: 1rem;
+  }
+
+  .pillar-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+  }
+
+  .pillar-heading {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+  }
+
+  .pillar-instruction {
+    font-size: 0.825rem;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  /* ===== Flowchart Builder Workspace ===== */
+  .flowchart-builder {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .flow-palette,
+  .flow-canvas-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .flow-palette-label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #475569;
+    text-transform: uppercase;
+  }
+
+  .flow-palette-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+  }
+
+  .flow-palette-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.15s ease;
+  }
+
+  .flow-palette-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .flow-palette-btn:hover .flow-shape {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Global styles for Flowchart Canvas & Nodes (Dynamic JS Generated) */
+  :global(.flow-canvas) {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  :global(.flow-canvas-empty) {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: auto;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+
+  :global(.flow-canvas-item) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    width: 100%;
+    max-width: 680px;
+    background: #ffffff;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.15s ease;
+  }
+
+  :global(.flow-canvas-item:hover) {
+    border-color: #94a3b8;
+  }
+
+  :global(.flow-step-num) {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #0891b2;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  :global(.flow-node-wrapper) {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  :global(.flow-shape) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    min-height: 44px;
+    min-width: 180px;
+    max-width: 380px;
+    text-align: center;
+    line-height: 1.35;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+  }
+
+  :global(.flow-shape-sm) {
+    min-width: 130px;
+    min-height: 40px;
+    font-size: 0.785rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  :global(.flow-shape-interactive) {
+    cursor: pointer;
+  }
+
+  :global(.flow-shape-interactive:hover) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.flow-shape-inner) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    word-break: break-word;
+  }
+
+  :global(.flow-shape-terminal) {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    border: 2px solid #0284c7;
+    color: #0369a1;
+    border-radius: 9999px;
+  }
+
+  :global(.flow-shape-io) {
+    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+    border: 2px solid #0891b2;
+    color: #0e7490;
+    border-radius: 4px;
+    transform: skew(-12deg);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  :global(.flow-shape-io .flow-shape-inner) {
+    transform: skew(12deg);
+  }
+
+  :global(.flow-shape-process) {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid #475569;
+    color: #1e293b;
+    border-radius: 6px;
+  }
+
+  :global(.flow-shape-decision) {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #d97706;
+    color: #92400e;
+    border-radius: 8px;
+  }
+
+  :global(.flow-decision-icon) {
+    font-size: 0.85rem;
+    color: #d97706;
+  }
+
+  :global(.flow-arrow-connector) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.15rem 0;
+  }
+
+  :global(.flow-arrow-line) {
+    width: 2px;
+    height: 14px;
+    background: #94a3b8;
+  }
+
+  :global(.flow-arrow-head) {
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 800;
+    line-height: 1;
+    margin-top: -3px;
+  }
+
+  :global(.flow-item-controls) {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  :global(.flow-ctrl-btn) {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.375rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #334155;
+    transition: all 0.15s ease;
+  }
+
+  :global(.flow-ctrl-btn:hover:not(:disabled)) {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+
+  :global(.flow-ctrl-btn:disabled) {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  :global(.flow-ctrl-delete:hover:not(:disabled)) {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #dc2626;
+  }
+
+  :global(.flow-ctrl-edit) {
+    background: #e0f2fe;
+    border-color: #7dd3fc;
+    color: #0284c7;
+  }
+
+  :global(.flow-ctrl-edit:hover:not(:disabled)) {
+    background: #bae6fd;
+    border-color: #38bdf8;
+    color: #0369a1;
+  }
+
+  /* Mobile Responsive Form UX (< 768px) */
+  @media (max-width: 768px) {
+    .lkpd-page-container {
+      margin: 0.75rem auto 3rem;
+      padding: 0 0.5rem;
+      gap: 1rem;
+    }
+
+    .page-top-nav {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .page-top-nav .btn {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+    }
+
+    .top-nav-actions {
+      flex-direction: column;
+      width: 100%;
+      gap: 0.5rem;
+    }
+
+    .grade-banner {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 1rem;
+      gap: 0.875rem;
+    }
+
+    .grade-badge-box {
+      width: 100%;
+      min-width: 100%;
+    }
+
+    .lkpd-document-paper {
+      padding: 1.25rem 0.875rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .doc-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.875rem;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-logo-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .doc-meta-right {
+      text-align: left;
+    }
+
+    .doc-title {
+      font-size: 1.15rem;
+      line-height: 1.3;
+    }
+
+    .doc-sub {
+      font-size: 0.8rem;
+    }
+
+    .identity-grid {
+      grid-template-columns: 1fr;
+      gap: 0.875rem;
+    }
+
+    .pillar-box {
+      padding: 1rem 0.75rem;
+    }
+
+    .flowchart-builder {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .flow-palette-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      padding: 0.65rem;
+    }
+
+    .flow-palette-btn {
+      width: 100%;
+      flex: unset;
+    }
+
+    :global(.flow-palette-btn .flow-shape) {
+      min-width: unset !important;
+      width: 100% !important;
+      padding: 0.45rem 0.4rem !important;
+      font-size: 0.75rem !important;
+      min-height: 38px !important;
+    }
+
+    :global(.flow-canvas) {
+      padding: 0.85rem 0.5rem !important;
+      min-height: 200px !important;
+    }
+
+    :global(.flow-canvas-item) {
+      padding: 0.55rem 0.65rem !important;
+      gap: 0.4rem !important;
+      flex-wrap: wrap !important;
+    }
+
+    :global(.flow-step-num) {
+      width: 22px !important;
+      height: 22px !important;
+      font-size: 0.7rem !important;
+    }
+
+    :global(.flow-node-wrapper) {
+      flex: 1 1 auto !important;
+      min-width: 110px !important;
+      max-width: calc(100% - 140px) !important;
+    }
+
+    :global(.flow-shape) {
+      min-width: 110px !important;
+      max-width: 100% !important;
+      min-height: 38px !important;
+      padding: 0.4rem 0.65rem !important;
+      font-size: 0.785rem !important;
+      line-height: 1.25 !important;
+    }
+
+    :global(.flow-item-controls) {
+      gap: 0.2rem !important;
+      margin-left: auto !important;
+    }
+
+    :global(.flow-ctrl-btn) {
+      padding: 0.35rem 0.45rem !important;
+      font-size: 0.725rem !important;
+      min-height: 34px !important;
+      border-radius: 0.3rem !important;
+    }
+
+    :global(.flow-ctrl-edit .ctrl-txt) {
+      display: none !important;
+    }
+
+    /* 16px Font Size on Mobile to Prevent Auto-Zoom & Enable Touch Ergonomics */
+    .doc-input, .doc-select, .doc-textarea {
+      font-size: 16px !important;
+      padding: 0.65rem 0.85rem;
+      min-height: 44px;
+      border-radius: var(--radius-md);
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .doc-textarea {
+      min-height: 110px;
+    }
+
+    .doc-actions .btn {
+      width: 100%;
+      min-height: 48px;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+  }
+
+  /* Submitted Task Status Indicator Banner */
+  .submitted-status-card {
+    padding: 1.5rem 1.75rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+  }
+
+  .status-banner-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+
+  .status-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .status-sub {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .status-grade-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: var(--radius-lg);
+    min-width: 130px;
+  }
+
+  .grade-pill-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #10b981;
+  }
+
+  .grade-pill-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #34d399;
+    margin-top: 0.15rem;
+  }
+
+  .modal-success-icon-wrap {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto;
+    border-radius: var(--radius-full);
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Print Stylesheet */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: #ffffff !important;
+    }
+    .lkpd-page-container {
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .lkpd-document-paper {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 1rem !important;
+    }
+    .flow-item-controls {
+      display: none !important;
+    }
+  }
+</style>
