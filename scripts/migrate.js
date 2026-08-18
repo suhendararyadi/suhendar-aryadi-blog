@@ -106,6 +106,19 @@ async function migrate() {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS lkpd_flowchart_submissions (
+      id SERIAL PRIMARY KEY,
+      user_id INT REFERENCES users(id) ON DELETE CASCADE,
+      case_study_id VARCHAR(50) NOT NULL,
+      team_name VARCHAR(150) DEFAULT '',
+      flowchart_json TEXT DEFAULT '[]',
+      pseudocode_text TEXT DEFAULT '',
+      score INT DEFAULT NULL,
+      teacher_feedback TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS course_enrollments (
       id SERIAL PRIMARY KEY,
       user_id INT REFERENCES users(id) ON DELETE CASCADE,
@@ -116,6 +129,10 @@ async function migrate() {
 
     INSERT INTO course_enrollments (user_id, course_id)
     SELECT DISTINCT user_id, 'informatika' FROM lkpd_submissions
+    ON CONFLICT (user_id, course_id) DO NOTHING;
+
+    INSERT INTO course_enrollments (user_id, course_id)
+    SELECT DISTINCT user_id, 'informatika' FROM lkpd_flowchart_submissions
     ON CONFLICT (user_id, course_id) DO NOTHING;
 
     INSERT INTO course_enrollments (user_id, course_id)

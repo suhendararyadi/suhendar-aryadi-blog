@@ -82,8 +82,34 @@ try {
 
 const allSubmissions = [...bkSubmissions, ...tikSubmissions];
 
+let flowchartSubmissions: any[] = [];
+try {
+  const res = await query(
+    `SELECT s.*, u.name as student_name, u.email as student_email, u.class_name
+     FROM lkpd_flowchart_submissions s
+     JOIN users u ON s.user_id = u.id
+     ORDER BY s.updated_at DESC`
+  );
+  if (res.rows) {
+    flowchartSubmissions = res.rows.map(row => {
+      let flowchart: any[] = [];
+      try { flowchart = typeof row.flowchart_json === 'string' ? JSON.parse(row.flowchart_json || '[]') : (row.flowchart_json || []); } catch (e) {}
+
+      return {
+        ...row,
+        moduleType: 'FLOWCHART',
+        parsedFlowchart: Array.isArray(flowchart) ? flowchart : []
+      };
+    });
+  }
+} catch (err) {
+  console.warn('Error fetching Flowchart LKPD submissions:', err);
+}
+
+const allSubmissionsWithFlowchart = [...allSubmissions, ...flowchartSubmissions];
+
 // Get unique classes for filter dropdown
-const uniqueClasses = Array.from(new Set(allSubmissions.map(s => s.class_name || 'X RPL'))).sort();
+const uniqueClasses = Array.from(new Set(allSubmissionsWithFlowchart.map(s => s.class_name || 'X RPL'))).sort();
 
 let currentDeadline = '';
 try {
@@ -160,12 +186,17 @@ try {
       <div class="tab-switcher-nav">
         <button id="tab-btn-bk" class="tab-nav-item active" type="button" data-module="BK">
           <span class="tab-badge badge badge-purple">LKPD 1</span>
-          <span class="tab-title">Berpikir Komputasional (BK)</span>
+          <span class="tab-title">BK: 4 Pilar Masalah</span>
           <span class="tab-count-pill" id="bk-count-pill">{bkSubmissions.length}</span>
         </button>
+        <button id="tab-btn-flowchart" class="tab-nav-item" type="button" data-module="FLOWCHART">
+          <span class="tab-badge badge badge-purple">LKPD 2</span>
+          <span class="tab-title">BK: Flowchart &amp; Pseudocode</span>
+          <span class="tab-count-pill" id="flowchart-count-pill">{flowchartSubmissions.length}</span>
+        </button>
         <button id="tab-btn-tik" class="tab-nav-item" type="button" data-module="TIK">
-          <span class="tab-badge badge badge-cyan">LKPD 2</span>
-          <span class="tab-title">Teknologi Informasi &amp; Komunikasi (TIK)</span>
+          <span class="tab-badge badge badge-cyan">LKPD TIK</span>
+          <span class="tab-title">TIK: Mail Merge &amp; Search</span>
           <span class="tab-count-pill" id="tik-count-pill">{tikSubmissions.length}</span>
         </button>
       </div>
@@ -357,6 +388,103 @@ try {
           </div>
         ))}
 
+        <!-- Render Flowchart (LKPD 1B) Submissions -->
+        {flowchartSubmissions.map((item) => (
+          <div 
+            class="submission-card glass-card module-card-flowchart"
+            data-module="FLOWCHART"
+            data-class={item.class_name || 'X RPL'}
+            data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
+            data-search={`${item.student_name} ${item.student_email} ${item.team_name || ''}`.toLowerCase()}
+            style="display: none;"
+          >
+            <div class="sub-card-header">
+              <div>
+                <span class="badge badge-purple">LKPD 1B FLOWCHART</span>
+                <span class="badge badge-cyan">{item.class_name || 'X RPL'}</span>
+                <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
+                <span class="sub-team-name">Tim: <strong>{item.team_name || 'Mandiri'}</strong> | Studi Kasus: <strong>{item.case_study_id.toUpperCase()}</strong></span>
+              </div>
+              <div class="sub-score-box">
+                {item.score !== null ? (
+                  <span class="badge badge-green">Nilai: {item.score} / 100</span>
+                ) : (
+                  <span class="badge badge-amber">Belum Dinilai</span>
+                )}
+              </div>
+            </div>
+
+            <!-- Quick Answers Overview Flowchart -->
+            <div class="sub-quick-preview">
+              <div class="quick-item">
+                <strong>Jumlah Simbol Flowchart:</strong>
+                <span>{item.parsedFlowchart.length} simbol</span>
+              </div>
+              <div class="quick-item">
+                <strong>Mengandung Decision:</strong>
+                <span>{item.parsedFlowchart.some((f: any) => f.shape === 'decision') ? 'Ya ✓' : 'Tidak ✗'}</span>
+              </div>
+            </div>
+
+            <!-- Collapsible Full Detail Drawer Button -->
+            <div class="detail-toggle-bar">
+              <button class="btn-toggle-detail" type="button" data-target={`detail-flow-${item.id}`}>
+                <span>Tampilkan Detail Flowchart &amp; Pseudocode Lengkap</span>
+                <span class="arrow-icon">&darr;</span>
+              </button>
+            </div>
+
+            <!-- Full Detail Answer Drawer Flowchart (Hidden by default) -->
+            <div id={`detail-flow-${item.id}`} class="detail-drawer" style="display: none;">
+              <!-- 1. Susunan Flowchart -->
+              <div class="detail-section">
+                <h4 class="detail-sec-title">1. Susunan Flowchart ({item.parsedFlowchart.length} Simbol)</h4>
+                {item.parsedFlowchart.length > 0 ? (
+                  <div class="flow-review-list">
+                    {item.parsedFlowchart.map((f: any, idx: number) => (
+                      <div class="flow-review-item">
+                        <span class="flow-review-num">{idx + 1}</span>
+                        <span class={`flow-review-badge flow-review-${f.shape}`}>{f.shape.toUpperCase()}</span>
+                        <span class="flow-review-text">{f.text || '(kosong)'}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p class="text-muted">Belum ada simbol flowchart yang disusun.</p>
+                )}
+              </div>
+
+              <!-- 2. Pseudocode -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">2. Pseudocode</h4>
+                <div class="pseudocode-preview-box">
+                  <strong>Pseudocode Alur Utama:</strong>
+                  <pre class="font-mono">{item.pseudocode_text || '// Belum diisi'}</pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grading Form Flowchart -->
+            <div class="grading-form-wrap">
+              <form class="grade-form" data-id={item.id} data-endpoint="/api/admin/grade-lkpd-flowchart">
+                <div class="grade-inputs-row">
+                  <div class="input-group">
+                    <label>Skor Nilai (0 - 100):</label>
+                    <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
+                  </div>
+                  <div class="input-group flex-1">
+                    <label>Umpan Balik / Catatan Guru (Flowchart):</label>
+                    <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Alur decision sudah tepat, perhatikan urutan simbol I/O." value={item.teacher_feedback || ''} />
+                  </div>
+                  <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
+                    Simpan Nilai Flowchart
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ))}
+
         <!-- Render TIK Submissions -->
         {tikSubmissions.map((item) => (
           <div 
@@ -500,12 +628,13 @@ try {
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions }}>
+<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions, flowchartSubmissionsData: flowchartSubmissions }}>
   document.addEventListener('DOMContentLoaded', () => {
     let currentModule = 'BK'; // 'BK' or 'TIK'
 
     // 1. Tab Switcher Logic
     const tabBk = document.getElementById('tab-btn-bk');
+    const tabFlowchart = document.getElementById('tab-btn-flowchart');
     const tabTik = document.getElementById('tab-btn-tik');
     const moduleTitleDisplay = document.getElementById('module-title-display');
     const moduleSubDisplay = document.getElementById('module-sub-display');
@@ -513,15 +642,22 @@ try {
 
     function setModuleTab(module) {
       currentModule = module;
+      tabBk?.classList.remove('active');
+      tabFlowchart?.classList.remove('active');
+      tabTik?.classList.remove('active');
+
       if (module === 'BK') {
         tabBk?.classList.add('active');
-        tabTik?.classList.remove('active');
         if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 1 (BK)';
         if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa 4 pilar analisis dan memberikan skor nilai';
         if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 1 (BK)';
+      } else if (module === 'FLOWCHART') {
+        tabFlowchart?.classList.add('active');
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 1B (Flowchart & Pseudocode)';
+        if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa susunan flowchart & pseudocode dan memberikan skor nilai';
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 1B (Flowchart)';
       } else {
         tabTik?.classList.add('active');
-        tabBk?.classList.remove('active');
         if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 2 (TIK)';
         if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa Mail Merge & Advanced Search Operators dan memberikan skor nilai';
         if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 2 (TIK)';
@@ -530,6 +666,7 @@ try {
     }
 
     tabBk?.addEventListener('click', () => setModuleTab('BK'));
+    tabFlowchart?.addEventListener('click', () => setModuleTab('FLOWCHART'));
     tabTik?.addEventListener('click', () => setModuleTab('TIK'));
 
     // 2. Toggle Detail Drawers
@@ -640,16 +777,21 @@ try {
 
     // 5. Export CSV Handler
     exportBtn?.addEventListener('click', () => {
-      const activeData = currentModule === 'BK' ? bkSubmissionsData : tikSubmissionsData;
+      const activeData = currentModule === 'BK' ? bkSubmissionsData : (currentModule === 'FLOWCHART' ? flowchartSubmissionsData : tikSubmissionsData);
 
       if (!activeData || activeData.length === 0) {
         alert(`Tidak ada data kiriman LKPD ${currentModule} untuk di-export.`);
         return;
       }
 
-      let csv = currentModule === 'BK' 
-        ? 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n'
-        : 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Anggota Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      let csv;
+      if (currentModule === 'BK') {
+        csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      } else if (currentModule === 'FLOWCHART') {
+        csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Jumlah Simbol,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      } else {
+        csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Anggota Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      }
 
       activeData.forEach((row, index) => {
         const studentName = `"${(row.student_name || '').replace(/"/g, '""')}"`;
@@ -663,6 +805,10 @@ try {
 
         if (currentModule === 'BK') {
           csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${score},${feedback},${date}\n`;
+        } else if (currentModule === 'FLOWCHART') {
+          let symbolCount = 0;
+          try { symbolCount = JSON.parse(row.flowchart_json || '[]').length; } catch (e) {}
+          csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${symbolCount},${score},${feedback},${date}\n`;
         } else {
           const teamMembers = `"${(Array.isArray(row.parsedTeamMembers) ? row.parsedTeamMembers.join('; ') : '').replace(/"/g, '""')}"`;
           csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${teamMembers},${caseStudy},${score},${feedback},${date}\n`;
@@ -1116,6 +1262,72 @@ try {
     white-space: pre-wrap;
     font-size: 0.8rem;
     color: #84cc16;
+  }
+
+  /* Flowchart Review List (Admin Grading) */
+  .flow-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .flow-review-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .flow-review-num {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .flow-review-badge {
+    flex-shrink: 0;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .flow-review-terminal {
+    background: rgba(8, 145, 178, 0.15);
+    color: #0891b2;
+  }
+
+  .flow-review-io {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+  }
+
+  .flow-review-process {
+    background: rgba(100, 116, 139, 0.15);
+    color: #64748b;
+  }
+
+  .flow-review-decision {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  .flow-review-text {
+    color: var(--text-primary);
+    word-break: break-word;
   }
 
   .grading-form-wrap {

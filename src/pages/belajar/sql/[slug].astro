@@ -75,6 +75,42 @@ if (!isTeacherOrAdmin && lesson.order_index > 1) {
   }
 }
 
+// Server-side hint generator: derives a conceptual clue from the expected SQL
+// WITHOUT ever sending the expected_sql string itself to the client. This
+// keeps the reference answer server-side for every account, including teachers
+// (who get the full answer separately, in the reference-answer panel below).
+function generateHintClue(expectedSql: string): string {
+  const upperExpected = (expectedSql || '').trim().toUpperCase();
+
+  if (upperExpected.startsWith('SELECT')) {
+    if (upperExpected.includes('WHERE')) {
+      return 'Petunjuk: Gunakan klausa SELECT untuk mengambil nama kolom yang diminta, FROM untuk menentukan nama tabel sumber, dan WHERE untuk menyaring kondisi baris data.';
+    } else if (upperExpected.includes('DISTINCT')) {
+      return 'Petunjuk: Gunakan kata kunci DISTINCT setelah SELECT untuk menyaring dan mengembalikan hanya nilai-nilai unik (tidak duplikat).';
+    } else if (upperExpected.includes('ORDER BY')) {
+      return 'Petunjuk: Gunakan klausa ORDER BY di akhir query untuk mengurutkan hasil (gunakan ASC untuk pengurutan terkecil/A-Z atau DESC untuk terbesar/Z-A).';
+    } else if (upperExpected.includes('JOIN')) {
+      return 'Petunjuk: Hubungkan dua tabel menggunakan klausa JOIN (misalnya INNER JOIN) berdasarkan kunci pembanding (ON tabel1.id = tabel2.foreign_key).';
+    } else if (upperExpected.includes('GROUP BY')) {
+      return 'Petunjuk: Kelompokkan baris data menggunakan GROUP BY [nama_kolom] serta fungsi agregasi (seperti COUNT, SUM, atau AVG).';
+    }
+    return 'Petunjuk: Gunakan klausa SELECT [nama_kolom] FROM [nama_tabel]. Perhatikan nama kolom yang diminta pada instruksi soal di panel kiri.';
+  } else if (upperExpected.startsWith('CREATE TABLE') || upperExpected.startsWith('CREATE VIEW')) {
+    return 'Petunjuk: Gunakan perintah DDL CREATE TABLE atau CREATE VIEW diikuti nama objek dan spesifikasi kolom beserta tipe datanya.';
+  } else if (upperExpected.startsWith('INSERT')) {
+    return 'Petunjuk: Gunakan klausa INSERT INTO [nama_tabel] (kolom1, ...) VALUES (nilai1, ...).';
+  } else if (upperExpected.startsWith('UPDATE')) {
+    return 'Petunjuk: Gunakan klausa UPDATE [nama_tabel] SET kolom = nilai_baru WHERE kondisi_filter.';
+  } else if (upperExpected.startsWith('DELETE')) {
+    return 'Petunjuk: Gunakan klausa DELETE FROM [nama_tabel] WHERE kondisi_filter.';
+  } else if (upperExpected.startsWith('ALTER')) {
+    return 'Petunjuk: Gunakan perintah DDL ALTER TABLE [nama_tabel] ADD / DROP / MODIFY untuk mengubah struktur tabel.';
+  } else if (upperExpected.startsWith('DROP')) {
+    return 'Petunjuk: Gunakan perintah DDL DROP TABLE / DROP VIEW [nama_tabel] untuk menghapus objek dari database.';
+  }
+  return 'Petunjuk: Baca kembali konsep teori dan petunjuk klausa SQL pada panel instruksi di sebelah kiri.';
+}
+
 // Simple markdown formatter helper for Astro template
 function formatMarkdown(text: string): string {
   if (!text) return '';
@@ -94,6 +130,7 @@ function formatMarkdown(text: string): string {
 
 const formattedTheory = formatMarkdown(lesson.theory_markdown);
 const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
+const hintClue = generateHintClue(lesson.expected_sql);
 ---
 
 <MainLayout 
@@ -218,6 +255,23 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
             </div>
           </div>
 
+          {isTeacherOrAdmin && (
+            <div class="panel-section answer-key-section">
+              <button id="toggle-answer-key-btn" class="answer-key-toggle" type="button" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Jawaban Referensi (Guru/Admin)</span>
+                <span class="badge badge-purple">RAHASIA</span>
+              </button>
+              <div id="answer-key-content" class="answer-key-content" hidden>
+                <p class="answer-key-note">Hanya terlihat oleh akun Guru/Admin. Tidak pernah dikirim ke akun siswa.</p>
+                <pre class="answer-key-code"><code>{lesson.expected_sql}</code></pre>
+              </div>
+            </div>
+          )}
+
           <!-- Evaluation Banner Status -->
           <div id="eval-status" class="eval-banner" style="display: none;"></div>
         </div>
@@ -319,7 +373,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
 
 <script is:inline define:vars={{ 
   seedSql: lesson.seed_sql, 
-  expectedSql: lesson.expected_sql, 
+  hintClue: hintClue,
   initialCode: lesson.initial_code,
   lessonId: lesson.id,
   evaluatorType: lesson.evaluator_type || 'data_match',
@@ -366,44 +420,13 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     }
   });
 
-  // Hint handler: Generates structured SQL conceptual clue without giving away full answer code
+  // Hint handler: shows the server-computed conceptual clue (no raw answer SQL is ever sent to the client)
   hintBtn?.addEventListener('click', () => {
     if (!evalStatus) return;
     evalStatus.style.display = 'block';
     evalStatus.className = 'eval-banner eval-hint';
-    
-    let clueText = '';
-    const upperExpected = (expectedSql || '').trim().toUpperCase();
 
-    if (upperExpected.startsWith('SELECT')) {
-      if (upperExpected.includes('WHERE')) {
-        clueText = 'Petunjuk: Gunakan klausa SELECT untuk mengambil nama kolom yang diminta, FROM untuk menentukan nama tabel sumber, dan WHERE untuk menyaring kondisi baris data.';
-      } else if (upperExpected.includes('DISTINCT')) {
-        clueText = 'Petunjuk: Gunakan kata kunci DISTINCT setelah SELECT untuk menyaring dan mengembalikan hanya nilai-nilai unik (tidak duplikat).';
-      } else if (upperExpected.includes('ORDER BY')) {
-        clueText = 'Petunjuk: Gunakan klausa ORDER BY di akhir query untuk mengurutkan hasil (gunakan ASC untuk pengurutan terkecil/A-Z atau DESC untuk terbesar/Z-A).';
-      } else if (upperExpected.includes('JOIN')) {
-        clueText = 'Petunjuk: Hubungkan dua tabel menggunakan klausa JOIN (misalnya INNER JOIN) berdasarkan kunci pembanding (ON tabel1.id = tabel2.foreign_key).';
-      } else if (upperExpected.includes('GROUP BY')) {
-        clueText = 'Petunjuk: Kelompokkan baris data menggunakan GROUP BY [nama_kolom] serta fungsi agregasi (seperti COUNT, SUM, atau AVG).';
-      } else {
-        clueText = 'Petunjuk: Gunakan klausa SELECT [nama_kolom] FROM [nama_tabel]. Perhatikan nama kolom yang diminta pada instruksi soal di panel kiri.';
-      }
-    } else if (upperExpected.startsWith('CREATE TABLE') || upperExpected.startsWith('CREATE VIEW')) {
-      clueText = 'Petunjuk: Gunakan perintah DDL CREATE TABLE atau CREATE VIEW diikuti nama objek dan spesifikasi kolom beserta tipe datanya.';
-    } else if (upperExpected.startsWith('INSERT')) {
-      clueText = 'Petunjuk: Gunakan klausa INSERT INTO [nama_tabel] (kolom1, ...) VALUES (nilai1, ...).';
-    } else if (upperExpected.startsWith('UPDATE')) {
-      clueText = 'Petunjuk: Gunakan klausa UPDATE [nama_tabel] SET kolom = nilai_baru WHERE kondisi_filter.';
-    } else if (upperExpected.startsWith('DELETE')) {
-      clueText = 'Petunjuk: Gunakan klausa DELETE FROM [nama_tabel] WHERE kondisi_filter.';
-    } else if (upperExpected.startsWith('ALTER')) {
-      clueText = 'Petunjuk: Gunakan perintah DDL ALTER TABLE [nama_tabel] ADD / DROP / MODIFY untuk mengubah struktur tabel.';
-    } else if (upperExpected.startsWith('DROP')) {
-      clueText = 'Petunjuk: Gunakan perintah DDL DROP TABLE / DROP VIEW [nama_tabel] untuk menghapus objek dari database.';
-    } else {
-      clueText = 'Petunjuk: Baca kembali konsep teori dan petunjuk klausa SQL pada panel instruksi di sebelah kiri.';
-    }
+    const clueText = hintClue;
 
     evalStatus.innerHTML = `
       <div class="eval-content">
@@ -466,7 +489,7 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       const res = await fetch('/api/sql/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lessonId, seedSql, expectedSql, userSql, evaluatorType })
+        body: JSON.stringify({ lessonId, seedSql, userSql, evaluatorType })
       });
       const data = await res.json();
 
@@ -597,6 +620,16 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  // Answer-key toggle (teacher/admin only -- the markup itself is only ever
+  // server-rendered for those roles, so this handler is a no-op for students).
+  const answerKeyToggleBtn = document.getElementById('toggle-answer-key-btn');
+  const answerKeyContent = document.getElementById('answer-key-content');
+  answerKeyToggleBtn?.addEventListener('click', () => {
+    const isHidden = answerKeyContent.hidden;
+    answerKeyContent.hidden = !isHidden;
+    answerKeyToggleBtn.setAttribute('aria-expanded', String(isHidden));
+  });
 </script>
 
 <style>
@@ -714,6 +747,62 @@ const formattedInstructions = formatMarkdown(lesson.instructions_markdown);
     border-radius: var(--radius-md);
     padding: 1rem 1.25rem;
     font-size: 0.925rem;
+  }
+
+  /* Answer Key Panel (teacher/admin only) */
+  .answer-key-section {
+    margin-top: 0.5rem;
+  }
+
+  .answer-key-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 1rem;
+    color: #c084fc;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .answer-key-toggle:hover {
+    background: rgba(168, 85, 247, 0.14);
+  }
+
+  .answer-key-toggle span:nth-child(2) {
+    flex: 1;
+  }
+
+  .answer-key-content {
+    margin-top: 0.6rem;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+  }
+
+  .answer-key-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .answer-key-code {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.875rem;
+    color: #c084fc;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   .badge-group {

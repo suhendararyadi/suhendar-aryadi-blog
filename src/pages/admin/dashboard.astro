@@ -301,14 +301,62 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                       })}
                     </td>
                     <td class="text-center">
-                      <a href="/admin/lkpd" class="btn btn-outline btn-xs">
-                        Nilai LKPD
-                      </a>
+                      <div class="action-cell">
+                        <a href="/admin/lkpd" class="btn btn-outline btn-xs">
+                          Nilai LKPD
+                        </a>
+                        <button
+                          type="button"
+                          class="btn btn-outline btn-xs btn-reset-password"
+                          data-user-id={item.id}
+                          data-user-name={item.name}
+                        >
+                          Reset Password
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Reset Password Modal -->
+        <div id="reset-password-modal" class="rp-modal-overlay" hidden>
+          <div class="rp-modal glass-card">
+            <div id="rp-modal-step-confirm">
+              <h3 class="rp-modal-title">Reset Password Siswa</h3>
+              <p class="rp-modal-text">
+                Anda akan mereset password untuk <strong id="rp-target-name">-</strong>.
+                Password lama tidak akan berfungsi lagi dan siswa akan otomatis logout dari sesi aktif.
+              </p>
+              <div class="rp-modal-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="rp-cancel-btn">Batal</button>
+                <button type="button" class="btn btn-primary btn-sm" id="rp-confirm-btn">Ya, Reset Password</button>
+              </div>
+            </div>
+            <div id="rp-modal-step-result" hidden>
+              <h3 class="rp-modal-title">Password Baru Berhasil Dibuat</h3>
+              <p class="rp-modal-text">
+                Sampaikan password sementara ini kepada <strong id="rp-result-name">-</strong> secara langsung.
+                Password ini hanya ditampilkan <strong>satu kali</strong> dan tidak dapat dilihat kembali.
+              </p>
+              <div class="rp-password-box">
+                <code id="rp-new-password">-</code>
+                <button type="button" class="btn btn-outline btn-xs" id="rp-copy-btn">Salin</button>
+              </div>
+              <div class="rp-modal-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="rp-close-btn">Tutup</button>
+              </div>
+            </div>
+            <div id="rp-modal-step-error" hidden>
+              <h3 class="rp-modal-title">Gagal Mereset Password</h3>
+              <p class="rp-modal-text" id="rp-error-message">Terjadi kesalahan. Silakan coba lagi.</p>
+              <div class="rp-modal-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="rp-error-close-btn">Tutup</button>
+              </div>
+            </div>
           </div>
         </div>
       </>
@@ -402,6 +450,102 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    });
+
+    // Reset Password Modal Logic
+    const rpModal = document.getElementById('reset-password-modal');
+    const rpStepConfirm = document.getElementById('rp-modal-step-confirm');
+    const rpStepResult = document.getElementById('rp-modal-step-result');
+    const rpStepError = document.getElementById('rp-modal-step-error');
+    const rpTargetName = document.getElementById('rp-target-name');
+    const rpResultName = document.getElementById('rp-result-name');
+    const rpNewPassword = document.getElementById('rp-new-password');
+    const rpErrorMessage = document.getElementById('rp-error-message');
+    const rpConfirmBtn = document.getElementById('rp-confirm-btn');
+    const rpCancelBtn = document.getElementById('rp-cancel-btn');
+    const rpCloseBtn = document.getElementById('rp-close-btn');
+    const rpErrorCloseBtn = document.getElementById('rp-error-close-btn');
+    const rpCopyBtn = document.getElementById('rp-copy-btn');
+
+    let rpCurrentUserId = null;
+    let rpCurrentUserName = '';
+
+    function rpShowStep(step) {
+      rpStepConfirm.hidden = step !== 'confirm';
+      rpStepResult.hidden = step !== 'result';
+      rpStepError.hidden = step !== 'error';
+    }
+
+    function rpOpenModal(userId, userName) {
+      rpCurrentUserId = userId;
+      rpCurrentUserName = userName;
+      rpTargetName.textContent = userName;
+      rpConfirmBtn.disabled = false;
+      rpConfirmBtn.textContent = 'Ya, Reset Password';
+      rpShowStep('confirm');
+      rpModal.hidden = false;
+    }
+
+    function rpCloseModal() {
+      rpModal.hidden = true;
+      rpCurrentUserId = null;
+    }
+
+    document.querySelectorAll('.btn-reset-password').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const userId = btn.getAttribute('data-user-id');
+        const userName = btn.getAttribute('data-user-name') || 'siswa ini';
+        rpOpenModal(userId, userName);
+      });
+    });
+
+    rpCancelBtn?.addEventListener('click', rpCloseModal);
+    rpCloseBtn?.addEventListener('click', rpCloseModal);
+    rpErrorCloseBtn?.addEventListener('click', rpCloseModal);
+    rpModal?.addEventListener('click', (e) => {
+      if (e.target === rpModal) rpCloseModal();
+    });
+
+    rpConfirmBtn?.addEventListener('click', async () => {
+      if (!rpCurrentUserId) return;
+      rpConfirmBtn.disabled = true;
+      rpConfirmBtn.textContent = 'Memproses...';
+
+      try {
+        const res = await fetch('/api/admin/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: rpCurrentUserId })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          rpErrorMessage.textContent = data.error || 'Terjadi kesalahan saat mereset password.';
+          rpShowStep('error');
+          return;
+        }
+
+        rpResultName.textContent = rpCurrentUserName;
+        rpNewPassword.textContent = data.tempPassword;
+        rpShowStep('result');
+      } catch (err) {
+        rpErrorMessage.textContent = 'Gagal terhubung ke server. Periksa koneksi Anda dan coba lagi.';
+        rpShowStep('error');
+      } finally {
+        rpConfirmBtn.disabled = false;
+        rpConfirmBtn.textContent = 'Ya, Reset Password';
+      }
+    });
+
+    rpCopyBtn?.addEventListener('click', async () => {
+      const pwd = rpNewPassword.textContent || '';
+      try {
+        await navigator.clipboard.writeText(pwd);
+        rpCopyBtn.textContent = 'Tersalin!';
+        setTimeout(() => { rpCopyBtn.textContent = 'Salin'; }, 1500);
+      } catch (err) {
+        // Clipboard API unavailable — silently ignore, password is still visible on screen
+      }
     });
   });
 </script>
@@ -883,5 +1027,78 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
+  }
+
+  /* Action cell (multi-button per row) */
+  .action-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  /* Reset Password Modal */
+  .rp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+
+  /* The [hidden] attribute must win over display:flex above -- class-selector
+     specificity otherwise beats the UA stylesheet's [hidden]{display:none}. */
+  .rp-modal-overlay[hidden] {
+    display: none;
+  }
+
+  .rp-modal {
+    max-width: 440px;
+    width: 100%;
+    padding: 1.75rem;
+  }
+
+  .rp-modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+  }
+
+  .rp-modal-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.1rem;
+  }
+
+  .rp-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+  }
+
+  .rp-password-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--bg-secondary, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .rp-password-box code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent-cyan, #22d3ee);
+    letter-spacing: 0.02em;
+    word-break: break-all;
   }
 </style>

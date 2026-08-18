@@ -60,6 +60,179 @@ const caseStudies = [
     algoritma: 'Algoritma Binary Search untuk pencarian cepat menu makanan.'
   }
 ];
+
+// ===== Materi Mendalam: Fondasi 4 - Perancangan Algoritma (Algorithm Design) =====
+
+// 4 simbol flowchart standar (ANSI) yang dipakai di seluruh diagram pada section ini
+const flowchartSymbols = [
+  { shape: 'terminal', label: 'Terminal', desc: 'Menandai titik AWAL (Start) dan AKHIR (End) sebuah algoritma.' },
+  { shape: 'io', label: 'Input/Output', desc: 'Menandai proses memasukkan data (Input) atau menampilkan hasil (Output).' },
+  { shape: 'process', label: 'Proses', desc: 'Menandai satu langkah pengolahan/komputasi data (perhitungan, penugasan nilai).' },
+  { shape: 'decision', label: 'Decision', desc: 'Menandai titik percabangan logika berdasarkan kondisi (Ya/Tidak, Benar/Salah).' }
+];
+
+// 3 struktur kontrol dasar algoritma, masing-masing dengan flowchart step + pseudocode singkat
+const controlStructures = [
+  {
+    id: 'sequential',
+    title: 'Sequential (Runtutan)',
+    desc: 'Instruksi dieksekusi berurutan dari atas ke bawah, satu per satu, tanpa percabangan atau perulangan.',
+    example: 'Contoh RPL: INPUT nama_siswa → INPUT nilai_ujian → HITUNG rata_rata → TAMPILKAN rata_rata.',
+    flow: [
+      { shape: 'terminal', text: 'Mulai' },
+      { shape: 'io', text: 'Input Nilai' },
+      { shape: 'process', text: 'Hitung Rata-rata' },
+      { shape: 'io', text: 'Tampilkan Hasil' },
+      { shape: 'terminal', text: 'Selesai' }
+    ]
+  },
+  {
+    id: 'selection',
+    title: 'Selection (Percabangan)',
+    desc: 'Instruksi memilih salah satu dari beberapa jalur eksekusi berdasarkan hasil evaluasi kondisi logika (IF-THEN-ELSE).',
+    example: 'Contoh RPL: JIKA stok_barang > 0 MAKA proses_pesanan, JIKA TIDAK tampilkan "Stok Habis".',
+    flow: [
+      { shape: 'terminal', text: 'Mulai' },
+      { shape: 'decision', text: 'Stok > 0?' },
+      { shape: 'process', text: 'Ya: Proses Pesanan' },
+      { shape: 'process', text: 'Tidak: Tampilkan "Stok Habis"' },
+      { shape: 'terminal', text: 'Selesai' }
+    ]
+  },
+  {
+    id: 'iteration',
+    title: 'Iteration (Perulangan)',
+    desc: 'Instruksi diulang berkali-kali selama (atau sampai) suatu kondisi tertentu terpenuhi, menghindari penulisan kode berulang secara manual.',
+    example: 'Contoh RPL: SELAMA antrean_dapur TIDAK KOSONG, proses pesanan terdepan satu per satu (looping Queue).',
+    flow: [
+      { shape: 'terminal', text: 'Mulai' },
+      { shape: 'decision', text: 'Antrean Kosong?' },
+      { shape: 'process', text: 'Tidak: Proses Pesanan Terdepan' },
+      { shape: 'process', text: 'Ya: Hentikan Perulangan' },
+      { shape: 'terminal', text: 'Selesai' }
+    ]
+  }
+];
+
+// Perbandingan algoritma searching
+const searchingComparison = [
+  {
+    name: 'Linear Search',
+    howItWorks: 'Memeriksa setiap elemen data satu per satu dari posisi pertama hingga elemen target ditemukan atau seluruh data habis diperiksa.',
+    complexity: 'O(n) — waktu pencarian bertambah linear seiring jumlah data.',
+    whenToUse: 'Data belum terurut, atau jumlah data relatif kecil.',
+    rplExample: 'Mencari 1 nama siswa di daftar absensi kelas yang belum diurutkan.'
+  },
+  {
+    name: 'Binary Search',
+    howItWorks: 'Membagi dua data yang SUDAH TERURUT secara berulang, membandingkan elemen tengah dengan target, lalu mempersempit pencarian ke separuh kiri/kanan.',
+    complexity: 'O(log n) — jauh lebih cepat dari Linear Search pada data besar.',
+    whenToUse: 'Data sudah terurut (sorted) dan berjumlah besar.',
+    rplExample: 'Mencari kode produk di katalog kantin yang sudah diurutkan berdasarkan ID.'
+  }
+];
+
+// Perbandingan algoritma sorting
+const sortingComparison = [
+  {
+    name: 'Bubble Sort',
+    howItWorks: 'Membandingkan dua elemen bersebelahan secara berulang, menukar posisinya jika urutannya salah, hingga seluruh data terurut.',
+    complexity: 'O(n²) — lambat untuk data besar, tapi sederhana untuk dipahami.',
+    tradeoff: 'Mudah diimplementasikan, cocok untuk pembelajaran, tidak efisien untuk data produksi besar.',
+    rplExample: 'Mengurutkan daftar 10 nilai siswa dari terkecil ke terbesar.'
+  },
+  {
+    name: 'Selection Sort',
+    howItWorks: 'Mencari elemen terkecil/terbesar dari data yang belum terurut, lalu menukarnya ke posisi terdepan, diulang untuk sisa data.',
+    complexity: 'O(n²) — jumlah perbandingan sama seperti Bubble Sort, namun jumlah penukaran (swap) lebih sedikit.',
+    tradeoff: 'Sedikit lebih efisien dari Bubble Sort dalam jumlah swap, tetap tidak ideal untuk data sangat besar.',
+    rplExample: 'Mengurutkan daftar harga menu kantin dari termurah ke termahal.'
+  },
+  {
+    name: 'Quick Sort',
+    howItWorks: 'Memilih satu elemen sebagai pivot, memisahkan data menjadi dua kelompok (lebih kecil & lebih besar dari pivot), lalu mengurutkan tiap kelompok secara rekursif.',
+    complexity: 'O(n log n) rata-rata — jauh lebih efisien untuk data besar dibanding Bubble/Selection Sort.',
+    tradeoff: 'Kompleks untuk dipahami pemula, tapi menjadi standar performa tinggi di sistem produksi nyata.',
+    rplExample: 'Mengurutkan ribuan data transaksi pada sistem kasir toko online.'
+  }
+];
+
+// Struktur data Queue (FIFO) & Stack (LIFO)
+const dataStructures = [
+  {
+    name: 'Queue (FIFO — First In, First Out)',
+    principle: 'Data yang PERTAMA masuk adalah data yang PERTAMA diproses/keluar, seperti antrean fisik di kehidupan nyata.',
+    operations: 'Enqueue (memasukkan data ke belakang antrean), Dequeue (mengambil data dari depan antrean).',
+    rplExample: 'Antrean pesanan dapur: pesanan yang masuk lebih dulu, dimasak dan diproses lebih dulu.'
+  },
+  {
+    name: 'Stack (LIFO — Last In, First Out)',
+    principle: 'Data yang TERAKHIR masuk adalah data yang PERTAMA diproses/keluar, seperti menumpuk piring.',
+    operations: 'Push (menambahkan data ke atas tumpukan), Pop (mengambil data dari atas tumpukan).',
+    rplExample: 'Fitur Undo pada aplikasi kasir: transaksi terakhir yang diinput adalah yang pertama dibatalkan.'
+  }
+];
+
+// Contoh pseudocode lengkap: alur checkout (menggabungkan Selection + Iteration + Queue)
+const checkoutFlowchart = [
+  { shape: 'terminal', text: 'Mulai' },
+  { shape: 'io', text: 'Input Daftar Pesanan' },
+  { shape: 'process', text: 'Hitung Total Harga' },
+  { shape: 'decision', text: 'Saldo Cukup?' },
+  { shape: 'process', text: 'Ya: Potong Saldo & Enqueue ke Antrean Dapur' },
+  { shape: 'process', text: 'Tidak: Tampilkan "Saldo Tidak Cukup"' },
+  { shape: 'io', text: 'Tampilkan Nomor Antrean' },
+  { shape: 'terminal', text: 'Selesai' }
+];
+
+const checkoutPseudocode = `ALGORITMA Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA
+SELESAI`;
+
+// Kesalahan umum siswa saat merancang algoritma (penguatan sebelum mengisi LKPD)
+const commonMistakes = [
+  {
+    mistake: 'Lupa menuliskan kondisi berhenti (base case) pada perulangan',
+    impact: 'Menyebabkan infinite loop — program tidak pernah selesai berjalan.',
+    fix: 'Selalu pastikan ada kondisi yang membuat perulangan berhenti, misal "SELAMA antrean TIDAK KOSONG".'
+  },
+  {
+    mistake: 'Tertukar antara prinsip Queue (FIFO) dan Stack (LIFO)',
+    impact: 'Urutan pemrosesan data menjadi terbalik dari yang seharusnya (mis. pesanan pertama malah diproses terakhir).',
+    fix: 'Ingat: Queue = antrean fisik (depan duluan), Stack = tumpukan piring (atas duluan).'
+  },
+  {
+    mistake: 'Percabangan IF-THEN-ELSE tidak mencakup semua kemungkinan kondisi',
+    impact: 'Ada kondisi data yang tidak tertangani (unhandled case), menyebabkan hasil program tidak sesuai harapan.',
+    fix: 'Selalu sertakan cabang ELSE sebagai jaring pengaman untuk kondisi yang tidak terduga.'
+  },
+  {
+    mistake: 'Pseudocode terlalu mirip kode program (menuliskan sintaks bahasa pemrograman tertentu)',
+    impact: 'Pseudocode kehilangan sifatnya yang universal dan sulit dipahami lintas bahasa pemrograman.',
+    fix: 'Gunakan bahasa natural terstruktur (INPUT, PROSES, JIKA-MAKA, SELAMA) tanpa syntax spesifik seperti kurung kurawal {}.'
+  }
+];
 ---
 
 <MainLayout
@@ -72,11 +245,6 @@ const caseStudies = [
       <a href="/belajar/informatika" class="btn btn-outline btn-sm">
         ← Kembali ke Katalog Informatika
       </a>
-      <div class="top-nav-right">
-        <a href="/belajar/informatika/bk/lkpd" class="btn btn-primary btn-sm">
-          <span>Buka LKPD Digital Interaktif →</span>
-        </a>
-      </div>
     </div>
 
     <!-- Hero Intro -->
@@ -113,6 +281,179 @@ const caseStudies = [
           </div>
         </div>
       ))}
+    </div>
+
+    <!-- Deep Dive: Fondasi 4 - Perancangan Algoritma -->
+    <div class="algo-deepdive-section">
+      <div class="section-title">
+        <span class="badge badge-cyan">MATERI MENDALAM</span>
+        <h2>4. Perancangan Algoritma (Algorithm Design)</h2>
+        <p>Pendalaman fondasi terakhir Berpikir Komputasional: notasi standar, struktur kontrol, algoritma searching &amp; sorting, struktur data Queue/Stack, hingga contoh pseudocode lengkap siap pakai untuk LKPD.</p>
+      </div>
+
+      <!-- 1. Flowchart vs Pseudocode -->
+      <div class="algo-card glass-card">
+        <h3 class="algo-card-title">4.1 Notasi Standar: Flowchart &amp; Pseudocode</h3>
+        <p class="algo-card-intro">
+          Sebelum menuliskan program, seorang pengembang perangkat lunak wajib merancang alur logika terlebih dahulu menggunakan dua notasi standar: <strong>Flowchart</strong> (diagram alir visual dengan simbol-simbol baku) dan <strong>Pseudocode</strong> (kode semu berbahasa natural terstruktur). Keduanya menggambarkan algoritma yang sama, namun Flowchart lebih mudah dibaca secara visual, sedangkan Pseudocode lebih dekat ke struktur kode program sesungguhnya.
+        </p>
+        <div class="symbol-legend-grid">
+          {flowchartSymbols.map(s => (
+            <div class="symbol-legend-item">
+              <div class={`flow-shape flow-shape-${s.shape}`}><span>{s.label}</span></div>
+              <p>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- 2. 3 Struktur Kontrol Dasar -->
+      <div class="algo-card glass-card">
+        <h3 class="algo-card-title">4.2 Tiga Struktur Kontrol Dasar Algoritma</h3>
+        <p class="algo-card-intro">Setiap algoritma, tidak peduli seberapa kompleks, selalu dibangun dari kombinasi 3 struktur kontrol dasar berikut:</p>
+        <div class="control-structures-grid">
+          {controlStructures.map(cs => (
+            <div class="control-structure-card">
+              <h4>{cs.title}</h4>
+              <p class="cs-desc">{cs.desc}</p>
+              <div class="mini-flowchart">
+                {cs.flow.map((step, i) => (
+                  <>
+                    <div class={`flow-shape flow-shape-${step.shape} flow-shape-sm`}><span>{step.text}</span></div>
+                    {i < cs.flow.length - 1 && <div class="flow-arrow-down">&darr;</div>}
+                  </>
+                ))}
+              </div>
+              <div class="cs-example"><strong>💡 Contoh RPL:</strong> {cs.example}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- 3. Perbandingan Algoritma Searching -->
+      <div class="algo-card glass-card">
+        <h3 class="algo-card-title">4.3 Algoritma Pencarian Data (Searching)</h3>
+        <table class="sample-table">
+          <thead>
+            <tr>
+              <th style="width: 140px;">Algoritma</th>
+              <th>Cara Kerja</th>
+              <th style="width: 160px;">Kompleksitas</th>
+              <th>Kapan Dipakai</th>
+              <th>Contoh RPL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {searchingComparison.map(s => (
+              <tr>
+                <td><strong>{s.name}</strong></td>
+                <td>{s.howItWorks}</td>
+                <td><code>{s.complexity.split(' — ')[0]}</code></td>
+                <td>{s.whenToUse}</td>
+                <td>{s.rplExample}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 4. Perbandingan Algoritma Sorting -->
+      <div class="algo-card glass-card">
+        <h3 class="algo-card-title">4.4 Algoritma Pengurutan Data (Sorting)</h3>
+        <table class="sample-table">
+          <thead>
+            <tr>
+              <th style="width: 140px;">Algoritma</th>
+              <th>Cara Kerja</th>
+              <th style="width: 160px;">Kompleksitas</th>
+              <th>Trade-off</th>
+              <th>Contoh RPL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortingComparison.map(s => (
+              <tr>
+                <td><strong>{s.name}</strong></td>
+                <td>{s.howItWorks}</td>
+                <td><code>{s.complexity.split(' — ')[0]}</code></td>
+                <td>{s.tradeoff}</td>
+                <td>{s.rplExample}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="algo-hint-note">👉 Bandingkan cara kerja ketiganya secara visual pada <strong>Interactive Visualizer</strong> di bagian bawah halaman ini.</p>
+      </div>
+
+      <!-- 5. Queue & Stack -->
+      <div class="algo-card glass-card">
+        <h3 class="algo-card-title">4.5 Struktur Data Queue (FIFO) &amp; Stack (LIFO)</h3>
+        <div class="ds-grid">
+          {dataStructures.map(ds => (
+            <div class="ds-card">
+              <h4>{ds.name}</h4>
+              <p><strong>Prinsip:</strong> {ds.principle}</p>
+              <p><strong>Operasi:</strong> {ds.operations}</p>
+              <div class="ds-example"><strong>💡 Contoh RPL:</strong> {ds.rplExample}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- 6. Contoh Pseudocode Lengkap: Flowchart + Pseudocode side-by-side -->
+      <div class="algo-card glass-card">
+        <h3 class="algo-card-title">4.6 Studi Kasus Lengkap: Alur Checkout Kantin Digital</h3>
+        <p class="algo-card-intro">Contoh berikut menggabungkan ketiga struktur kontrol (Sequential, Selection, Iteration) sekaligus struktur data Queue dalam satu alur nyata — checkout pembayaran di aplikasi kantin digital.</p>
+        <div class="flowchart-pseudocode-pair">
+          <div class="fp-flowchart">
+            <span class="fp-label">Flowchart</span>
+            <div class="mini-flowchart mini-flowchart-lg">
+              {checkoutFlowchart.map((step, i) => (
+                <>
+                  <div class={`flow-shape flow-shape-${step.shape}`}><span>{step.text}</span></div>
+                  {i < checkoutFlowchart.length - 1 && <div class="flow-arrow-down">&darr;</div>}
+                </>
+              ))}
+            </div>
+          </div>
+          <div class="fp-pseudocode">
+            <span class="fp-label">Pseudocode</span>
+            <pre class="algo-pseudocode-block"><code>{checkoutPseudocode}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Kesalahan Umum -->
+      <div class="algo-card glass-card algo-mistakes-card">
+        <h3 class="algo-card-title">4.7 Kesalahan Umum Siswa dalam Merancang Algoritma</h3>
+        <p class="algo-card-intro">Perhatikan 4 kesalahan yang paling sering ditemukan saat menilai LKPD Berpikir Komputasional — hindari ini sebelum mengumpulkan tugas:</p>
+        <div class="mistakes-list">
+          {commonMistakes.map((m, i) => (
+            <div class="mistake-item">
+              <span class="mistake-num">{i + 1}</span>
+              <div class="mistake-body">
+                <strong class="mistake-title">⚠️ {m.mistake}</strong>
+                <p class="mistake-impact"><em>Dampak:</em> {m.impact}</p>
+                <p class="mistake-fix">✅ <em>Solusi:</em> {m.fix}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Quick Action CTA Card for LKPD 2 -->
+      <div class="algo-cta-card glass-card">
+        <div class="algo-cta-content">
+          <span class="badge badge-purple">TUGAS PRAKTIK DIGITAL</span>
+          <h3 class="algo-cta-title">Siap Merancang Flowchart &amp; Pseudocode Sendiri?</h3>
+          <p class="algo-cta-desc">
+            Uji pemahaman fondasi algoritma kalian dengan menyusun diagram alir visual interaktif dan menuliskan notasi pseudocode pada <strong>LKPD 2: Perancangan Algoritma</strong>.
+          </p>
+        </div>
+        <a href="/belajar/informatika/bk/flowchart" class="btn btn-primary btn-md">
+          🧩 Buka LKPD 2: Flowchart &amp; Pseudocode &rarr;
+        </a>
+      </div>
     </div>
 
     <!-- Data vs Informasi Section -->
@@ -342,8 +683,53 @@ END
           <div class="sample-footer-cta">
             <p>Sudah paham gambaran pengisian yang ideal? Sekarang giliran tim kamu untuk menganalisis!</p>
             <a href="/belajar/informatika/bk/lkpd" class="btn btn-primary btn-md">
-              🚀 Isi Lembar Kerja LKPD Sekarang &rarr;
+              🚀 Isi Lembar Kerja LKPD 1 Sekarang &rarr;
             </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- LKPD Hub: Dual Tasks Section (Always Visible) -->
+      <div class="lkpd-hub-section margin-top">
+        <div class="lkpd-hub-header">
+          <span class="badge badge-gold">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL</span>
+          <h2 class="lkpd-hub-title">Pilih Tugas LKPD yang Ingin Dikerjakan</h2>
+          <p class="lkpd-hub-desc">
+            Modul Berpikir Komputasional memiliki 2 LKPD Digital terintegrasi. Selesaikan keduanya untuk meraih kompetensi penuh dan nilai maksimal di LMS.
+          </p>
+        </div>
+
+        <div class="lkpd-hub-grid">
+          <!-- Card LKPD 1 -->
+          <div class="lkpd-hub-card glass-card">
+            <div class="hub-card-badge">
+              <span class="badge badge-cyan">LKPD 1 DIGITAL</span>
+            </div>
+            <h3 class="hub-card-title">Analisis 4 Pilar Berpikir Komputasional</h3>
+            <p class="hub-card-desc">
+              Analisis studi kasus sistem perangkat lunak nyata melalui 4 pilar utama: Dekomposisi modul, Pengenalan Pola, Abstraksi data, dan Desain Algoritma.
+            </p>
+            <div class="hub-card-footer">
+              <a href="/belajar/informatika/bk/lkpd" class="btn btn-primary btn-full">
+                🚀 Buka LKPD 1: 4 Pilar BK &rarr;
+              </a>
+            </div>
+          </div>
+
+          <!-- Card LKPD 2 -->
+          <div class="lkpd-hub-card glass-card">
+            <div class="hub-card-badge">
+              <span class="badge badge-purple">LKPD 2 DIGITAL</span>
+            </div>
+            <h3 class="hub-card-title">Perancangan Algoritma: Flowchart &amp; Pseudocode</h3>
+            <p class="hub-card-desc">
+              Susun diagram alir (flowchart) interaktif secara visual dengan simbol standar ANSI dan tuliskan notasi pseudocode terstruktur alur utama sistem.
+            </p>
+            <div class="hub-card-footer">
+              <a href="/belajar/informatika/bk/flowchart" class="btn btn-secondary btn-full">
+                🧩 Buka LKPD 2: Flowchart &amp; Pseudocode &rarr;
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -706,6 +1092,293 @@ END
     border: 1px solid var(--border-subtle);
     font-size: 0.8125rem;
     color: var(--text-secondary);
+  }
+
+  /* ===== Deep Dive: Fondasi 4 - Perancangan Algoritma ===== */
+  .algo-deepdive-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .algo-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .algo-card-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .algo-card-intro {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .algo-hint-note {
+    font-size: 0.85rem;
+    color: var(--accent-primary);
+    font-style: italic;
+  }
+
+  /* Flowchart shapes (built with CSS, no external image/library) */
+  .symbol-legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .symbol-legend-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: center;
+  }
+
+  .symbol-legend-item p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .flow-shape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 3rem;
+    min-width: 140px;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .flow-shape-sm {
+    min-width: 100px;
+    min-height: 2.5rem;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .flow-shape-terminal {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 999px;
+  }
+
+  .flow-shape-io {
+    background: var(--bg-secondary);
+    border: 2px solid #22d3ee;
+    clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .flow-shape-process {
+    background: var(--bg-secondary);
+    border: 2px solid var(--text-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .flow-shape-decision {
+    background: rgba(245, 158, 11, 0.1);
+    border: 2px solid #f59e0b;
+    border-radius: var(--radius-lg);
+    position: relative;
+  }
+
+  .flow-arrow-down {
+    text-align: center;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+  }
+
+  .mini-flowchart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .mini-flowchart-lg .flow-shape {
+    min-width: 220px;
+  }
+
+  /* 3 Control Structures Grid */
+  .control-structures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .control-structure-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .control-structure-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .cs-desc {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .cs-example {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  /* Queue & Stack Cards */
+  .ds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .ds-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .ds-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .ds-card p {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .ds-example {
+    margin-top: 0.4rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  /* Flowchart + Pseudocode side-by-side */
+  .flowchart-pseudocode-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .fp-flowchart,
+  .fp-pseudocode {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .fp-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+  }
+
+  .algo-pseudocode-block {
+    background: #0d1117;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: #c9d1d9;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  @media (max-width: 768px) {
+    .flowchart-pseudocode-pair {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Common Mistakes List */
+  .mistakes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .mistake-item {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+  }
+
+  .mistake-num {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    font-weight: 800;
+    font-size: 0.85rem;
+  }
+
+  .mistake-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .mistake-title {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+  }
+
+  .mistake-impact,
+  .mistake-fix {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
   }
 
   /* Data vs Info Section */
@@ -1173,7 +1846,115 @@ END
     gap: 0.875rem;
   }
 
+  /* Algo CTA Card */
+  .algo-cta-card {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border-radius: var(--radius-lg);
+  }
+
+  .algo-cta-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .algo-cta-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .algo-cta-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* LKPD Hub Section */
+  .lkpd-hub-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .lkpd-hub-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .lkpd-hub-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .lkpd-hub-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    max-width: 680px;
+    line-height: 1.5;
+  }
+
+  .lkpd-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .lkpd-hub-card {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .lkpd-hub-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+
+  .hub-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+
+  .hub-card-desc {
+    font-size: 0.885rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    flex-grow: 1;
+  }
+
+  .hub-card-footer {
+    margin-top: 0.5rem;
+  }
+
   @media (max-width: 768px) {
+    .algo-cta-card {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .algo-cta-card .btn {
+      width: 100%;
+      justify-content: center;
+    }
     .sample-lkpd-header {
       flex-direction: column;
       align-items: stretch;

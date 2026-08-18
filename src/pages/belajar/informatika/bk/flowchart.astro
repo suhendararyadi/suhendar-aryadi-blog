@@ -7,20 +7,20 @@ const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
 if (!user) {
-  return Astro.redirect('/auth/login?redirect=/belajar/informatika/bk/lkpd');
+  return Astro.redirect('/auth/login?redirect=/belajar/informatika/bk/flowchart');
 }
 
 let existingSubmission: any = null;
 try {
   const res = await query(
-    `SELECT * FROM lkpd_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
+    `SELECT * FROM lkpd_flowchart_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
     [user.id]
   );
   if (res.rows && res.rows.length > 0) {
     existingSubmission = res.rows[0];
   }
 } catch (err) {
-  console.warn('Error fetching student submission:', err);
+  console.warn('Error fetching student flowchart submission:', err);
 }
 
 const KKM_THRESHOLD = 75;
@@ -41,11 +41,19 @@ try {
 } catch (err) {
   console.warn('Error fetching lkpd_deadline setting:', err);
 }
+
+// Flowchart symbol palette (same 4 ANSI symbols introduced in the deep-dive material)
+const flowchartPalette = [
+  { shape: 'terminal', label: 'Terminal', hint: 'Awal / Akhir alur' },
+  { shape: 'io', label: 'Input/Output', hint: 'Input atau tampilkan data' },
+  { shape: 'process', label: 'Proses', hint: 'Langkah pengolahan data' },
+  { shape: 'decision', label: 'Decision', hint: 'Percabangan kondisi Ya/Tidak' }
+];
 ---
 
 <MainLayout
-  title="LKPD Digital: Berpikir Komputasional | Informatika SMK"
-  description="Lembar Kerja Peserta Didik (LKPD) Interaktif Berpikir Komputasional Berbasis 4 Pilar untuk Siswa SMK RPL."
+  title="LKPD 2 Digital: Perancangan Algoritma (Flowchart & Pseudocode) | Informatika SMK"
+  description="Lembar Kerja Peserta Didik (LKPD) 2 Interaktif -- susun flowchart secara visual dan tuliskan pseudocode untuk melatih Perancangan Algoritma."
 >
   <div class="lkpd-page-container">
     <!-- Top Nav Controls (Hidden on print) -->
@@ -54,13 +62,13 @@ try {
         &larr; Kembali ke Elemen 1 BK
       </a>
       <div class="top-nav-actions">
-        <a href="/belajar/informatika/bk/flowchart" class="btn btn-outline btn-sm">
-          Lanjut ke LKPD 2 &rarr;
+        <a href="/belajar/informatika/bk/lkpd" class="btn btn-outline btn-sm">
+          &larr; LKPD 1
         </a>
         <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
           Cetak / Unduh PDF
         </button>
-        <span class="badge badge-purple">LKPD 1 DIGITAL</span>
+        <span class="badge badge-purple">LKPD 2 DIGITAL</span>
       </div>
     </div>
 
@@ -105,7 +113,7 @@ try {
                 <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
               )}
             </div>
-            <h3 class="status-title">Tugas LKPD 1 (BK) Terdaftar &amp; Tersimpan</h3>
+            <h3 class="status-title">Tugas LKPD 2 (Flowchart &amp; Pseudocode) Terdaftar &amp; Tersimpan</h3>
             <p class="status-sub">
               Dikirim pada: <strong>{new Date(existingSubmission.updated_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
               | Tim: <strong>{existingSubmission.team_name || 'Mandiri'}</strong>
@@ -135,9 +143,9 @@ try {
         </div>
         <div class="grade-feedback-box">
           <strong>Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
-          <p>{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan analisis 4 pilar berpikir komputasional tim kalian.'}</p>
+          <p>{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan alur logika flowchart dan pseudocode tim kalian.'}</p>
           {!isKkmPassed && (
-            <p class="remedial-note">Nilai kamu belum mencapai KKM. Silakan perbaiki jawaban pada form di bawah, lalu kirim ulang untuk dinilai kembali.</p>
+            <p class="remedial-note">Nilai kamu belum mencapai KKM. Silakan perbaiki flowchart/pseudocode pada workspace di bawah, lalu kirim ulang untuk dinilai kembali.</p>
           )}
         </div>
       </div>
@@ -149,8 +157,8 @@ try {
         <div class="header-logo-wrap">
           <div class="doc-badge">SMK RPL</div>
           <div>
-            <h1 class="doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL</h1>
-            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 1: Berpikir Komputasional (BK)</p>
+            <h1 class="doc-title">LEMBAR KERJA PESERTA DIDIK (LKPD) DIGITAL 2</h1>
+            <p class="doc-sub">Mata Pelajaran Informatika — Elemen 1: Perancangan Algoritma (Flowchart &amp; Pseudocode)</p>
           </div>
         </div>
         <div class="doc-meta-right">
@@ -160,7 +168,7 @@ try {
       </div>
 
       <form id="lkpd-form">
-        <!-- Part 1: Team & Class Identity -->
+        <!-- Part 1: Team & Case Study Identity -->
         <section class="doc-section">
           <h2 class="section-title">1. IDENTITAS TIM &amp; STUDI KASUS</h2>
           <div class="identity-grid">
@@ -185,123 +193,47 @@ try {
           </div>
         </section>
 
-        <!-- Part 2: 4 Pillars Worksheet -->
+        <!-- Part 2: Flowchart Builder Workspace -->
         <section class="doc-section">
-          <h2 class="section-title">2. AKTIVITAS ANALISIS 4 PILAR BERPIKIR KOMPUTASIONAL</h2>
+          <h2 class="section-title">2. WORKSPACE PENYUSUNAN FLOWCHART</h2>
+          <p class="pillar-instruction">
+            Klik salah satu simbol pada palet di bawah untuk menambahkannya ke susunan flowchart. Isikan teks/label untuk tiap simbol, lalu atur urutannya menggunakan tombol naik/turun. Susun alur logika lengkap dari studi kasus yang kalian pilih (minimal 5 simbol, wajib mengandung minimal 1 Decision).
+          </p>
 
-          <!-- 2.1 Dekomposisi -->
+          <div class="flowchart-builder">
+            <!-- Symbol Palette -->
+            <div class="flow-palette">
+              <span class="flow-palette-label">Palet Simbol (Klik untuk Tambah)</span>
+              <div class="flow-palette-grid">
+                {flowchartPalette.map(p => (
+                  <button type="button" class="flow-palette-btn" data-shape={p.shape} title={p.hint}>
+                    <span class={`flow-shape flow-shape-${p.shape} flow-shape-sm`}><span>{p.label}</span></span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <!-- Canvas: Assembled Flowchart -->
+            <div class="flow-canvas-wrap">
+              <span class="flow-palette-label">Susunan Flowchart Kalian</span>
+              <div id="flow-canvas" class="flow-canvas">
+                <p class="flow-canvas-empty" id="flow-canvas-empty">Belum ada simbol. Klik palet di sebelah kiri untuk mulai menyusun.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden input carrying the serialized flowchart JSON, submitted with the form -->
+          <input type="hidden" id="flowchart-data" name="flowchart-data" />
+        </section>
+
+        <!-- Part 3: Pseudocode Workspace (same format as LKPD 1) -->
+        <section class="doc-section">
+          <h2 class="section-title">3. WORKSPACE PENULISAN PSEUDOCODE</h2>
           <div class="pillar-box">
-            <h3 class="pillar-heading">2.1 Dekomposisi (Decomposition)</h3>
-            <p class="pillar-instruction">Pecahlah sistem pilihan kalian menjadi 4 modul/sub-sistem kecil beserta fungsi utamanya:</p>
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th style="width: 60px;">No</th>
-                  <th style="width: 240px;">Nama Modul / Sub-Sistem</th>
-                  <th>Fungsi Utama &amp; Fitur di Dalam Modul</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="text-center">1</td>
-                  <td><textarea id="deco-mod-1" class="doc-table-input" rows="2" placeholder="Misal: Modul Katalog Menu"></textarea></td>
-                  <td><textarea id="deco-func-1" class="doc-table-input" rows="2" placeholder="Menampilkan daftar makanan, foto, dan filter harga"></textarea></td>
-                </tr>
-                <tr>
-                  <td class="text-center">2</td>
-                  <td><textarea id="deco-mod-2" class="doc-table-input" rows="2" placeholder="Misal: Modul Antrean &amp; Dapur"></textarea></td>
-                  <td><textarea id="deco-func-2" class="doc-table-input" rows="2" placeholder="Mengatur nomor urut pesanan sesuai kedatangan (Queue)"></textarea></td>
-                </tr>
-                <tr>
-                  <td class="text-center">3</td>
-                  <td><textarea id="deco-mod-3" class="doc-table-input" rows="2" placeholder="Misal: Modul Keranjang &amp; Checkout"></textarea></td>
-                  <td><textarea id="deco-func-3" class="doc-table-input" rows="2" placeholder="Merekam daftar belanja dan menghitung total harga"></textarea></td>
-                </tr>
-                <tr>
-                  <td class="text-center">4</td>
-                  <td><textarea id="deco-mod-4" class="doc-table-input" rows="2" placeholder="Misal: Modul Pembayaran Digital"></textarea></td>
-                  <td><textarea id="deco-func-4" class="doc-table-input" rows="2" placeholder="Integrasi saldo/QRIS dan mencetak struk transaksi"></textarea></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- 2.2 Pengenalan Pola -->
-          <div class="pillar-box margin-top">
-            <h3 class="pillar-heading">2.2 Pengenalan Pola (Pattern Recognition)</h3>
-            <p class="pillar-instruction">Identifikasi pola kesamaan atau alur kerja berulang yang ada di dalam sistem:</p>
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th style="width: 60px;">No</th>
-                  <th style="width: 280px;">Pola / Kemiripan Masalah Ditemukan</th>
-                  <th>Rencana Penerapan Solusi Berulang dalam Sistem</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="text-center">1</td>
-                  <td><textarea id="patt-name-1" class="doc-table-input" rows="2" placeholder="Alur Autentikasi / Login Siswa &amp; Guru"></textarea></td>
-                  <td><textarea id="patt-sol-1" class="doc-table-input" rows="2" placeholder="Membuat 1 fungsi terpusat validasi password &amp; token session"></textarea></td>
-                </tr>
-                <tr>
-                  <td class="text-center">2</td>
-                  <td><textarea id="patt-name-2" class="doc-table-input" rows="2" placeholder="Fitur Pencarian Data Menu &amp; Pasien"></textarea></td>
-                  <td><textarea id="patt-sol-2" class="doc-table-input" rows="2" placeholder="Memakai algoritma searching terstandar untuk pencarian kata kunci"></textarea></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- 2.3 Abstraksi -->
-          <div class="pillar-box margin-top">
-            <h3 class="pillar-heading">2.3 Abstraksi (Abstraction)</h3>
+            <h3 class="pillar-heading">Pseudocode / Notasi Algoritma Alur Utama Sistem</h3>
+            <p class="pillar-instruction">Tuliskan pseudocode yang merepresentasikan flowchart yang sudah kalian susun di atas:</p>
             <div class="form-group">
-              <label for="abs-kept"><strong>Data / Atribut Utama yang WAJIB Disimpan dalam Database:</strong></label>
-              <textarea id="abs-kept" class="doc-textarea" rows="2" placeholder="ID Transaksi, Nama Pelanggan, Daftar Menu Dibelanja, Total Bayar, Waktu Transaksi"></textarea>
-            </div>
-            <div class="form-group margin-top">
-              <label for="abs-ignored"><strong>Detail Informasi yang DIABSTRAKSIKAN (Diabaikan):</strong></label>
-              <textarea id="abs-ignored" class="doc-textarea" rows="2" placeholder="Warna baju pembeli, jenis sepatu, suasana hati pelanggan saat memesan"></textarea>
-            </div>
-          </div>
-
-          <!-- 2.4 Perancangan Algoritma -->
-          <div class="pillar-box margin-top">
-            <h3 class="pillar-heading">2.4 Perancangan Algoritma &amp; Struktur Data</h3>
-
-            <div class="grid-2col">
-              <div class="form-group">
-                <label for="alg-search">Algoritma Searching Yang Dipilih:</label>
-                <select id="alg-search" class="doc-select">
-                  <option value="Linear Search">Linear Search (Pencarian Berurutan)</option>
-                  <option value="Binary Search">Binary Search (Pencarian Bagi Dua - Data Terurut)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="alg-sort">Algoritma Sorting Yang Dipilih:</label>
-                <select id="alg-sort" class="doc-select">
-                  <option value="Bubble Sort">Bubble Sort (Pengurutan Gelembung)</option>
-                  <option value="Selection Sort">Selection Sort (Pengurutan Minimum)</option>
-                  <option value="Quick Sort">Quick Sort (Pengurutan Cepat)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid-2col margin-top">
-              <div class="form-group">
-                <label for="alg-queue-use">Penerapan Queue (FIFO - First In First Out):</label>
-                <textarea id="alg-queue-use" class="doc-input" rows="2" placeholder="Manajemen Antrean Pesanan Dapur / Nomor Berobat Pasien"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="alg-stack-use">Penerapan Stack (LIFO - Last In First Out):</label>
-                <textarea id="alg-stack-use" class="doc-input" rows="2" placeholder="Fitur Undo / Redo Pembatalan Transaksi Kasir"></textarea>
-              </div>
-            </div>
-
-            <div class="form-group margin-top">
-              <label for="alg-pseudocode"><strong>Pseudocode / Notasi Algoritma Alur Utama Sistem:</strong></label>
-              <textarea id="alg-pseudocode" class="doc-textarea font-mono" rows="6" placeholder="ALGORITMA Proses_Pemesanan_Kantin
+              <textarea id="alg-pseudocode" class="doc-textarea font-mono" rows="10" placeholder="ALGORITMA Proses_Pemesanan_Kantin
 START
   INPUT id_menu, jumlah
   CEK stok_menu
@@ -312,7 +244,7 @@ START
   ELSE
      TAMPILKAN 'Stok Tidak Cukup'
   ENDIF
-END"></textarea>
+END">{existingSubmission?.pseudocode_text || ''}</textarea>
             </div>
           </div>
         </section>
@@ -333,7 +265,7 @@ END"></textarea>
             </button>
           ) : (
             <button id="submit-lkpd-btn" class="btn btn-primary btn-lg" type="submit">
-              Kirim Tugas LKPD ke LMS Guru
+              Kirim Tugas LKPD 2 ke LMS Guru
             </button>
           )}
         </div>
@@ -349,7 +281,7 @@ END"></textarea>
         </div>
         <h2 class="modal-title margin-top-sm">Pengumpulan Berhasil!</h2>
         <p class="modal-sub margin-top-xs" style="color: var(--text-secondary); font-size: 0.925rem; line-height: 1.5;">
-          Tugas <strong>LKPD 1 Berpikir Komputasional</strong> tim Anda telah berhasil terkirim dan tersimpan di LMS Guru (Pak Suhendar Aryadi, S.Pd.,Gr.).
+          Tugas <strong>LKPD 2 Flowchart &amp; Pseudocode</strong> tim Anda telah berhasil terkirim dan tersimpan di LMS Guru (Pak Suhendar Aryadi, S.Pd.,Gr.).
         </p>
         <div class="margin-top">
           <button id="success-modal-close-btn" class="btn btn-primary btn-full" type="button">
@@ -361,17 +293,17 @@ END"></textarea>
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ existingSubmission, isPastDeadline, isFormLocked, kkmThreshold: KKM_THRESHOLD }}>
+<script is:inline define:vars={{ existingFlowchartJson: existingSubmission?.flowchart_json || '[]', isPastDeadline, isFormLocked, kkmThreshold: KKM_THRESHOLD }}>
   document.addEventListener('DOMContentLoaded', () => {
     const printBtn = document.getElementById('print-lkpd-btn');
     const form = document.getElementById('lkpd-form');
 
-    // Anti-Paste & Anti-Drop Protection for all LKPD answer inputs & textareas
-    const lkpdFields = document.querySelectorAll('#lkpd-form input, #lkpd-form textarea');
+    // Anti-Paste Protection for text inputs (consistent with LKPD 1)
+    const lkpdFields = document.querySelectorAll('#lkpd-form input[type="text"], #lkpd-form textarea');
     lkpdFields.forEach((field) => {
       field.addEventListener('paste', (e) => {
         e.preventDefault();
-        alert('⚠️ Fitur Paste Dinonaktifkan! Siswa diwajibkan mengetik hasil analisis LKPD secara langsung untuk melatih pemahaman mendalam.');
+        alert('⚠️ Fitur Paste Dinonaktifkan! Siswa diwajibkan mengetik/menyusun hasil analisis LKPD secara langsung untuk melatih pemahaman mendalam.');
         return false;
       });
       field.addEventListener('drop', (e) => {
@@ -380,33 +312,125 @@ END"></textarea>
       });
     });
 
-    // Populate existing fields if available
-    if (existingSubmission) {
-      try {
-        const deco = JSON.parse(existingSubmission.decomposition_json || '[]');
-        if (deco[0]) { document.getElementById('deco-mod-1').value = deco[0].mod || ''; document.getElementById('deco-func-1').value = deco[0].func || ''; }
-        if (deco[1]) { document.getElementById('deco-mod-2').value = deco[1].mod || ''; document.getElementById('deco-func-2').value = deco[1].func || ''; }
-        if (deco[2]) { document.getElementById('deco-mod-3').value = deco[2].mod || ''; document.getElementById('deco-func-3').value = deco[2].func || ''; }
-        if (deco[3]) { document.getElementById('deco-mod-4').value = deco[3].mod || ''; document.getElementById('deco-func-4').value = deco[3].func || ''; }
+    // ===== Flowchart Builder Logic =====
+    const flowCanvas = document.getElementById('flow-canvas');
+    const flowCanvasEmpty = document.getElementById('flow-canvas-empty');
+    const flowDataInput = document.getElementById('flowchart-data');
+    const paletteBtns = document.querySelectorAll('.flow-palette-btn');
 
-        const patt = JSON.parse(existingSubmission.pattern_json || '[]');
-        if (patt[0]) { document.getElementById('patt-name-1').value = patt[0].name || ''; document.getElementById('patt-sol-1').value = patt[0].sol || ''; }
-        if (patt[1]) { document.getElementById('patt-name-2').value = patt[1].name || ''; document.getElementById('patt-sol-2').value = patt[1].sol || ''; }
+    const shapeLabels = { terminal: 'Terminal', io: 'Input/Output', process: 'Proses', decision: 'Decision' };
 
-        const abs = JSON.parse(existingSubmission.abstraction_json || '{}');
-        document.getElementById('abs-kept').value = abs.kept || '';
-        document.getElementById('abs-ignored').value = abs.ignored || '';
-
-        const alg = JSON.parse(existingSubmission.algorithm_json || '{}');
-        document.getElementById('alg-search').value = alg.search || 'Linear Search';
-        document.getElementById('alg-sort').value = alg.sort || 'Bubble Sort';
-        document.getElementById('alg-queue-use').value = alg.queue || '';
-        document.getElementById('alg-stack-use').value = alg.stack || '';
-        document.getElementById('alg-pseudocode').value = alg.pseudocode || '';
-      } catch (err) {
-        console.warn('Error parsing submission data:', err);
-      }
+    let flowItems = [];
+    try {
+      flowItems = JSON.parse(existingFlowchartJson || '[]');
+      if (!Array.isArray(flowItems)) flowItems = [];
+    } catch (e) {
+      flowItems = [];
     }
+
+    function renderFlowCanvas() {
+      // Clear canvas except the empty-state placeholder
+      flowCanvas.innerHTML = '';
+
+      if (flowItems.length === 0) {
+        flowCanvas.appendChild(flowCanvasEmpty);
+        flowDataInput.value = '[]';
+        return;
+      }
+
+      flowItems.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flow-canvas-item';
+
+        const shapeEl = document.createElement('div');
+        shapeEl.className = `flow-shape flow-shape-${item.shape} flow-shape-sm flow-shape-editable`;
+        const shapeSpan = document.createElement('span');
+        shapeSpan.textContent = item.text || `(${shapeLabels[item.shape] || item.shape})`;
+        shapeEl.appendChild(shapeSpan);
+
+        const controls = document.createElement('div');
+        controls.className = 'flow-item-controls';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'flow-ctrl-btn';
+        editBtn.title = 'Edit teks';
+        editBtn.textContent = '✏️';
+        editBtn.addEventListener('click', () => {
+          const newText = prompt(`Isi teks untuk simbol ${shapeLabels[item.shape] || item.shape}:`, item.text || '');
+          if (newText !== null) {
+            flowItems[idx].text = newText.trim();
+            renderFlowCanvas();
+          }
+        });
+
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.className = 'flow-ctrl-btn';
+        upBtn.title = 'Naikkan urutan';
+        upBtn.textContent = '↑';
+        upBtn.disabled = idx === 0;
+        upBtn.addEventListener('click', () => {
+          if (idx > 0) {
+            [flowItems[idx - 1], flowItems[idx]] = [flowItems[idx], flowItems[idx - 1]];
+            renderFlowCanvas();
+          }
+        });
+
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button';
+        downBtn.className = 'flow-ctrl-btn';
+        downBtn.title = 'Turunkan urutan';
+        downBtn.textContent = '↓';
+        downBtn.disabled = idx === flowItems.length - 1;
+        downBtn.addEventListener('click', () => {
+          if (idx < flowItems.length - 1) {
+            [flowItems[idx + 1], flowItems[idx]] = [flowItems[idx], flowItems[idx + 1]];
+            renderFlowCanvas();
+          }
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'flow-ctrl-btn flow-ctrl-delete';
+        delBtn.title = 'Hapus simbol';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', () => {
+          flowItems.splice(idx, 1);
+          renderFlowCanvas();
+        });
+
+        controls.appendChild(editBtn);
+        controls.appendChild(upBtn);
+        controls.appendChild(downBtn);
+        controls.appendChild(delBtn);
+
+        row.appendChild(shapeEl);
+        row.appendChild(controls);
+        flowCanvas.appendChild(row);
+
+        if (idx < flowItems.length - 1) {
+          const arrow = document.createElement('div');
+          arrow.className = 'flow-arrow-down';
+          arrow.innerHTML = '&darr;';
+          flowCanvas.appendChild(arrow);
+        }
+      });
+
+      flowDataInput.value = JSON.stringify(flowItems);
+    }
+
+    paletteBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const shape = btn.getAttribute('data-shape');
+        const text = prompt(`Isi teks/label untuk simbol ${shapeLabels[shape] || shape}:`, '');
+        if (text === null) return; // user cancelled
+        flowItems.push({ shape, text: text.trim() });
+        renderFlowCanvas();
+      });
+    });
+
+    renderFlowCanvas();
 
     printBtn?.addEventListener('click', () => {
       window.print();
@@ -425,50 +449,34 @@ END"></textarea>
         return;
       }
 
+      if (flowItems.length < 5) {
+        alert('⚠️ Susunan flowchart minimal harus terdiri dari 5 simbol. Tambahkan lebih banyak simbol sebelum mengirim.');
+        return;
+      }
+
+      const hasDecision = flowItems.some((it) => it.shape === 'decision');
+      if (!hasDecision) {
+        alert('⚠️ Flowchart wajib mengandung minimal 1 simbol Decision (percabangan kondisi).');
+        return;
+      }
+
       const caseStudyId = document.getElementById('case-study-select').value;
       const teamName = document.getElementById('team-name').value;
-
-      const decomposition = [
-        { mod: document.getElementById('deco-mod-1').value, func: document.getElementById('deco-func-1').value },
-        { mod: document.getElementById('deco-mod-2').value, func: document.getElementById('deco-func-2').value },
-        { mod: document.getElementById('deco-mod-3').value, func: document.getElementById('deco-func-3').value },
-        { mod: document.getElementById('deco-mod-4').value, func: document.getElementById('deco-func-4').value }
-      ];
-
-      const pattern = [
-        { name: document.getElementById('patt-name-1').value, sol: document.getElementById('patt-sol-1').value },
-        { name: document.getElementById('patt-name-2').value, sol: document.getElementById('patt-sol-2').value }
-      ];
-
-      const abstraction = {
-        kept: document.getElementById('abs-kept').value,
-        ignored: document.getElementById('abs-ignored').value
-      };
-
-      const algorithm = {
-        search: document.getElementById('alg-search').value,
-        sort: document.getElementById('alg-sort').value,
-        queue: document.getElementById('alg-queue-use').value,
-        stack: document.getElementById('alg-stack-use').value,
-        pseudocode: document.getElementById('alg-pseudocode').value
-      };
+      const pseudocode = document.getElementById('alg-pseudocode').value;
 
       const submitBtn = document.getElementById('submit-lkpd-btn');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Mengirim LKPD...';
 
       try {
-        const res = await fetch('/api/lkpd/submit', {
+        const res = await fetch('/api/lkpd/submit-flowchart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             caseStudyId,
             teamName,
-            teamMembers: [],
-            decomposition,
-            pattern,
-            abstraction,
-            algorithm
+            flowchart: flowItems,
+            pseudocode
           })
         });
 
@@ -492,7 +500,7 @@ END"></textarea>
         alert('❌ Error koneksi ke server.');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Kirim Tugas LKPD ke LMS Guru';
+        submitBtn.textContent = 'Kirim Tugas LKPD 2 ke LMS Guru';
       }
     });
   });
@@ -716,13 +724,13 @@ END"></textarea>
     line-height: 1.45;
   }
 
-  textarea.doc-table-input, textarea.doc-input, .doc-textarea {
+  textarea.doc-input, .doc-textarea {
     resize: vertical;
     field-sizing: content;
     min-height: 52px;
   }
 
-  .doc-input:focus, .doc-select:focus, .doc-textarea:focus, .doc-table-input:focus {
+  .doc-input:focus, .doc-select:focus, .doc-textarea:focus {
     outline: none;
     border-color: #0891b2;
     background: #ffffff;
@@ -752,36 +760,6 @@ END"></textarea>
     margin-bottom: 0.75rem;
   }
 
-  .doc-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-  }
-
-  .doc-table th {
-    background: #e2e8f0;
-    color: #1e293b;
-    text-align: left;
-    padding: 0.6rem 0.75rem;
-    font-size: 0.775rem;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-
-  .doc-table td {
-    padding: 0.4rem 0.5rem;
-    border-bottom: 1px solid #cbd5e1;
-  }
-
-  .doc-table-input {
-    width: 100%;
-    background: #ffffff;
-  }
-
-  .text-center {
-    text-align: center;
-  }
-
   .doc-actions {
     display: flex;
     justify-content: center;
@@ -792,6 +770,162 @@ END"></textarea>
     padding: 0.75rem 2rem;
     font-size: 1rem;
     font-weight: 800;
+  }
+
+  /* ===== Flowchart Builder Workspace ===== */
+  .flowchart-builder {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .flow-palette,
+  .flow-canvas-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .flow-palette-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  .flow-palette-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .flow-palette-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .flow-palette-btn:hover .flow-shape {
+    filter: brightness(0.97);
+    transform: translateY(-1px);
+  }
+
+  .flow-canvas {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .flow-canvas-empty {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    text-align: center;
+    margin: auto;
+  }
+
+  .flow-canvas-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .flow-shape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0f172a;
+    min-height: 2.75rem;
+    min-width: 130px;
+    text-align: center;
+    line-height: 1.3;
+    transition: transform 0.15s ease;
+  }
+
+  .flow-shape-sm {
+    min-width: 110px;
+    min-height: 2.4rem;
+    font-size: 0.7rem;
+    padding: 0.45rem 0.7rem;
+  }
+
+  .flow-shape-editable {
+    cursor: default;
+    word-break: break-word;
+  }
+
+  .flow-shape-terminal {
+    background: #e0f2fe;
+    border: 2px solid #0891b2;
+    border-radius: 999px;
+  }
+
+  .flow-shape-io {
+    background: #cffafe;
+    border: 2px solid #06b6d4;
+    clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .flow-shape-process {
+    background: #f1f5f9;
+    border: 2px solid #64748b;
+    border-radius: 0.25rem;
+  }
+
+  .flow-shape-decision {
+    background: #fef3c7;
+    border: 2px solid #f59e0b;
+    border-radius: 0.75rem;
+  }
+
+  .flow-arrow-down {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 700;
+  }
+
+  .flow-item-controls {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .flow-ctrl-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.35rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: #334155;
+  }
+
+  .flow-ctrl-btn:hover:not(:disabled) {
+    background: #e2e8f0;
+  }
+
+  .flow-ctrl-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .flow-ctrl-delete {
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.3);
   }
 
   /* Mobile Responsive Form UX (< 768px) */
@@ -864,7 +998,7 @@ END"></textarea>
       font-size: 0.8rem;
     }
 
-    .identity-grid, .grid-2col {
+    .identity-grid {
       grid-template-columns: 1fr;
       gap: 0.875rem;
     }
@@ -873,45 +1007,22 @@ END"></textarea>
       padding: 1rem 0.75rem;
     }
 
-    /* Transform Tables into Stacked Form Card Blocks on Mobile */
-    .doc-table, .doc-table tbody, .doc-table tr, .doc-table td {
-      display: block;
-      width: 100% !important;
-      box-sizing: border-box;
+    .flowchart-builder {
+      grid-template-columns: 1fr;
     }
 
-    .doc-table thead {
-      display: none;
+    .flow-palette-grid {
+      flex-direction: row;
+      flex-wrap: wrap;
     }
 
-    .doc-table tr {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: var(--radius-md);
-      padding: 0.875rem;
-      margin-bottom: 0.875rem;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-    }
-
-    .doc-table td {
-      padding: 0.35rem 0;
-      border-bottom: none;
-    }
-
-    .doc-table td.text-center {
-      font-weight: 800;
-      color: #0891b2;
-      font-size: 0.875rem;
-      margin-bottom: 0.35rem;
-      text-align: left;
-    }
-
-    .doc-table td.text-center::before {
-      content: "ITEM ANALISIS #";
+    .flow-palette-btn {
+      width: auto;
+      flex: 1 1 45%;
     }
 
     /* 16px Font Size on Mobile to Prevent Auto-Zoom & Enable Touch Ergonomics */
-    .doc-input, .doc-select, .doc-textarea, .doc-table-input {
+    .doc-input, .doc-select, .doc-textarea {
       font-size: 16px !important;
       padding: 0.65rem 0.85rem;
       min-height: 44px;
@@ -1024,6 +1135,9 @@ END"></textarea>
       box-shadow: none !important;
       border: none !important;
       padding: 1rem !important;
+    }
+    .flow-item-controls {
+      display: none !important;
     }
   }
 </style>
