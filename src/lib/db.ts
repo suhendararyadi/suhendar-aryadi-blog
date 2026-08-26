@@ -129,6 +129,22 @@ const CREATE_TABLES_PG = `
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS lkpd_email_submissions (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    case_study_id VARCHAR(50) NOT NULL,
+    recipient_to VARCHAR(255) NOT NULL,
+    recipient_cc VARCHAR(255) DEFAULT '',
+    subject_text TEXT NOT NULL,
+    body_text TEXT NOT NULL,
+    attachment_name VARCHAR(255) DEFAULT '',
+    attachment_link TEXT DEFAULT '',
+    score INT DEFAULT NULL,
+    teacher_feedback TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS course_enrollments (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,

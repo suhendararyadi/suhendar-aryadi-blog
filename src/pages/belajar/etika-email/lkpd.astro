@@ -1,0 +1,1133 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { query } from '../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect(`/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const KKM = 75;
+
+// Fetch active student submission
+let userSubmission: any = null;
+try {
+  const subRes = await query(
+    `SELECT * FROM lkpd_email_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+  if (subRes.rows && subRes.rows.length > 0) {
+    userSubmission = subRes.rows[0];
+  }
+} catch (e) {
+  console.warn('Error fetching email submission:', e);
+}
+
+const currentScore = userSubmission?.score !== null && userSubmission?.score !== undefined ? parseInt(userSubmission.score, 10) : null;
+const isKkmPassed = currentScore !== null && currentScore >= KKM;
+const isUnderRemediation = currentScore !== null && currentScore < KKM;
+const isFormLocked = isKkmPassed;
+
+const caseStudies = [
+  {
+    id: 'tugas-flowchart',
+    title: 'Studi Kasus 1: Pengumpulan Revisi Tugas LKPD Flowchart',
+    category: 'Akademik / Sekolah',
+    badgeClass: 'badge-purple',
+    scenario: 'Anda baru saja menyelesaikan perbaikan (revisi) tugas LKPD 2 Flowchart & Pseudocode. Anda diminta mengirimkan berkas diagram alir (format PDF) dan ringkasan perbaikan langsung kepada Guru Pengampu (Pak Suhendar Aryadi, S.Pd.,Gr.). Tembusan (Cc) dikirimkan kepada Guru Pendamping (Pak Sopiyudin Latif).',
+    defaultTo: 'suhendararyadi@guru.smk.belajar.id',
+    defaultCc: 'sopiyudinlatif05@guru.smk.belajar.id',
+    suggestedSubject: `[${user.class_name || '10 RPL 3'}] Pengumpulan Revisi Tugas LKPD 2 Flowchart - ${user.name}`,
+    attachmentPlaceholder: `LKPD2_Flowchart_${user.name.replace(/\s+/g, '')}_${(user.class_name || '10RPL3').replace(/\s+/g, '')}.pdf`
+  },
+  {
+    id: 'izin-kendala',
+    title: 'Studi Kasus 2: Permohonan Dispensasi & Laporan Kendala Teknis Lab',
+    category: 'Etika Komunikasi Izin',
+    badgeClass: 'badge-cyan',
+    scenario: 'Saat praktikum berlangsung, komputer lab Anda mengalami kegagalan sistem (OS crash) sehingga berkas proyek belum sempat diunggah tepat waktu sebelum bel pulang. Anda diminta menyusun email permohonan dispensasi perpanjangan waktu pengumpulan (1x24 jam) kepada Guru Pengampu dengan bahasa yang santun, menjelaskan kronologi secara jujur, dan melampirkan foto kendala layar eror.',
+    defaultTo: 'suhendararyadi@guru.smk.belajar.id',
+    defaultCc: '',
+    suggestedSubject: `[${user.class_name || '10 RPL 3'}] Permohonan Dispensasi & Laporan Kendala Lab - ${user.name}`,
+    attachmentPlaceholder: `Bukti_Kendala_PC08_LabRPL_${user.name.replace(/\s+/g, '')}.jpg`
+  },
+  {
+    id: 'lamaran-magang',
+    title: 'Studi Kasus 3: Surat Pengantar Permohonan Magang PKL Industri',
+    category: 'Dunia Kerja & PKL',
+    badgeClass: 'badge-amber',
+    scenario: 'Anda mewakili diri sendiri untuk mengajukan permohonan tempat Praktik Kerja Lapangan (PKL) / Magang di PT Solusi Inovasi Digital (Software House). Anda diminta mengirimkan surat pengantar formal kepada HRD (Ibu Maya Lestari), memperkenalkan keahlian dasar Anda di bidang RPL (HTML, CSS, JS, Python, SQL), dan melampirkan berkas CV Portofolio dalam format PDF.',
+    defaultTo: 'hrd@solusidigital.id',
+    defaultCc: 'hubin.smk@sekolah.sch.id',
+    suggestedSubject: `[Lamaran PKL RPL] Permohonan Magang Siswa SMK - ${user.name}`,
+    attachmentPlaceholder: `CV_Portofolio_${user.name.replace(/\s+/g, '')}_RPL.pdf`
+  }
+];
+---
+
+<MainLayout
+  title="LKPD Praktik: Simulator Email Profesional | Informatika SMK"
+  description="Lembar Kerja Peserta Didik (LKPD) Interaktif: Praktik Menulis Surat Elektronik Formal Berstandar Industri dengan Real-time Etiquette Inspector."
+>
+  <div class="lkpd-page-container">
+    <!-- Top Navigation -->
+    <div class="page-top-nav">
+      <a href="/belajar/etika-email" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Materi Etika Email
+      </a>
+      <div class="top-nav-right">
+        <span class="badge badge-purple">LKPD SOFTSKILL</span>
+        <span class="badge badge-role">SIMULATOR KOMPOSER</span>
+      </div>
+    </div>
+
+    <!-- Student Info & Grading Status Banner -->
+    <div class="student-header glass-card">
+      <div class="header-content">
+        <div class="user-meta">
+          <div class="avatar-box">{user.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <h1 class="student-title">{user.name}</h1>
+            <p class="student-sub">
+              Kelas: <strong>{user.class_name || '10 RPL'}</strong> | Email: <code>{user.email}</code>
+            </p>
+          </div>
+        </div>
+
+        <div class="score-badge-wrap">
+          {currentScore !== null ? (
+            <div class={`score-card ${isKkmPassed ? 'score-pass' : 'score-remedial'}`}>
+              <div class="score-num">{currentScore}<span>/100</span></div>
+              <span class="score-label">
+                {isKkmPassed ? 'TUNTAS KKM (TERKUNCI)' : 'PERLU PERBAIKAN (< 75)'}
+              </span>
+            </div>
+          ) : userSubmission ? (
+            <div class="score-card score-pending">
+              <div class="score-num">-<span>/100</span></div>
+              <span class="score-label">MENUNGGU PENILAIAN GURU</span>
+            </div>
+          ) : (
+            <div class="score-card score-new">
+              <div class="score-num">0<span>/100</span></div>
+              <span class="score-label">BELUM MENGUMPULKAN</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <!-- Teacher Feedback Alert if exists -->
+      {userSubmission?.teacher_feedback && (
+        <div class="teacher-feedback-alert">
+          <div class="tf-title">Catatan &amp; Umpan Balik Guru:</div>
+          <p class="tf-text">{userSubmission.teacher_feedback}</p>
+        </div>
+      )}
+
+      {isUnderRemediation && (
+        <div class="remedial-banner">
+          ⚠️ <strong>Catatan Perbaikan:</strong> Nilai Anda belum mencapai KKM ({currentScore}/100 &lt; {KKM}). Perhatikan catatan guru dan perbaiki subjek, salam, atau struktur badan email Anda di bawah ini, lalu klik <strong>"Kirim Ulang Simulasi Email"</strong>.
+        </div>
+      )}
+
+      {isFormLocked && (
+        <div class="locked-banner">
+          ✅ <strong>Tugas Selesai &amp; Kompeten:</strong> Anda telah mencapai batas KKM ({currentScore}/100 &ge; {KKM}). Formulir telah dikunci sebagai rekap nilai resmi Anda.
+        </div>
+      )}
+    </div>
+
+    <!-- Case Study Selection -->
+    <div class="section-title">
+      <h2>1. Pilih Studi Kasus Praktik</h2>
+      <p>Pilih salah satu skenario nyata yang ingin Anda kerjakan pada lembar kerja ini:</p>
+    </div>
+
+    <div class="case-grid">
+      {caseStudies.map((cs, idx) => (
+        <div 
+          class={`case-card glass-card ${userSubmission?.case_study_id === cs.id || (!userSubmission && idx === 0) ? 'case-active' : ''}`}
+          data-case-id={cs.id}
+          data-to={cs.defaultTo}
+          data-cc={cs.defaultCc}
+          data-subject={cs.suggestedSubject}
+          data-attachment={cs.attachmentPlaceholder}
+        >
+          <div class="case-card-top">
+            <span class={`badge ${cs.badgeClass}`}>{cs.category}</span>
+            <span class="case-select-indicator">PILIH SKENARIO</span>
+          </div>
+          <h3 class="case-card-title">{cs.title}</h3>
+          <p class="case-card-scenario">{cs.scenario}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Interactive Email Client Simulation -->
+    <div class="section-title margin-top-lg">
+      <h2>2. Komposer Email Interaktif (Email Simulator)</h2>
+      <p>Tuliskan surel formal Anda pada jendela komposer di bawah ini. Perhatikan indikator evaluasi real-time di samping formulir:</p>
+    </div>
+
+    <div class="workspace-layout">
+      <!-- Main Email Window Frame -->
+      <div class="email-window glass-card">
+        <div class="window-topbar">
+          <div class="window-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div class="window-title">Pesan Baru — Komunikasi Resmi Digital</div>
+          <div class="window-actions-dummy">
+            <span>🗕</span>
+            <span>🗖</span>
+            <span>✕</span>
+          </div>
+        </div>
+
+        <form id="email-simulator-form" class="email-form">
+          <!-- Hidden Case Study Input -->
+          <input type="hidden" id="input-case-id" name="caseStudyId" value={userSubmission?.case_study_id || caseStudies[0].id} />
+
+          <!-- From (Readonly) -->
+          <div class="field-row">
+            <label class="field-label" for="input-from">Dari (From):</label>
+            <div class="field-input-wrap">
+              <input type="text" id="input-from" class="field-input readonly-input" value={`${user.name} <${user.email}>`} readonly />
+            </div>
+          </div>
+
+          <!-- To -->
+          <div class="field-row">
+            <label class="field-label" for="input-to">Kepada (To):</label>
+            <div class="field-input-wrap">
+              <input 
+                type="email" 
+                id="input-to" 
+                name="recipientTo"
+                class="field-input" 
+                placeholder="nama.guru@sekolah.sch.id" 
+                value={userSubmission?.recipient_to || caseStudies[0].defaultTo} 
+                required 
+                disabled={isFormLocked}
+              />
+            </div>
+          </div>
+
+          <!-- Cc -->
+          <div class="field-row">
+            <label class="field-label" for="input-cc">Tembusan (Cc):</label>
+            <div class="field-input-wrap">
+              <input 
+                type="text" 
+                id="input-cc" 
+                name="recipientCc"
+                class="field-input" 
+                placeholder="rekan.tim@sekolah.sch.id / guru.pendamping@sekolah.sch.id (Opsional)" 
+                value={userSubmission?.recipient_cc || caseStudies[0].defaultCc} 
+                disabled={isFormLocked}
+              />
+            </div>
+          </div>
+
+          <!-- Subject -->
+          <div class="field-row">
+            <label class="field-label" for="input-subject">Subjek (Subject):</label>
+            <div class="field-input-wrap">
+              <input 
+                type="text" 
+                id="input-subject" 
+                name="subjectText"
+                class="field-input font-medium" 
+                placeholder="[KELAS] - [PERIHAL TUGAS] - [NAMA LENGKAP]" 
+                value={userSubmission?.subject_text || ''} 
+                required 
+                disabled={isFormLocked}
+              />
+            </div>
+          </div>
+
+          <!-- Body Textarea -->
+          <div class="body-field-wrap">
+            <div class="toolbar-hint">
+              <span>✍️ Struktur: (1) Salam Pembuka &rarr; (2) Identitas &amp; Isi &rarr; (3) Penutup &amp; Signature</span>
+              <span id="char-count" class="font-mono text-muted">0 karakter</span>
+            </div>
+            <textarea 
+              id="input-body" 
+              name="bodyText"
+              class="body-textarea" 
+              placeholder={`Yth. Bapak Suhendar Aryadi, S.Pd.,Gr.\nGuru Mata Pelajaran Informatika SMK\n\nSelamat pagi Bapak,\n\nPerkenalkan saya ${user.name} dari kelas ${user.class_name || '10 RPL 3'}. Bersama email ini, saya bermaksud untuk mengumpulkan hasil perbaikan tugas...\n\n(Tuliskan penjelasan isi dan rincian lampiran Anda di sini)\n\nDemikian pesan ini saya sampaikan. Terima kasih banyak atas bimbingan dan arahan Bapak.\n\nHormat saya,\n\n${user.name}\nSiswa Kelas ${user.class_name || '10 RPL 3'}\nSMK Negeri 1 Talaga`} 
+              rows="14" 
+              required
+              disabled={isFormLocked}
+            >{userSubmission?.body_text || ''}</textarea>
+          </div>
+
+          <!-- Attachment Section -->
+          <div class="attachment-box">
+            <div class="att-header">
+              <span>📎 Berkas Lampiran &amp; Tautan Dokumen</span>
+            </div>
+            <div class="att-grid">
+              <div>
+                <label for="input-attachment-name" class="att-label">Nama Berkas Lampiran:</label>
+                <input 
+                  type="text" 
+                  id="input-attachment-name" 
+                  name="attachmentName"
+                  class="field-input font-mono text-sm" 
+                  placeholder={caseStudies[0].attachmentPlaceholder} 
+                  value={userSubmission?.attachment_name || ''} 
+                  disabled={isFormLocked}
+                />
+              </div>
+              <div>
+                <label for="input-attachment-link" class="att-label">Tautan Google Drive / GitHub (Opsional):</label>
+                <input 
+                  type="url" 
+                  id="input-attachment-link" 
+                  name="attachmentLink"
+                  class="field-input font-mono text-sm" 
+                  placeholder="https://drive.google.com/... (Pastikan izin Viewer dibuka)" 
+                  value={userSubmission?.attachment_link || ''} 
+                  disabled={isFormLocked}
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Footer -->
+          <div class="form-footer">
+            <div id="submit-status-msg" class="status-msg"></div>
+            {!isFormLocked ? (
+              <button id="submit-email-btn" type="submit" class="btn btn-primary btn-md">
+                <span>🚀 Kirim Simulasi Email ke LMS Guru</span>
+              </button>
+            ) : (
+              <button type="button" class="btn btn-secondary btn-md" disabled>
+                🔒 Formulir Terkunci (Tuntas KKM)
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      <!-- Live Etiquette Inspector / Linter Widget -->
+      <div class="inspector-pane glass-card">
+        <div class="inspector-header">
+          <span class="badge badge-purple">REAL-TIME EVALUATOR</span>
+          <h3>Etiquette Inspector</h3>
+          <p>Indikator otomatis ini memeriksa kesesuaian email Anda dengan standar etika formal industri sebelum dikirim:</p>
+        </div>
+
+        <div class="checklist-items">
+          <div id="check-subject" class="check-item check-warn">
+            <div class="check-icon">⏳</div>
+            <div class="check-text">
+              <strong>Format Subjek Standar</strong>
+              <span>Memuat kelas dalam kurung siku <code>[10 RPL ...]</code> dan nama tugas.</span>
+            </div>
+          </div>
+
+          <div id="check-salutation" class="check-item check-warn">
+            <div class="check-icon">⏳</div>
+            <div class="check-text">
+              <strong>Salam Pembuka Formal</strong>
+              <span>Terdapat sapaan santun (seperti <em>"Yth."</em>, <em>"Selamat pagi"</em>, atau <em>"Bapak/Ibu"</em>).</span>
+            </div>
+          </div>
+
+          <div id="check-identity" class="check-item check-warn">
+            <div class="check-icon">⏳</div>
+            <div class="check-text">
+              <strong>Perkenalan Identitas Diri</strong>
+              <span>Menyebutkan nama dan kelas/sekolah pada paragraf pembuka.</span>
+            </div>
+          </div>
+
+          <div id="check-signature" class="check-item check-warn">
+            <div class="check-icon">⏳</div>
+            <div class="check-text">
+              <strong>Salam Penutup &amp; Signature</strong>
+              <span>Terdapat salam resmi (<em>"Hormat saya"</em> / <em>"Salam takzim"</em>) dan identitas pengirim di akhir.</span>
+            </div>
+          </div>
+
+          <div id="check-slang" class="check-item check-pass">
+            <div class="check-icon">✅</div>
+            <div class="check-text">
+              <strong>Bebas Singkatan &amp; Slang Chat</strong>
+              <span id="slang-desc">Tidak terdeteksi singkatan kasual chat (seperti <em>p, gw, lu, klo, bgt, gmn</em>).</span>
+            </div>
+          </div>
+
+          <div id="check-attachment" class="check-item check-warn">
+            <div class="check-icon">⏳</div>
+            <div class="check-text">
+              <strong>Nama Berkas Terstruktur</strong>
+              <span>Nama file lampiran jelas dan tidak acak (misal: memuat nama &amp; kelas).</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tips-box">
+          <div class="tips-title">💡 Tips Guru:</div>
+          <p>Email profesional yang baik tidak bertele-tele namun tetap menghormati tata krama. Pastikan sebelum menekan tombol kirim, Anda telah membaca ulang (*proofreading*) seluruh kalimat.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('email-simulator-form');
+    const caseCards = document.querySelectorAll('.case-card');
+    const caseInput = document.getElementById('input-case-id');
+    const toInput = document.getElementById('input-to');
+    const ccInput = document.getElementById('input-cc');
+    const subjectInput = document.getElementById('input-subject');
+    const bodyInput = document.getElementById('input-body');
+    const attNameInput = document.getElementById('input-attachment-name');
+    const charCount = document.getElementById('char-count');
+    const submitBtn = document.getElementById('submit-email-btn');
+    const statusMsg = document.getElementById('submit-status-msg');
+
+    // Inspector elements
+    const checkSubject = document.getElementById('check-subject');
+    const checkSalutation = document.getElementById('check-salutation');
+    const checkIdentity = document.getElementById('check-identity');
+    const checkSignature = document.getElementById('check-signature');
+    const checkSlang = document.getElementById('check-slang');
+    const slangDesc = document.getElementById('slang-desc');
+    const checkAttachment = document.getElementById('check-attachment');
+
+    // Handle Case Card Selection
+    caseCards.forEach((card) => {
+      card.addEventListener('click', () => {
+        if (form.querySelector('input:disabled')) return; // Locked form
+        caseCards.forEach((c) => c.classList.remove('case-active'));
+        card.classList.add('case-active');
+
+        const caseId = card.getAttribute('data-case-id');
+        const defTo = card.getAttribute('data-to');
+        const defCc = card.getAttribute('data-cc');
+        const defSub = card.getAttribute('data-subject');
+        const defAtt = card.getAttribute('data-attachment');
+
+        if (caseInput) caseInput.value = caseId;
+        if (toInput && (!toInput.value || toInput.value === 'suhendararyadi@guru.smk.belajar.id' || toInput.value === 'hrd@solusidigital.id')) {
+          toInput.value = defTo;
+        }
+        if (ccInput && (!ccInput.value || ccInput.value === 'sopiyudinlatif05@guru.smk.belajar.id' || ccInput.value === 'hubin.smk@sekolah.sch.id')) {
+          ccInput.value = defCc;
+        }
+        if (subjectInput && (!subjectInput.value || subjectInput.value.includes('Pengumpulan') || subjectInput.value.includes('Permohonan'))) {
+          subjectInput.value = defSub;
+        }
+        if (attNameInput && !attNameInput.value) {
+          attNameInput.placeholder = defAtt;
+        }
+        runInspector();
+      });
+    });
+
+    // Real-time Etiquette Inspector Logic
+    const bannedSlangs = ['gw', 'gue', 'lu', 'lo', 'klo', 'kalo', 'bgt', 'banget', 'gmn', 'gimana', 'tks', 'thx', 'thanks', 'makasih', 'mksih', 'oy', 'oi', 'gan', 'bro', 'sis', 'dgn', 'dg', 'yg', 'utk', 'pls', 'please', '^p$'];
+
+    function runInspector() {
+      const sub = (subjectInput?.value || '').trim();
+      const body = (bodyInput?.value || '').trim();
+      const att = (attNameInput?.value || '').trim();
+
+      if (charCount) {
+        charCount.textContent = `${body.length} karakter`;
+      }
+
+      // 1. Check Subject Formula [KELAS] ...
+      const subRegex = /\[.*?(rpl|x|xi|xii|\d).*?\].+/i;
+      if (sub.length > 5 && subRegex.test(sub)) {
+        setCheck(checkSubject, true, 'Subjek Sesuai Formula Baku', 'Memuat label kelas dalam kurung siku dan perihal yang jelas.');
+      } else {
+        setCheck(checkSubject, false, 'Format Subjek Belum Tepat', 'Gunakan format: [KELAS] - [PERIHAL TUGAS] - [NAMA LENGKAP].');
+      }
+
+      // 2. Check Salutation
+      const bodyLower = body.toLowerCase();
+      const salutationRegex = /(yth\.|selamat\s+(pagi|siang|sore|malam)|assalamu|kepada\s+yth|dear)/i;
+      if (salutationRegex.test(bodyLower)) {
+        setCheck(checkSalutation, true, 'Salam Pembuka Santun', 'Terdeteksi sapaan pembuka formal yang sopan.');
+      } else {
+        setCheck(checkSalutation, false, 'Salam Pembuka Belum Ada', 'Awali dengan "Yth. Bapak/Ibu..." atau "Selamat pagi...".');
+      }
+
+      // 3. Check Identity Introduction
+      const identityRegex = /(saya|nama\s+saya|perkenalkan|dari\s+kelas|siswa\s+kelas)/i;
+      if (identityRegex.test(bodyLower) && body.length > 30) {
+        setCheck(checkIdentity, true, 'Perkenalan Identitas Lengkap', 'Menyebutkan identitas diri dan kelas secara jelas.');
+      } else {
+        setCheck(checkIdentity, false, 'Perkenalan Identitas Belum Jelas', 'Tuliskan perkenalan nama dan kelas di paragraf pertama.');
+      }
+
+      // 4. Check Signature
+      const signRegex = /(hormat\s+saya|salam\s+takzim|wassalamu|terima\s+kasih)/i;
+      const hasSign = signRegex.test(bodyLower) && body.split('\n').length >= 3;
+      if (hasSign) {
+        setCheck(checkSignature, true, 'Salam Penutup & Signature Terisi', 'Terdapat penutup resmi dan blok tanda tangan.');
+      } else {
+        setCheck(checkSignature, false, 'Signature Penutup Belum Lengkap', 'Tutup dengan "Hormat saya," diikuti nama lengkap & kelas Anda.');
+      }
+
+      // 5. Check Slang words
+      const words = bodyLower.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);
+      const foundSlangs = [];
+      words.forEach((w) => {
+        if (bannedSlangs.includes(w) && !foundSlangs.includes(w)) {
+          foundSlangs.push(w);
+        }
+      });
+
+      if (foundSlangs.length === 0) {
+        setCheck(checkSlang, true, 'Bebas Singkatan & Slang Chat', 'Pilihan kata menggunakan bahasa Indonesia baku yang baik.');
+      } else {
+        setCheck(checkSlang, false, `Terdeteksi ${foundSlangs.length} Kata Slang Chat`, `Hindari kata tidak baku: "${foundSlangs.slice(0, 3).join('", "')}".`);
+      }
+
+      // 6. Check Attachment Naming
+      const badAttRegex = /(screenshot|fix_bgt|final_2|untitled|image|foto)/i;
+      if (att.length > 4 && !badAttRegex.test(att) && att.includes('.')) {
+        setCheck(checkAttachment, true, 'Nama Lampiran Profesional', `Berkas "${att}" terstruktur rapi.`);
+      } else if (att.length > 0) {
+        setCheck(checkAttachment, false, 'Nama Lampiran Kurang Rapi', 'Gunakan format: LKPD2_NamaTugas_NamaSiswa_Kelas.pdf');
+      } else {
+        setCheck(checkAttachment, false, 'Lampiran Belum Diberi Nama', 'Tuliskan nama berkas lampiran yang akan dikirim.');
+      }
+    }
+
+    function setCheck(el, isPass, title, desc) {
+      if (!el) return;
+      el.className = isPass ? 'check-item check-pass' : 'check-item check-warn';
+      const icon = el.querySelector('.check-icon');
+      const titleEl = el.querySelector('.check-text strong');
+      const descEl = el.querySelector('.check-text span');
+      if (icon) icon.textContent = isPass ? '✅' : '⏳';
+      if (titleEl) titleEl.textContent = title;
+      if (descEl) descEl.textContent = desc;
+    }
+
+    subjectInput?.addEventListener('input', runInspector);
+    bodyInput?.addEventListener('input', runInspector);
+    attNameInput?.addEventListener('input', runInspector);
+
+    // Initial Run
+    runInspector();
+
+    // Handle Form Submit
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!confirm('Apakah Anda yakin seluruh format subjek, salam, dan isi email sudah benar sesuai etika profesional?')) {
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengirim Simulasi Email...';
+      }
+      if (statusMsg) {
+        statusMsg.textContent = '';
+        statusMsg.className = 'status-msg';
+      }
+
+      const payload = {
+        caseStudyId: caseInput?.value || 'tugas-flowchart',
+        recipientTo: toInput?.value || '',
+        recipientCc: ccInput?.value || '',
+        subjectText: subjectInput?.value || '',
+        bodyText: bodyInput?.value || '',
+        attachmentName: attNameInput?.value || '',
+        attachmentLink: document.getElementById('input-attachment-link')?.value || ''
+      };
+
+      try {
+        const res = await fetch('/api/lkpd/submit-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          if (statusMsg) {
+            statusMsg.className = 'status-msg status-success';
+            statusMsg.textContent = '✅ ' + data.message;
+          }
+          alert('Selamat! Simulasi Email Profesional Anda berhasil dikirim ke Guru untuk dinilai.');
+          window.location.reload();
+        } else {
+          if (statusMsg) {
+            statusMsg.className = 'status-msg status-error';
+            statusMsg.textContent = '❌ ' + (data.error || 'Gagal mengirim email.');
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🚀 Kirim Simulasi Email ke LMS Guru';
+          }
+        }
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.className = 'status-msg status-error';
+          statusMsg.textContent = '❌ Terjadi kesalahan jaringan. Silakan coba lagi.';
+        }
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '🚀 Kirim Simulasi Email ke LMS Guru';
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .lkpd-page-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .top-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .student-header {
+    padding: 1.75rem 2rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .user-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .avatar-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .student-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .student-sub {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+  }
+
+  .score-badge-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  .score-card {
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .score-pass {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #86efac;
+  }
+
+  .score-remedial {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fcd34d;
+  }
+
+  .score-pending {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.4);
+    color: #67e8f9;
+  }
+
+  .score-new {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-muted);
+  }
+
+  .score-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1;
+    font-family: var(--font-mono);
+  }
+
+  .score-num span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+
+  .score-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .teacher-feedback-alert {
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+  }
+
+  .tf-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 0.3rem;
+  }
+
+  .tf-text {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  .remedial-banner {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fef08a;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8875rem;
+    line-height: 1.5;
+  }
+
+  .locked-banner {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #bbf7d0;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8875rem;
+  }
+
+  .section-title h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .section-title p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+  }
+
+  .margin-top-lg {
+    margin-top: 1.5rem;
+  }
+
+  .case-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 850px) {
+    .case-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .case-card {
+    padding: 1.4rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+
+  .case-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-color);
+  }
+
+  .case-active {
+    border-color: var(--accent-purple) !important;
+    background: rgba(168, 85, 247, 0.08) !important;
+  }
+
+  .case-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .case-select-indicator {
+    font-size: 0.725rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .case-active .case-select-indicator {
+    color: var(--accent-purple);
+  }
+
+  .case-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .case-card-scenario {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .workspace-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 950px) {
+    .workspace-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .email-window {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .window-topbar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .window-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+
+  .dot-red { background: #ef4444; }
+  .dot-yellow { background: #f59e0b; }
+  .dot-green { background: #10b981; }
+
+  .window-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .window-actions-dummy {
+    display: flex;
+    gap: 0.65rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  .email-form {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.65rem;
+  }
+
+  .field-label {
+    width: 140px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .field-input-wrap {
+    flex-grow: 1;
+  }
+
+  .field-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.925rem;
+    outline: none;
+  }
+
+  .field-input:focus {
+    color: #fff;
+  }
+
+  .readonly-input {
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .font-medium {
+    font-weight: 600;
+  }
+
+  .body-field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .toolbar-hint {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.775rem;
+    color: var(--text-muted);
+  }
+
+  .body-textarea {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    color: var(--text-primary);
+    font-size: 0.925rem;
+    line-height: 1.6;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .body-textarea:focus {
+    border-color: var(--accent-purple);
+  }
+
+  .attachment-box {
+    background: rgba(148, 163, 184, 0.05);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .att-header {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .att-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 650px) {
+    .att-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .att-label {
+    display: block;
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .text-sm {
+    font-size: 0.825rem !important;
+    background: var(--bg-surface) !important;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-sm);
+  }
+
+  .form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .status-msg {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .status-success { color: #86efac; }
+  .status-error { color: #fca5a5; }
+
+  /* Inspector Widget */
+  .inspector-pane {
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .inspector-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.35rem;
+  }
+
+  .inspector-header p {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+  }
+
+  .check-pass {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .check-warn {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  .check-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .check-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .check-text strong {
+    color: var(--text-primary);
+    font-size: 0.825rem;
+  }
+
+  .check-text span {
+    color: var(--text-secondary);
+    font-size: 0.775rem;
+    line-height: 1.4;
+  }
+
+  .check-text code {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-size: 0.75rem;
+  }
+
+  .tips-box {
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .tips-title {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--accent-purple);
+    margin-bottom: 0.25rem;
+  }
+
+  .tips-box p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+</style>

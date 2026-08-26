@@ -106,7 +106,25 @@ try {
   console.warn('Error fetching Flowchart LKPD submissions:', err);
 }
 
-const allSubmissionsWithFlowchart = [...allSubmissions, ...flowchartSubmissions];
+let emailSubmissions: any[] = [];
+try {
+  const res = await query(
+    `SELECT s.*, u.name as student_name, u.email as student_email, u.class_name
+     FROM lkpd_email_submissions s
+     JOIN users u ON s.user_id = u.id
+     ORDER BY s.updated_at DESC`
+  );
+  if (res.rows) {
+    emailSubmissions = res.rows.map(row => ({
+      ...row,
+      moduleType: 'EMAIL'
+    }));
+  }
+} catch (err) {
+  console.warn('Error fetching Email LKPD submissions:', err);
+}
+
+const allSubmissionsWithFlowchart = [...allSubmissions, ...flowchartSubmissions, ...emailSubmissions];
 
 // Get unique classes for filter dropdown
 const uniqueClasses = Array.from(new Set(allSubmissionsWithFlowchart.map(s => s.class_name || 'X RPL'))).sort();
@@ -198,6 +216,11 @@ try {
           <span class="tab-badge badge badge-cyan">LKPD TIK</span>
           <span class="tab-title">TIK: Mail Merge &amp; Search</span>
           <span class="tab-count-pill" id="tik-count-pill">{tikSubmissions.length}</span>
+        </button>
+        <button id="tab-btn-email" class="tab-nav-item" type="button" data-module="EMAIL">
+          <span class="tab-badge badge badge-purple">SOFTSKILL</span>
+          <span class="tab-title">Etika Email</span>
+          <span class="tab-count-pill" id="email-count-pill">{emailSubmissions.length}</span>
         </button>
       </div>
     </div>
@@ -619,6 +642,122 @@ try {
           </div>
         ))}
 
+        <!-- Render Email Submissions -->
+        {emailSubmissions.map((item) => (
+          <div 
+            class="submission-card glass-card module-card-email"
+            data-module="EMAIL"
+            data-class={item.class_name || '10 RPL'}
+            data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
+            data-search={`${item.student_name} ${item.student_email} ${item.subject_text || ''}`.toLowerCase()}
+          >
+            <div class="sub-card-header">
+              <div>
+                <span class="badge badge-purple">SIMULASI EMAIL</span>
+                <span class="badge badge-cyan">{item.class_name || '10 RPL'}</span>
+                <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
+                <span class="sub-team-name">
+                  Kepada: <strong>{item.recipient_to}</strong> {item.recipient_cc && <>| Cc: <strong>{item.recipient_cc}</strong></>} | Kasus: <strong>{(item.case_study_id || '').toUpperCase()}</strong>
+                </span>
+              </div>
+              <div class="sub-score-box">
+                {item.score !== null ? (
+                  <span class={`badge ${item.score >= 75 ? 'badge-green' : 'badge-amber'}`}>Nilai: {item.score} / 100</span>
+                ) : (
+                  <span class="badge badge-amber">Belum Dinilai</span>
+                )}
+              </div>
+            </div>
+
+            <!-- Quick Overview -->
+            <div class="sub-quick-preview">
+              <div class="quick-item flex-1">
+                <strong>Subjek Email:</strong>
+                <span class="font-mono">{item.subject_text || '-'}</span>
+              </div>
+              {item.attachment_name && (
+                <div class="quick-item">
+                  <strong>Lampiran:</strong>
+                  <span class="font-mono">{item.attachment_name}</span>
+                </div>
+              )}
+            </div>
+
+            <!-- Collapsible Full Detail Drawer Button -->
+            <div class="detail-toggle-bar">
+              <button class="btn-toggle-detail" type="button" data-target={`detail-email-${item.id}`}>
+                <span>Tampilkan Isi Lengkap Pesan Email</span>
+                <span class="arrow-icon">&darr;</span>
+              </button>
+            </div>
+
+            <!-- Full Detail Drawer EMAIL -->
+            <div id={`detail-email-${item.id}`} class="detail-drawer" style="display: none;">
+              <div class="detail-section">
+                <h4 class="detail-sec-title">1. Header Surel Resmi</h4>
+                <div class="detail-grid-2">
+                  <div class="detail-box">
+                    <strong>Penerima (To):</strong>
+                    <p class="font-mono">{item.recipient_to}</p>
+                  </div>
+                  <div class="detail-box">
+                    <strong>Tembusan (Cc):</strong>
+                    <p class="font-mono">{item.recipient_cc || 'Tidak ada tembusan'}</p>
+                  </div>
+                </div>
+                <div class="detail-box margin-top-xs">
+                  <strong>Subjek (Subject):</strong>
+                  <p class="font-mono font-medium">{item.subject_text}</p>
+                </div>
+              </div>
+
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">2. Badan Pesan Email (Body)</h4>
+                <div class="detail-box">
+                  <pre class="email-body-preview font-mono" style="white-space: pre-wrap; line-height: 1.6; background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">{item.body_text}</pre>
+                </div>
+              </div>
+
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">3. Lampiran Berkas &amp; Tautan Dokumen</h4>
+                <div class="detail-grid-2">
+                  <div class="detail-box">
+                    <strong>Nama Berkas Lampiran:</strong>
+                    <p class="font-mono">{item.attachment_name || '-'}</p>
+                  </div>
+                  <div class="detail-box">
+                    <strong>Tautan Cloud (Drive/GitHub):</strong>
+                    {item.attachment_link ? (
+                      <p><a href={item.attachment_link} target="_blank" rel="noopener noreferrer" class="link-accent font-mono" style="color: var(--accent-cyan); text-decoration: underline;">{item.attachment_link} &nearr;</a></p>
+                    ) : (
+                      <p class="text-muted">Tidak ada tautan eksternal</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grading Form EMAIL -->
+            <div class="grading-form-wrap">
+              <form class="grade-form" data-id={item.id} data-endpoint="/api/admin/grade-lkpd-email">
+                <div class="grade-inputs-row">
+                  <div class="input-group">
+                    <label>Skor Nilai Email (0 - 100):</label>
+                    <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
+                  </div>
+                  <div class="input-group flex-1">
+                    <label>Umpan Balik Guru (Etika Email):</label>
+                    <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: Format subjek sangat rapi dan salam pembuka formal santun." value={item.teacher_feedback || ''} />
+                  </div>
+                  <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
+                    Simpan Nilai Email
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ))}
+
         <!-- Empty State Container -->
         <div class="empty-state" id="empty-state-display" style="display: none;">
           <p>Belum ada siswa yang mengirimkan LKPD pada kategori ini.</p>
@@ -628,14 +767,15 @@ try {
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions, flowchartSubmissionsData: flowchartSubmissions }}>
+<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions, flowchartSubmissionsData: flowchartSubmissions, emailSubmissionsData: emailSubmissions }}>
   document.addEventListener('DOMContentLoaded', () => {
-    let currentModule = 'BK'; // 'BK' or 'TIK'
+    let currentModule = 'BK'; // 'BK', 'FLOWCHART', 'TIK', or 'EMAIL'
 
     // 1. Tab Switcher Logic
     const tabBk = document.getElementById('tab-btn-bk');
     const tabFlowchart = document.getElementById('tab-btn-flowchart');
     const tabTik = document.getElementById('tab-btn-tik');
+    const tabEmail = document.getElementById('tab-btn-email');
     const moduleTitleDisplay = document.getElementById('module-title-display');
     const moduleSubDisplay = document.getElementById('module-sub-display');
     const exportBtn = document.getElementById('export-csv-btn');
@@ -645,6 +785,7 @@ try {
       tabBk?.classList.remove('active');
       tabFlowchart?.classList.remove('active');
       tabTik?.classList.remove('active');
+      tabEmail?.classList.remove('active');
 
       if (module === 'BK') {
         tabBk?.classList.add('active');
@@ -653,14 +794,19 @@ try {
         if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 1 (BK)';
       } else if (module === 'FLOWCHART') {
         tabFlowchart?.classList.add('active');
-        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 1B (Flowchart & Pseudocode)';
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 2 (Flowchart & Pseudocode)';
         if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa susunan flowchart & pseudocode dan memberikan skor nilai';
-        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 1B (Flowchart)';
-      } else {
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 2 (Flowchart)';
+      } else if (module === 'TIK') {
         tabTik?.classList.add('active');
-        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD 2 (TIK)';
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD TIK (Mail Merge & Search)';
         if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa Mail Merge & Advanced Search Operators dan memberikan skor nilai';
-        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD 2 (TIK)';
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD TIK';
+      } else {
+        tabEmail?.classList.add('active');
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD Etika Email (Softskill)';
+        if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih surel siswa untuk memeriksa subjek, salam, badan pesan, lampiran, dan memberikan skor nilai';
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD Email';
       }
       applyFilters();
     }
@@ -668,6 +814,7 @@ try {
     tabBk?.addEventListener('click', () => setModuleTab('BK'));
     tabFlowchart?.addEventListener('click', () => setModuleTab('FLOWCHART'));
     tabTik?.addEventListener('click', () => setModuleTab('TIK'));
+    tabEmail?.addEventListener('click', () => setModuleTab('EMAIL'));
 
     // 2. Toggle Detail Drawers
     const toggleBtns = document.querySelectorAll('.btn-toggle-detail');
@@ -777,7 +924,10 @@ try {
 
     // 5. Export CSV Handler
     exportBtn?.addEventListener('click', () => {
-      const activeData = currentModule === 'BK' ? bkSubmissionsData : (currentModule === 'FLOWCHART' ? flowchartSubmissionsData : tikSubmissionsData);
+      let activeData = bkSubmissionsData;
+      if (currentModule === 'FLOWCHART') activeData = flowchartSubmissionsData;
+      else if (currentModule === 'TIK') activeData = tikSubmissionsData;
+      else if (currentModule === 'EMAIL') activeData = emailSubmissionsData;
 
       if (!activeData || activeData.length === 0) {
         alert(`Tidak ada data kiriman LKPD ${currentModule} untuk di-export.`);
@@ -789,29 +939,41 @@ try {
         csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
       } else if (currentModule === 'FLOWCHART') {
         csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Jumlah Simbol,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
-      } else {
+      } else if (currentModule === 'TIK') {
         csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Anggota Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      } else {
+        csv = 'No,Nama Siswa,Email Siswa,Kelas,Penerima To,Tembusan Cc,Subjek Email,Nama Lampiran,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
       }
 
       activeData.forEach((row, index) => {
         const studentName = `"${(row.student_name || '').replace(/"/g, '""')}"`;
         const studentEmail = `"${(row.student_email || '').replace(/"/g, '""')}"`;
         const className = `"${(row.class_name || 'X RPL').replace(/"/g, '""')}"`;
-        const teamName = `"${(row.team_name || 'Mandiri').replace(/"/g, '""')}"`;
-        const caseStudy = `"${(row.case_study_id || '').toUpperCase().replace(/"/g, '""')}"`;
         const score = row.score !== null ? row.score : 'Belum Dinilai';
         const feedback = `"${(row.teacher_feedback || '').replace(/"/g, '""')}"`;
         const date = `"${new Date(row.updated_at).toLocaleString('id-ID')}"`;
 
         if (currentModule === 'BK') {
+          const teamName = `"${(row.team_name || 'Mandiri').replace(/"/g, '""')}"`;
+          const caseStudy = `"${(row.case_study_id || '').toUpperCase().replace(/"/g, '""')}"`;
           csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${score},${feedback},${date}\n`;
         } else if (currentModule === 'FLOWCHART') {
+          const teamName = `"${(row.team_name || 'Mandiri').replace(/"/g, '""')}"`;
+          const caseStudy = `"${(row.case_study_id || '').toUpperCase().replace(/"/g, '""')}"`;
           let symbolCount = 0;
           try { symbolCount = JSON.parse(row.flowchart_json || '[]').length; } catch (e) {}
           csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${caseStudy},${symbolCount},${score},${feedback},${date}\n`;
-        } else {
+        } else if (currentModule === 'TIK') {
+          const teamName = `"${(row.team_name || 'Mandiri').replace(/"/g, '""')}"`;
           const teamMembers = `"${(Array.isArray(row.parsedTeamMembers) ? row.parsedTeamMembers.join('; ') : '').replace(/"/g, '""')}"`;
+          const caseStudy = `"${(row.case_study_id || '').toUpperCase().replace(/"/g, '""')}"`;
           csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${teamMembers},${caseStudy},${score},${feedback},${date}\n`;
+        } else {
+          const to = `"${(row.recipient_to || '').replace(/"/g, '""')}"`;
+          const cc = `"${(row.recipient_cc || '').replace(/"/g, '""')}"`;
+          const subj = `"${(row.subject_text || '').replace(/"/g, '""')}"`;
+          const att = `"${(row.attachment_name || '').replace(/"/g, '""')}"`;
+          csv += `${index + 1},${studentName},${studentEmail},${className},${to},${cc},${subj},${att},${score},${feedback},${date}\n`;
         }
       });
 

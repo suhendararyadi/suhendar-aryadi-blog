@@ -1,0 +1,603 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect(`/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const emailComponents = [
+  {
+    num: '1',
+    name: 'Alamat Pengirim (From)',
+    desc: 'Gunakan akun email resmi dengan nama asli (misal: akun belajar.id atau nama.depan@domain). Hindari nama samaran/alay seperti "cuteboyz99@..." karena merusak reputasi profesional Anda sejak awal.',
+    badge: 'IDENTITAS RESMI',
+    badgeClass: 'badge-purple'
+  },
+  {
+    num: '2',
+    name: 'Penerima (To, Cc, Bcc)',
+    desc: 'To untuk penerima utama (penilai/atasan). Cc (Carbon Copy) untuk pihak terkait yang wajib mengetahui tembusan (rekan tim/guru pendamping). Bcc (Blind Carbon Copy) untuk merahasiakan daftar penerima saat broadcast.',
+    badge: 'AKURASI TUJUAN',
+    badgeClass: 'badge-cyan'
+  },
+  {
+    num: '3',
+    name: 'Subjek Email (Subject Line)',
+    desc: 'Wajib terisi dan memuat identitas ringkas. Gunakan formula: [KELAS] - [PERIHAL/NAMA TUGAS] - [NAMA LENGKAP]. Jangan pernah mengirim email dengan subjek kosong atau hanya "Tugas".',
+    badge: 'FORMULA BAKU',
+    badgeClass: 'badge-amber'
+  },
+  {
+    num: '4',
+    name: 'Salam Pembuka (Salutation)',
+    desc: 'Awali pesan dengan sapaan formal dan gelar yang santun, seperti "Yth. Bapak Suhendar Aryadi, S.Pd.,Gr." atau "Selamat pagi Bapak/Ibu Guru". Jangan gunakan sapaan chat seperti "P", "Oy", atau "Halo bro".',
+    badge: 'KESANTUNAN',
+    badgeClass: 'badge-green'
+  },
+  {
+    num: '5',
+    name: 'Badan Pesan (Body Structure)',
+    desc: 'Gunakan struktur 3 paragraf: (1) Perkenalan diri & tujuan email, (2) Penjelasan detail tugas/lampiran berkas, (3) Kalimat apresiasi penutup dan kesiapan menerima revisi/arahan.',
+    badge: 'STRUKTUR 3 PARAGRAF',
+    badgeClass: 'badge-cyan'
+  },
+  {
+    num: '6',
+    name: 'Salam Penutup & Signature',
+    desc: 'Tutup dengan salam resmi ("Hormat saya," / "Salam takzim,") diikuti tanda tangan identitas lengkap: Nama Lengkap, NISN, Kelas, Jurusan RPL, Nama Sekolah, dan Kontak Resmi.',
+    badge: 'SIGNATURE RESMI',
+    badgeClass: 'badge-purple'
+  },
+  {
+    num: '7',
+    name: 'Etika Lampiran (Attachment)',
+    desc: 'Beri nama berkas lampiran dengan format teratur (contoh: LKPD2_Flowchart_Sopiyudin_10RPL3.pdf). Jika menggunakan tautan Google Drive / GitHub, pastikan izin akses publik sudah dibuka (Viewer).',
+    badge: 'FILE & LINK NAMING',
+    badgeClass: 'badge-amber'
+  }
+];
+
+const comparisons = [
+  {
+    title: 'Contoh Subjek Email',
+    wrong: 'Tugas pak / ini saya kumpul tugas / (Subjek Kosong)',
+    wrongWhy: 'Guru/HRD menerima puluhan email setiap hari. Subjek tanpa format akan diabaikan atau masuk folder spam.',
+    right: '[10 RPL 3] Pengumpulan Tugas Flowchart & Pseudocode - Sopiyudin Latif',
+    rightWhy: 'Penerima langsung tahu siapa pengirim, kelas, dan tugas apa yang dikumpulkan hanya dalam 1 detik.'
+  },
+  {
+    title: 'Contoh Salam & Kalimat Pengantar',
+    wrong: 'P. Pak ini tugas saya tolong dinilai ya makasih. (Langsung lampirkan file)',
+    wrongWhy: 'Menggunakan huruf "P" atau chat gaul mencerminkan ketidaksopanan dan etika kerja yang belum matang.',
+    right: 'Yth. Bapak Suhendar Aryadi, S.Pd.,Gr.\n\nPerkenalkan saya Sopiyudin Latif dari kelas 10 RPL 3. Bersama email ini, saya bermaksud mengumpulkan revisi tugas LKPD 2 Diagram Alir...',
+    rightWhy: 'Menghormati penerima pesan, memperkenalkan diri dengan sopan, dan menjelaskan konteks dokumen secara runut.'
+  },
+  {
+    title: 'Contoh Penamaan Berkas Lampiran',
+    wrong: 'tugas_fix_bgt_final_bismillah.pdf / Screenshot_2026.png',
+    wrongWhy: 'Nama file acak membingungkan arsip guru dan terlihat amatir saat diunduh.',
+    right: 'LKPD2_Flowchart_SopiyudinLatif_10RPL3.pdf',
+    rightWhy: 'Terdokumentasi rapi, profesional, dan memudahkan penilaian tanpa tertukar dengan berkas siswa lain.'
+  }
+];
+---
+
+<MainLayout
+  title="Modul Softskill: Etika Mengirim Email Profesional | SMK RPL"
+  description="Panduan Praktis Komunikasi Formal Digital, Anatomi 7 Komponen Email, dan Standar Korespondensi Dunia Industri untuk Siswa SMK."
+>
+  <div class="email-guide-container">
+    <!-- Top Nav -->
+    <div class="page-top-nav">
+      <a href="/belajar/informatika" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Katalog Belajar
+      </a>
+      <div class="top-nav-right">
+        <a href="/belajar/etika-email/lkpd" class="btn btn-primary btn-sm">
+          <span>Buka Simulator LKPD Email &rarr;</span>
+        </a>
+        <span class="badge badge-purple">WORKPLACE SOFTSKILL</span>
+      </div>
+    </div>
+
+    <!-- Intro Hero Banner -->
+    <div class="hero-card glass-card">
+      <div class="hero-badge">
+        <span class="badge badge-cyan">STANDAR INDUSTRI &amp; PENDIDIKAN</span>
+        <span class="badge badge-role">BASIC CAREER SKILL</span>
+      </div>
+      <h1 class="hero-title">Etika Mengirim Email Profesional</h1>
+      <p class="hero-desc">
+        Keterampilan menulis email profesional adalah <strong>fondasi utama</strong> yang membedakan Anda di dunia kerja, magang PKL, dan komunikasi akademik. Pelajari cara menyusun surat elektronik formal yang santun, presisi, dan terstruktur.
+      </p>
+      <div class="hero-actions">
+        <a href="/belajar/etika-email/lkpd" class="btn btn-primary btn-md">
+          <span>Mulai Praktik Simulator LKPD Email</span>
+        </a>
+        <a href="#komponen-email" class="btn btn-outline btn-md">
+          <span>Pelajari 7 Komponen Wajib</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Why It Matters Section -->
+    <div class="why-grid">
+      <div class="why-card glass-card">
+        <div class="why-icon">⚠️</div>
+        <h3>Bukan Sekadar Pesan Chat (WhatsApp/DM)</h3>
+        <p>Email adalah dokumen korespondensi resmi yang diarsipkan secara permanen. Penggunaan gaya bahasa chat kasual (seperti kata "P", "klo", "bgt") di email mencerminkan kurangnya etika profesional.</p>
+      </div>
+      <div class="why-card glass-card">
+        <div class="why-icon">💼</div>
+        <h3>Kunci Sukses PKL &amp; Dunia Kerja</h3>
+        <p>Perusahaan software house dan institusi formal menilai kedewasaan pelamar dari cara mereka menulis surat pengantar, merespons email atasan, dan mengirim laporan proyek.</p>
+      </div>
+      <div class="why-card glass-card">
+        <div class="why-icon">⚡</div>
+        <h3>First Impression yang Kuat</h3>
+        <p>Email dengan subjek terstruktur, salam pembuka yang santun, serta lampiran rapi akan diprioritaskan untuk dibaca dan dinilai lebih cepat oleh guru maupun pimpinan tim.</p>
+      </div>
+    </div>
+
+    <!-- 7 Komponen Anatomi Email -->
+    <div id="komponen-email" class="section-title">
+      <h2>Anatomi 7 Komponen Wajib Email Profesional</h2>
+      <p>Setiap email resmi yang Anda kirim harus memiliki 7 elemen berikut secara lengkap dan berurutan:</p>
+    </div>
+
+    <div class="components-grid">
+      {emailComponents.map((item) => (
+        <div class="comp-card glass-card">
+          <div class="comp-header">
+            <span class="comp-num font-mono">{item.num}</span>
+            <span class={`badge ${item.badgeClass}`}>{item.badge}</span>
+          </div>
+          <h3 class="comp-name">{item.name}</h3>
+          <p class="comp-desc">{item.desc}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Interactive Comparison (Do's & Don'ts) -->
+    <div class="section-title margin-top-lg">
+      <h2>Perbandingan Kasus Nyata: Benar vs Salah</h2>
+      <p>Pelajari kesalahan fatal yang sering terjadi dan bagaimana format standar industri yang seharusnya:</p>
+    </div>
+
+    <div class="comparison-list">
+      {comparisons.map((c) => (
+        <div class="comparison-card glass-card">
+          <h3 class="comp-title">{c.title}</h3>
+          <div class="comp-split">
+            <div class="pane-box wrong-box">
+              <div class="pane-badge badge-wrong">❌ CONTOH SALAH / HINDARI</div>
+              <pre class="box-content font-mono">{c.wrong}</pre>
+              <p class="box-note">{c.wrongWhy}</p>
+            </div>
+            <div class="pane-box right-box">
+              <div class="pane-badge badge-right">✅ CONTOH BENAR / STANDAR</div>
+              <pre class="box-content font-mono">{c.right}</pre>
+              <p class="box-note">{c.rightWhy}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Live Formula Subject Builder Widget -->
+    <div class="formula-card glass-card margin-top-lg">
+      <div class="formula-header">
+        <span class="badge badge-purple">INTERACTIVE HELPER</span>
+        <h3>Generator Format Subjek Email Otomatis</h3>
+        <p>Kombinasikan kelas, perihal, dan nama Anda untuk menghasilkan subjek email berstandar baku:</p>
+      </div>
+
+      <div class="formula-inputs-grid">
+        <div>
+          <label for="f-kelas"><strong>1. Kelas (Rombel):</strong></label>
+          <input type="text" id="f-kelas" class="f-input" placeholder="Contoh: 10 RPL 3" value={user.class_name || '10 RPL 3'} />
+        </div>
+        <div>
+          <label for="f-perihal"><strong>2. Perihal / Nama Tugas:</strong></label>
+          <input type="text" id="f-perihal" class="f-input" placeholder="Contoh: Pengumpulan LKPD 2 Flowchart" value="Pengumpulan LKPD 2 Flowchart" />
+        </div>
+        <div>
+          <label for="f-nama"><strong>3. Nama Lengkap Anda:</strong></label>
+          <input type="text" id="f-nama" class="f-input" placeholder="Contoh: Sopiyudin Latif" value={user.name} />
+        </div>
+      </div>
+
+      <div class="formula-result-box">
+        <span class="result-label">Subjek Terstruktur Siap Pakai:</span>
+        <code id="formula-output" class="formula-code">[{user.class_name || '10 RPL 3'}] Pengumpulan LKPD 2 Flowchart - {user.name}</code>
+        <button id="copy-subject-btn" class="btn btn-outline btn-xs" type="button">Salin Subjek</button>
+      </div>
+    </div>
+
+    <!-- CTA Footer -->
+    <div class="cta-banner glass-card margin-top-lg">
+      <div>
+        <h2>Siap Mempraktikkan Keterampilan Email Anda?</h2>
+        <p>Uji pemahaman Anda melalui **Simulator LKPD Email Interaktif** dengan 3 skenario studi kasus nyata (Pengumpulan Tugas, Kendala Teknis, dan Magang PKL).</p>
+      </div>
+      <a href="/belajar/etika-email/lkpd" class="btn btn-primary btn-md">
+        <span>Buka Simulator LKPD Email Sekarang &rarr;</span>
+      </a>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const fKelas = document.getElementById('f-kelas');
+    const fPerihal = document.getElementById('f-perihal');
+    const fNama = document.getElementById('f-nama');
+    const fOutput = document.getElementById('formula-output');
+    const copyBtn = document.getElementById('copy-subject-btn');
+
+    function updateFormula() {
+      const k = (fKelas?.value || '10 RPL 3').trim();
+      const p = (fPerihal?.value || 'Pengumpulan Tugas').trim();
+      const n = (fNama?.value || 'Nama Siswa').trim();
+      if (fOutput) {
+        fOutput.textContent = `[${k}] ${p} - ${n}`;
+      }
+    }
+
+    fKelas?.addEventListener('input', updateFormula);
+    fPerihal?.addEventListener('input', updateFormula);
+    fNama?.addEventListener('input', updateFormula);
+
+    copyBtn?.addEventListener('click', () => {
+      if (fOutput) {
+        navigator.clipboard.writeText(fOutput.textContent || '');
+        copyBtn.textContent = 'Tersalin!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Salin Subjek';
+        }, 2000);
+      }
+    });
+  });
+</script>
+
+<style>
+  .email-guide-container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .top-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero-card {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-badge {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 820px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 800px) {
+    .why-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .why-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .why-icon {
+    font-size: 2rem;
+  }
+
+  .why-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .why-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .section-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .section-title h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .section-title p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .margin-top-lg {
+    margin-top: 1.5rem;
+  }
+
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .comp-card {
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .comp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .comp-num {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    background: rgba(6, 182, 212, 0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .comp-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .comp-desc {
+    font-size: 0.8875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .comparison-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .comparison-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .comp-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .comp-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 768px) {
+    .comp-split {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pane-box {
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .wrong-box {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .right-box {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .pane-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    align-self: flex-start;
+  }
+
+  .badge-wrong {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+  }
+
+  .badge-right {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+  }
+
+  .box-content {
+    background: var(--bg-surface);
+    padding: 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+    border: 1px solid var(--border-color);
+  }
+
+  .box-note {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .formula-card {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .formula-header h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.35rem;
+  }
+
+  .formula-header p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .formula-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .formula-inputs-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .f-input {
+    width: 100%;
+    margin-top: 0.4rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+  }
+
+  .formula-result-box {
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .result-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .formula-code {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--accent-purple);
+    font-weight: 700;
+  }
+
+  .cta-banner {
+    padding: 2.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(168, 85, 247, 0.08));
+    border: 1px solid var(--border-color);
+  }
+
+  .cta-banner h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .cta-banner p {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    margin-top: 0.35rem;
+    max-width: 600px;
+  }
+</style>
