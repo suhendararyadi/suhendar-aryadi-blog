@@ -17,7 +17,6 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || use
 let students: any[] = [];
 let totalStudentsCount = 0;
 let totalCompletionsCount = 0;
-let difficultModules: any[] = [];
 const totalLessonsCount = seedLessons.length || 40;
 
 if (isTeacherOrAdmin) {
@@ -72,25 +71,6 @@ if (isTeacherOrAdmin) {
       totalStudentsCount = students.length;
       totalCompletionsCount = students.reduce((acc, curr) => acc + curr.completed_count, 0);
     }
-
-    // 2. Fetch module completion breakdown across all students
-    const diffRes = await query(
-      `SELECT sl.id, sl.title, sl.category, sl.order_index,
-              COUNT(up.id) as completion_count
-       FROM sql_lessons sl
-       LEFT JOIN user_progress up ON sl.id = up.lesson_id AND up.status = 'completed'
-       GROUP BY sl.id, sl.title, sl.category, sl.order_index
-       ORDER BY completion_count ASC, sl.order_index ASC
-       LIMIT 5`
-    );
-
-    if (diffRes.rows) {
-      difficultModules = diffRes.rows.map((r: any) => ({
-        ...r,
-        completion_count: parseInt(r.completion_count || '0', 10),
-        completion_rate: totalStudentsCount > 0 ? Math.round((parseInt(r.completion_count || '0', 10) / totalStudentsCount) * 100) : 0
-      }));
-    }
   } catch (err) {
     console.warn('Teacher dashboard query error:', err);
   }
@@ -133,7 +113,7 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
               </div>
               <h1 class="admin-title">Dashboard Rekap Nilai Siswa</h1>
               <p class="admin-sub">
-                Selamat datang, <strong>Pak {user.name}</strong>. Pantau progres belajar seluruh siswa, identifikasi modul yang memerlukan pembahasan ulang, dan unduh data rekap nilai untuk Raport.
+                Selamat datang, <strong>Pak {user.name}</strong>. Pantau progres belajar seluruh siswa, rekap nilai LKPD 1 &amp; LKPD 2, dan unduh data rekap nilai untuk Raport.
               </p>
             </div>
             <div class="header-cta">
@@ -174,34 +154,6 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
           <div class="stat-card glass-card">
             <span class="stat-value">{avgCompletionsPerStudent} <span class="stat-unit">modul/siswa</span></span>
             <span class="stat-label">Rata-Rata Progres SQL</span>
-          </div>
-        </div>
-
-        <!-- Difficult Modules Analysis -->
-        <div class="section-block glass-card">
-          <div class="block-header">
-            <div>
-              <h2 class="block-title">Analitik Modul Perlu Pembahasan Ulang</h2>
-              <p class="block-sub">5 modul dengan tingkat penyelesaian terendah di kelas (perlu perhatian khusus)</p>
-            </div>
-          </div>
-
-          <div class="difficult-grid">
-            {difficultModules.map((mod) => (
-              <div class="diff-card">
-                <div class="diff-top">
-                  <span class="diff-num">Modul #{mod.order_index}</span>
-                  <span class="badge badge-cyan">{mod.category}</span>
-                </div>
-                <h3 class="diff-title">{mod.title}</h3>
-                <div class="diff-progress-wrap">
-                  <div class="diff-progress-track">
-                    <div class="diff-progress-fill" style={`width: ${mod.completion_rate}%`}></div>
-                  </div>
-                  <span class="diff-count">{mod.completion_count}/{totalStudentsCount} siswa ({mod.completion_rate}%)</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -762,64 +714,6 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
     border: 1px solid var(--border-subtle);
   }
 
-  /* Difficult modules grid */
-  .difficult-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
-  }
-
-  .diff-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .diff-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .diff-num {
-    font-family: var(--font-mono);
-    font-size: 0.775rem;
-    color: var(--text-muted);
-  }
-
-  .diff-title {
-    font-size: 0.925rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .diff-progress-wrap {
-    margin-top: 0.25rem;
-  }
-
-  .diff-progress-track {
-    height: 6px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    margin-bottom: 0.35rem;
-  }
-
-  .diff-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #ef4444, #f59e0b);
-    border-radius: var(--radius-full);
-  }
-
-  .diff-count {
-    font-size: 0.775rem;
-    color: var(--text-muted);
-  }
-
   /* Admin Table */
   .table-wrapper {
     overflow-x: auto;
@@ -1062,10 +956,6 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
       width: 100%;
       min-height: 44px;
       font-size: 16px !important;
-    }
-
-    .difficult-grid {
-      grid-template-columns: 1fr;
     }
 
     .table-wrapper {
