@@ -1389,4 +1389,134 @@ const initialActiveCaseId = caseStudies[0].id;
     color: var(--text-secondary);
     line-height: 1.5;
   }
+
+  /* Mobile Optimization */
+  @media (max-width: 640px) {
+    .lkpd-page-container {
+      padding: 1rem 0.85rem 4rem;
+      gap: 1.25rem;
+    }
+
+    .page-top-nav {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .top-nav-right {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .student-header {
+      padding: 1.25rem 1rem;
+    }
+
+    .avatar-box {
+      width: 44px;
+      height: 44px;
+      font-size: 1.25rem;
+    }
+
+    .student-title {
+      font-size: 1.25rem;
+    }
+
+    .student-sub {
+      font-size: 0.825rem;
+    }
+
+    .progress-summary-box {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .case-stepper-card {
+      padding: 1.25rem 1rem;
+    }
+
+    .stepper-title-row h2 {
+      font-size: 1.1rem;
+    }
+
+    .step-card {
+      padding: 1rem;
+    }
+
+    .scenario-brief {
+      padding: 1.25rem 1rem;
+    }
+
+    .scenario-title-wrap h2 {
+      font-size: 1.05rem;
+    }
+
+    .scenario-desc {
+      font-size: 0.875rem;
+    }
+
+    .scenario-targets {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .target-item {
+      flex-wrap: wrap;
+    }
+
+    .target-item code {
+      word-break: break-all;
+    }
+
+    .email-window {
+      border-radius: var(--radius-md);
+    }
+
+    .email-form {
+      padding: 1rem;
+      gap: 0.75rem;
+    }
+
+    /* Vertical field stacking for full-width input on phones */
+    .field-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.35rem;
+      padding-bottom: 0.65rem;
+    }
+
+    .field-label {
+      width: 100%;
+      font-size: 0.8rem;
+    }
+
+    .field-input-wrap {
+      width: 100%;
+    }
+
+    .body-textarea {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      min-height: 280px;
+    }
+
+    .attachment-box {
+      padding: 0.75rem;
+    }
+
+    .form-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .form-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .inspector-pane {
+      position: static;
+      padding: 1.25rem 1rem;
+    }
+  }
 </style>
