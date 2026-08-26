@@ -22,16 +22,19 @@ const totalLessonsCount = seedLessons.length || 40;
 
 if (isTeacherOrAdmin) {
   try {
-    // 1. Fetch all registered students, SQL completion metrics, & LKPD scores
+    // 1. Fetch all registered students, SQL completion metrics, & LKPD 1 and LKPD 2 scores
     const studentsRes = await query(
       `SELECT u.id, u.name, u.email, u.role, u.class_name, u.created_at,
               COUNT(DISTINCT up.id) as completed_count,
               MAX(up.completed_at) as last_completed_at,
-              MAX(lk.score) as lkpd_score,
-              MAX(lk.updated_at) as lkpd_submitted_at
+              MAX(lk1.score) as lkpd1_score,
+              MAX(lk1.updated_at) as lkpd1_submitted_at,
+              MAX(lk2.score) as lkpd2_score,
+              MAX(lk2.updated_at) as lkpd2_submitted_at
        FROM users u
        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
-       LEFT JOIN lkpd_submissions lk ON u.id = lk.user_id
+       LEFT JOIN lkpd_submissions lk1 ON u.id = lk1.user_id
+       LEFT JOIN lkpd_flowchart_submissions lk2 ON u.id = lk2.user_id
        GROUP BY u.id, u.name, u.email, u.role, u.class_name, u.created_at
        ORDER BY u.created_at DESC`
     );
@@ -40,7 +43,8 @@ if (isTeacherOrAdmin) {
       students = studentsRes.rows.map((row: any) => {
         const count = parseInt(row.completed_count || '0', 10);
         const percentage = Math.round((count / totalLessonsCount) * 100);
-        const lkpdScore = row.lkpd_score !== null && row.lkpd_score !== undefined ? parseInt(row.lkpd_score, 10) : null;
+        const lkpd1Score = row.lkpd1_score !== null && row.lkpd1_score !== undefined ? parseInt(row.lkpd1_score, 10) : null;
+        const lkpd2Score = row.lkpd2_score !== null && row.lkpd2_score !== undefined ? parseInt(row.lkpd2_score, 10) : null;
 
         let rankTitle = 'SQL Novice';
         let badgeClass = 'badge-novice';
@@ -59,7 +63,8 @@ if (isTeacherOrAdmin) {
           ...row,
           completed_count: count,
           percentage,
-          lkpd_score: lkpdScore,
+          lkpd1_score: lkpd1Score,
+          lkpd2_score: lkpd2Score,
           rankTitle,
           badgeClass
         };
@@ -92,6 +97,8 @@ if (isTeacherOrAdmin) {
 }
 
 const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount / totalStudentsCount).toFixed(1) : '0';
+const totalLkpd1Graded = students.filter((s) => s.lkpd1_score !== null).length;
+const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
 ---
 
 <MainLayout 
@@ -154,11 +161,19 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
           </div>
           <div class="stat-card glass-card">
             <span class="stat-value">{totalCompletionsCount}</span>
-            <span class="stat-label">Total Penyelesaian Modul</span>
+            <span class="stat-label">Modul SQL Selesai</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-value">{totalLkpd1Graded}</span>
+            <span class="stat-label">Nilai LKPD 1 (BK)</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-value">{totalLkpd2Graded}</span>
+            <span class="stat-label">Nilai LKPD 2 (Algoritma)</span>
           </div>
           <div class="stat-card glass-card">
             <span class="stat-value">{avgCompletionsPerStudent} <span class="stat-unit">modul/siswa</span></span>
-            <span class="stat-label">Rata-Rata Progres Kelas</span>
+            <span class="stat-label">Rata-Rata Progres SQL</span>
           </div>
         </div>
 
@@ -249,7 +264,8 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                   <th>Email</th>
                   <th class="text-center">Role</th>
                   <th class="text-center">Modul SQL</th>
-                  <th class="text-center">Nilai LKPD</th>
+                  <th class="text-center">LKPD 1 (BK)</th>
+                  <th class="text-center">LKPD 2 (Algoritma)</th>
                   <th class="text-center">Peringkat Rank</th>
                   <th class="text-center">Terdaftar pada</th>
                   <th class="text-center">Aksi</th>
@@ -282,11 +298,22 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
                       </span>
                     </td>
                     <td class="text-center">
-                      {item.lkpd_score !== null && item.lkpd_score !== undefined ? (
-                        <span class="badge badge-green font-mono">
-                          {item.lkpd_score} / 100
+                      {item.lkpd1_score !== null && item.lkpd1_score !== undefined ? (
+                        <span class={`badge ${item.lkpd1_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`}>
+                          {item.lkpd1_score} / 100
                         </span>
-                      ) : item.lkpd_submitted_at ? (
+                      ) : item.lkpd1_submitted_at ? (
+                        <span class="badge badge-amber font-mono">Belum Dinilai</span>
+                      ) : (
+                        <span class="badge badge-muted font-mono">-</span>
+                      )}
+                    </td>
+                    <td class="text-center">
+                      {item.lkpd2_score !== null && item.lkpd2_score !== undefined ? (
+                        <span class={`badge ${item.lkpd2_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`}>
+                          {item.lkpd2_score} / 100
+                        </span>
+                      ) : item.lkpd2_submitted_at ? (
                         <span class="badge badge-amber font-mono">Belum Dinilai</span>
                       ) : (
                         <span class="badge badge-muted font-mono">-</span>
@@ -372,6 +399,25 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
     const countBadge = document.getElementById('filtered-student-count');
     const tableRows = document.querySelectorAll('.student-row');
 
+    function normalizeClass(raw) {
+      if (!raw) return 'UNASSIGNED';
+      const c = String(raw).toUpperCase().trim();
+      if (c === 'UNASSIGNED' || c === '-' || c === '') return 'UNASSIGNED';
+      if (c.includes('10 RPL 1') || c.includes('X RPL 1')) return '10 RPL 1';
+      if (c.includes('10 RPL 2') || c.includes('X RPL 2')) return '10 RPL 2';
+      if (c.includes('10 RPL 3') || c.includes('X RPL 3')) return '10 RPL 3';
+      if (c.includes('10 RPL 4') || c.includes('X RPL 4')) return '10 RPL 4';
+      if (c.includes('11 RPL 1') || c.includes('XI RPL 1')) return '11 RPL 1';
+      if (c.includes('11 RPL 2') || c.includes('XI RPL 2')) return '11 RPL 2';
+      if (c.includes('11 RPL 3') || c.includes('XI RPL 3')) return '11 RPL 3';
+      if (c.includes('11 RPL 4') || c.includes('XI RPL 4')) return '11 RPL 4';
+      if (c.includes('12 RPL 1') || c.includes('XII RPL 1')) return '12 RPL 1';
+      if (c.includes('12 RPL 2') || c.includes('XII RPL 2')) return '12 RPL 2';
+      if (c.includes('12 RPL 3') || c.includes('XII RPL 3')) return '12 RPL 3';
+      if (c.includes('12 RPL 4') || c.includes('XII RPL 4')) return '12 RPL 4';
+      return c;
+    }
+
     function applyFilters() {
       const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
       const selectedClass = classSelect ? classSelect.value : 'ALL';
@@ -382,7 +428,9 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
         const rowClass = row.getAttribute('data-class') || 'UNASSIGNED';
 
         const matchesSearch = !term || text.includes(term);
-        const matchesClass = selectedClass === 'ALL' || rowClass === selectedClass;
+        const matchesClass = selectedClass === 'ALL' || 
+                             rowClass === selectedClass || 
+                             normalizeClass(rowClass) === normalizeClass(selectedClass);
 
         if (matchesSearch && matchesClass) {
           row.style.display = '';
@@ -414,7 +462,9 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
         const sClass = s.class_name || 'UNASSIGNED';
         const sText = `${s.name} ${s.email} ${s.class_name}`.toLowerCase();
         const matchesSearch = !term || sText.includes(term);
-        const matchesClass = selectedClass === 'ALL' || sClass === selectedClass;
+        const matchesClass = selectedClass === 'ALL' || 
+                             sClass === selectedClass || 
+                             normalizeClass(sClass) === normalizeClass(selectedClass);
         return matchesSearch && matchesClass;
       });
 
@@ -425,7 +475,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
 
       // UTF-8 BOM for Excel compatibility
       let csv = '\uFEFF';
-      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase SQL,Nilai LKPD BK,Peringkat Rank,Tanggal Terdaftar\n';
+      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase SQL,Nilai LKPD 1 (BK),Nilai LKPD 2 (Algoritma),Peringkat Rank,Tanggal Terdaftar\n';
 
       filtered.forEach((s, idx) => {
         const name = `"${(s.name || '').replace(/"/g, '""')}"`;
@@ -434,11 +484,12 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
         const role = s.role || 'student';
         const completed = s.completed_count || 0;
         const pct = `${s.percentage || 0}%`;
-        const lkpdVal = s.lkpd_score !== null && s.lkpd_score !== undefined ? s.lkpd_score : (s.lkpd_submitted_at ? 'Belum Dinilai' : '-');
+        const lkpd1Val = s.lkpd1_score !== null && s.lkpd1_score !== undefined ? s.lkpd1_score : (s.lkpd1_submitted_at ? 'Belum Dinilai' : '-');
+        const lkpd2Val = s.lkpd2_score !== null && s.lkpd2_score !== undefined ? s.lkpd2_score : (s.lkpd2_submitted_at ? 'Belum Dinilai' : '-');
         const rank = `"${s.rankTitle || ''}"`;
         const date = new Date(s.created_at).toLocaleDateString('id-ID');
 
-        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${lkpdVal},${rank},${date}\n`;
+        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${lkpd1Val},${lkpd2Val},${rank},${date}\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -446,7 +497,7 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
       const link = document.createElement('a');
       link.setAttribute('href', url);
       const sanitizedClass = selectedClass.replace(/\s+/g, '-').toLowerCase();
-      link.setAttribute('download', `rekap-nilai-sql-${sanitizedClass}-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `rekap-nilai-sql-lkpd-${sanitizedClass}-${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -595,14 +646,8 @@ const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount
   /* Stats Grid */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 1.25rem;
-  }
-
-  @media (max-width: 640px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
   }
 
   .stat-card {
