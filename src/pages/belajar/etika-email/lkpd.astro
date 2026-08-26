@@ -250,6 +250,9 @@ const initialActiveCaseId = caseStudies[0].id;
                 class="field-input" 
                 placeholder="nama.guru@sekolah.sch.id" 
                 value={submissionsMap[initialActiveCaseId]?.recipient_to || caseStudies[0].defaultTo} 
+                onpaste="return false;"
+                ondrop="return false;"
+                autocomplete="off"
                 required 
               />
             </div>
@@ -266,6 +269,9 @@ const initialActiveCaseId = caseStudies[0].id;
                 class="field-input" 
                 placeholder="rekan.tim@sekolah.sch.id / guru.pendamping@sekolah.sch.id (Opsional)" 
                 value={submissionsMap[initialActiveCaseId]?.recipient_cc || caseStudies[0].defaultCc} 
+                onpaste="return false;"
+                ondrop="return false;"
+                autocomplete="off"
               />
             </div>
           </div>
@@ -281,6 +287,9 @@ const initialActiveCaseId = caseStudies[0].id;
                 class="field-input font-medium" 
                 placeholder="[KELAS] - [PERIHAL TUGAS] - [NAMA LENGKAP]" 
                 value={submissionsMap[initialActiveCaseId]?.subject_text || ''} 
+                onpaste="return false;"
+                ondrop="return false;"
+                autocomplete="off"
                 required 
               />
             </div>
@@ -289,7 +298,8 @@ const initialActiveCaseId = caseStudies[0].id;
           <!-- Body Textarea -->
           <div class="body-field-wrap">
             <div class="toolbar-hint">
-              <span>✍️ Struktur Surel: (1) Salam Formal &rarr; (2) Identitas Diri &rarr; (3) Inti Pesan &rarr; (4) Penutup &amp; Signature</span>
+              <span>✍️ Struktur: (1) Salam Formal &rarr; (2) Identitas &rarr; (3) Inti &rarr; (4) Penutup &amp; Signature</span>
+              <span class="anti-paste-badge">🔒 Anti-Paste Aktif (Wajib Ketik Langsung)</span>
               <span id="char-count" class="font-mono text-muted">0 karakter</span>
             </div>
             <textarea 
@@ -298,6 +308,9 @@ const initialActiveCaseId = caseStudies[0].id;
               class="body-textarea" 
               placeholder={caseStudies[0].bodyPlaceholder} 
               rows="14" 
+              onpaste="return false;"
+              ondrop="return false;"
+              autocomplete="off"
               required
             >{submissionsMap[initialActiveCaseId]?.body_text || ''}</textarea>
           </div>
@@ -317,6 +330,9 @@ const initialActiveCaseId = caseStudies[0].id;
                   class="field-input font-mono text-sm" 
                   placeholder={caseStudies[0].attachmentPlaceholder} 
                   value={submissionsMap[initialActiveCaseId]?.attachment_name || ''} 
+                  onpaste="return false;"
+                  ondrop="return false;"
+                  autocomplete="off"
                 />
               </div>
               <div>
@@ -328,6 +344,9 @@ const initialActiveCaseId = caseStudies[0].id;
                   class="field-input font-mono text-sm" 
                   placeholder="https://drive.google.com/... (Izin Viewer dibuka)" 
                   value={submissionsMap[initialActiveCaseId]?.attachment_link || ''} 
+                  onpaste="return false;"
+                  ondrop="return false;"
+                  autocomplete="off"
                 />
               </div>
             </div>
@@ -651,6 +670,28 @@ const initialActiveCaseId = caseStudies[0].id;
     subjectInput?.addEventListener('input', runInspector);
     bodyInput?.addEventListener('input', runInspector);
     attNameInput?.addEventListener('input', runInspector);
+
+    // Anti-Paste & Anti-Drop Protection: Siswa wajib mengetik langsung
+    const formFields = document.querySelectorAll('#email-simulator-form input:not([readonly]), #email-simulator-form textarea');
+    formFields.forEach((field) => {
+      field.addEventListener('paste', (e) => {
+        e.preventDefault();
+        alert('⚠️ Fitur Tempel (Paste) Dinonaktifkan!\n\nUntuk melatih kebiasaan menyusun email profesional secara mandiri dan cermat, Anda diwajibkan mengetik langsung seluruh bagian surel.');
+        return false;
+      });
+      field.addEventListener('drop', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      field.addEventListener('keydown', (e) => {
+        // Intercept Ctrl+V or Cmd+V
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+          e.preventDefault();
+          alert('⚠️ Shortcut Tempel (Paste) Dinonaktifkan!\n\nSilakan ketik langsung pesan surel Anda untuk melatih keterampilan menulis profesional.');
+          return false;
+        }
+      });
+    });
 
     // Initial switch to case 1
     switchActiveCase(caseStudiesData[0].id);
@@ -1152,8 +1193,20 @@ const initialActiveCaseId = caseStudies[0].id;
   .toolbar-hint {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     font-size: 0.75rem;
     color: var(--text-muted);
+  }
+
+  .anti-paste-badge {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fcd34d;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
   }
 
   .body-textarea {
