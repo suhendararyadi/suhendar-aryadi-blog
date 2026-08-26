@@ -1099,11 +1099,11 @@ const initialActiveCaseId = caseStudies[0].id;
     overflow: hidden;
     border: 1px solid var(--border-color);
     background: var(--bg-card);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-lg);
   }
 
   .window-topbar {
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--bg-secondary);
     padding: 0.75rem 1.25rem;
     display: flex;
     justify-content: space-between;
@@ -1149,8 +1149,13 @@ const initialActiveCaseId = caseStudies[0].id;
   .field-row {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.5rem;
+    transition: border-color var(--transition-fast);
+  }
+
+  .field-row:focus-within {
+    border-bottom-color: var(--accent-primary);
   }
 
   .field-label {
@@ -1158,6 +1163,7 @@ const initialActiveCaseId = caseStudies[0].id;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-secondary);
+    flex-shrink: 0;
   }
 
   .field-input-wrap {
@@ -1169,17 +1175,23 @@ const initialActiveCaseId = caseStudies[0].id;
     background: transparent;
     border: none;
     outline: none;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     font-size: 0.9rem;
     padding: 0.35rem 0;
+    font-family: inherit;
+  }
+
+  .field-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
   }
 
   .field-input:focus {
-    color: #fff;
+    color: var(--text-primary) !important;
   }
 
   .readonly-input {
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
     cursor: default;
   }
 
@@ -1203,32 +1215,44 @@ const initialActiveCaseId = caseStudies[0].id;
   .anti-paste-badge {
     background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.3);
-    color: #fcd34d;
+    color: #f59e0b;
     padding: 0.15rem 0.5rem;
     border-radius: 4px;
     font-weight: 600;
   }
 
+  [data-theme="dark"] .anti-paste-badge {
+    color: #fcd34d;
+  }
+
   .body-textarea {
     width: 100%;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 1rem;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     font-family: inherit;
     font-size: 0.95rem;
     line-height: 1.6;
     resize: vertical;
     outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .body-textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
   }
 
   .body-textarea:focus {
-    border-color: var(--accent-purple);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    color: var(--text-primary) !important;
   }
 
   .attachment-box {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-secondary);
     border: 1px dashed var(--border-color);
     border-radius: var(--radius-sm);
     padding: 0.85rem 1rem;
@@ -1260,6 +1284,18 @@ const initialActiveCaseId = caseStudies[0].id;
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-bottom: 0.2rem;
+  }
+
+  .attachment-box .field-input {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.65rem;
+  }
+
+  .attachment-box .field-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
   }
 
   .teacher-feedback-alert {
