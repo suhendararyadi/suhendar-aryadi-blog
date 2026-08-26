@@ -649,15 +649,17 @@ try {
             data-module="EMAIL"
             data-class={item.class_name || '10 RPL'}
             data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
-            data-search={`${item.student_name} ${item.student_email} ${item.subject_text || ''}`.toLowerCase()}
+            data-search={`${item.student_name} ${item.student_email} ${item.case_study_id} ${item.subject_text || ''}`.toLowerCase()}
           >
             <div class="sub-card-header">
               <div>
                 <span class="badge badge-purple">SIMULASI EMAIL</span>
                 <span class="badge badge-cyan">{item.class_name || '10 RPL'}</span>
+                <span class="badge badge-amber">{item.case_study_id === 'tugas-flowchart' ? 'KASUS 1: TUGAS' : (item.case_study_id === 'izin-kendala' ? 'KASUS 2: LAB' : 'KASUS 3: PKL')}</span>
                 <h3 class="sub-student-name">{item.student_name} <span class="sub-email">({item.student_email})</span></h3>
                 <span class="sub-team-name">
-                  Kepada: <strong>{item.recipient_to}</strong> {item.recipient_cc && <>| Cc: <strong>{item.recipient_cc}</strong></>} | Kasus: <strong>{(item.case_study_id || '').toUpperCase()}</strong>
+                  Kepada: <strong>{item.recipient_to}</strong> {item.recipient_cc && <>| Cc: <strong>{item.recipient_cc}</strong></>} | 
+                  Kasus: <strong>{item.case_study_id === 'tugas-flowchart' ? 'Studi Kasus 1: Revisi Tugas Flowchart' : (item.case_study_id === 'izin-kendala' ? 'Studi Kasus 2: Kendala Lab & Izin' : (item.case_study_id === 'lamaran-magang' ? 'Studi Kasus 3: Permohonan Magang PKL' : item.case_study_id))}</strong>
                 </span>
               </div>
               <div class="sub-score-box">
