@@ -1,0 +1,1589 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+const diagramArchitecture = `graph TD
+    UI["📱 Aplikasi Kasir POS / Web Client"]
+    Engine["⚙️ Database Engine (PostgreSQL / MySQL)"]
+    Parser["1. SQL Parser & Query Optimizer"]
+    Exec["2. Transaction & Execution Engine (ACID)"]
+    Buffer["3. Memory Buffer & Cache"]
+    Disk[("💾 Storage Disk (Data Files & WAL Logs)")]
+
+    UI -->|Kirim Perintah SQL: SELECT / INSERT| Engine
+    Engine --> Parser
+    Parser --> Exec
+    Exec --> Buffer
+    Buffer <-->|Read / Write Blocks| Disk`;
+
+const diagramErd = `erDiagram
+    KATEGORI ||--o{ PRODUK : "mengelompokkan (1:N)"
+    KASIR ||--o{ TRANSAKSI : "melayani (1:N)"
+    PELANGGAN ||--o{ TRANSAKSI : "melakukan (1:N)"
+    TRANSAKSI ||--|{ DETAIL_TRANSAKSI : "memuat (1:N)"
+    PRODUK ||--o{ DETAIL_TRANSAKSI : "tercatat_di (1:N)"
+
+    KATEGORI {
+        int id_kategori PK
+        varchar nama_kategori
+        text deskripsi
+    }
+    PRODUK {
+        int id_produk PK
+        varchar kode_barcode
+        varchar nama_produk
+        int id_kategori FK
+        decimal harga_beli
+        decimal harga_jual
+        int stok
+        varchar satuan
+    }
+    KASIR {
+        int id_kasir PK
+        varchar nama_kasir
+        varchar username
+        varchar nomor_hp
+        varchar shift
+    }
+    PELANGGAN {
+        int id_pelanggan PK
+        varchar nama_pelanggan
+        varchar nomor_telepon
+        int poin_member
+        date tanggal_bergabung
+    }
+    TRANSAKSI {
+        int id_transaksi PK
+        varchar kode_invoice
+        timestamp tanggal_transaksi
+        int id_kasir FK
+        int id_pelanggan FK
+        decimal total_belanja
+        varchar metode_pembayaran
+    }
+    DETAIL_TRANSAKSI {
+        int id_detail PK
+        int id_transaksi FK
+        int id_produk FK
+        int jumlah_beli
+        decimal harga_satuan
+        decimal subtotal
+    }`;
+
+const diagramOnDelete = `graph LR
+    subgraph Aksi_Referensial["Perilaku Foreign Key saat Baris Induk Dihapus"]
+        CASCADE["1. ON DELETE CASCADE<br/>Baris anak otomatis ikut terhapus"]
+        RESTRICT["2. ON DELETE RESTRICT<br/>Penghapusan ditolak jika masih ada data anak"]
+        SETNULL["3. ON DELETE SET NULL<br/>Kolom FK anak otomatis diubah menjadi NULL"]
+    end`;
+---
+
+<MainLayout
+  title="Materi Ajar: Arsitektur Basis Data & DDL (ERD, Normalisasi 1NF-3NF, Constraints) | SMK RPL"
+  description="Panduan komprehensif konsep arsitektur database relasional, perancangan diagram ERD Mermaid, teknik normalisasi data bebas anomali, sintaksis DDL, dan batasan integritas untuk siswa Kelas 11 RPL."
+>
+  <div class="materi-container">
+    <!-- Top Nav & Breadcrumbs -->
+    <div class="top-nav-bar">
+      <a href="/belajar/sql" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Katalog Modul SQL
+      </a>
+      <div class="top-nav-badges">
+        <span class="badge badge-purple">MATERI INTI KELAS 11 RPL</span>
+        <span class="badge badge-cyan">DATABASE ARCHITECTURE &amp; DDL</span>
+        <span class="badge badge-amber">PANDUAN PRA-PROYEK</span>
+      </div>
+    </div>
+
+    <!-- Hero Header Card -->
+    <div class="hero-card glass-card">
+      <div class="hero-badge-wrap">
+        <span class="badge badge-primary">MODUL AJAR BASIS DATA</span>
+        <span class="badge badge-emerald">TEORI &amp; PRAKTIKUM FUNDAMENTAL</span>
+      </div>
+      <h1 class="hero-title">Arsitektur Basis Data &amp; DDL</h1>
+      <p class="hero-subtitle">
+        Pelajari fondasi perancangan sistem database relasional: Mulai dari arsitektur RDBMS, pembuatan diagram relasi entitas (ERD), eliminasi anomali data melalui Normalisasi (1NF s.d. 3NF), hingga implementasi sintaksis DDL dan batasan integritas (<em>Constraints</em>).
+      </p>
+
+      <div class="hero-cta-row">
+        <a href="#bab-1" class="btn btn-primary btn-sm">Mulai Belajar Bab 1 &darr;</a>
+        <a href="#bab-2" class="btn btn-secondary btn-sm">Diagram ERD SmartMart &rarr;</a>
+        <a href="/belajar/sql/proyek" class="btn btn-outline btn-sm">Lembar Tugas Proyek &nearr;</a>
+      </div>
+    </div>
+
+    <!-- Quick Navigation Table of Contents -->
+    <div class="toc-card glass-card">
+      <h3 class="toc-title">📑 Daftar Isi Pembelajaran:</h3>
+      <div class="toc-grid">
+        <a href="#bab-1" class="toc-item">
+          <span class="toc-num">01</span>
+          <div>
+            <strong>Konsep Arsitektur RDBMS &amp; ACID</strong>
+            <span>Fondasi arsitektur multi-tier &amp; integritas data</span>
+          </div>
+        </a>
+        <a href="#bab-2" class="toc-item">
+          <span class="toc-num">02</span>
+          <div>
+            <strong>Diagram ERD &amp; Kardinalitas</strong>
+            <span>Visualisasi entitas &amp; relasi Crow's Foot</span>
+          </div>
+        </a>
+        <a href="#bab-3" class="toc-item">
+          <span class="toc-num">03</span>
+          <div>
+            <strong>Normalisasi Data (1NF &rarr; 3NF)</strong>
+            <span>Eliminasi anomali sisip, ubah, dan hapus</span>
+          </div>
+        </a>
+        <a href="#bab-4" class="toc-item">
+          <span class="toc-num">04</span>
+          <div>
+            <strong>Sintaksis Baku DDL SQL</strong>
+            <span>CREATE, ALTER, DROP, &amp; TRUNCATE</span>
+          </div>
+        </a>
+        <a href="#bab-5" class="toc-item">
+          <span class="toc-num">05</span>
+          <div>
+            <strong>Batasan Integritas (Constraints)</strong>
+            <span>PK, FK, CHECK, UNIQUE, &amp; ON DELETE CASCADE</span>
+          </div>
+        </a>
+        <a href="#bab-6" class="toc-item">
+          <span class="toc-num">06</span>
+          <div>
+            <strong>Cheat Sheet DDL &amp; Mini Kuis</strong>
+            <span>Template skrip 6 tabel &amp; uji pemahaman</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         BAB 1: FONDASI ARSITEKTUR RDBMS & ACID
+         ========================================== -->
+    <section id="bab-1" class="content-section glass-card">
+      <div class="section-badge-header">
+        <span class="section-step-num">BAB 01</span>
+        <h2>Fondasi Arsitektur Basis Data Relasional (RDBMS) &amp; ACID</h2>
+      </div>
+
+      <p class="section-lead">
+        Sebelum menulis kode SQL, seorang <em>Software Engineer</em> wajib memahami bagaimana sistem database bekerja di balik layar dalam memproses jutaan transaksi kasir secara aman, konsisten, dan konkuren.
+      </p>
+
+      <!-- Diagram 1: Arsitektur Multi-Tier Database -->
+      <div class="visual-box">
+        <div class="visual-header">
+          <span class="visual-badge">DIAGRAM ARSITEKTUR</span>
+          <h4>Alur Pemrosesan Query pada RDBMS</h4>
+        </div>
+        <div class="mermaid-diagram-wrap">
+          <pre class="mermaid">{diagramArchitecture}</pre>
+        </div>
+        <p class="visual-caption">
+          <strong>Gambar 1.1:</strong> Alur transaksi dari antarmuka kasir ke parser SQL, eksekusi ACID, buffer memori, hingga penyimpanan permanen di disk.
+        </p>
+      </div>
+
+      <!-- Tabel 1: Flat-File vs RDBMS -->
+      <h3 class="sub-heading">Mengapa Menggunakan RDBMS, Bukan File Excel/CSV?</h3>
+      <p>
+        Banyak toko konvensional mencatat transaksi pada satu lembar file Excel (<em>Flat-File</em>). Namun saat skala bisnis membesar, cara ini menimbulkan bencana integritas:
+      </p>
+
+      <div class="table-responsive margin-top-sm">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Aspek Pembanding</th>
+              <th>Flat-File (Excel / CSV)</th>
+              <th>RDBMS (PostgreSQL / MySQL)</th>
+              <th>Dampak Nyata di Kasir SmartMart</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Konkurensi (Banyak Kasir)</strong></td>
+              <td>❌ File terkunci jika dibuka 2 kasir bersamaan</td>
+              <td>✅ Mampu melayani ribuan kasir serentak (*Multi-User*)</td>
+              <td>Kasir 1 &amp; Kasir 2 bisa transaksi tanpa antri kunci file</td>
+            </tr>
+            <tr>
+              <td><strong>Integritas Relasi</strong></td>
+              <td>❌ Nama pelanggan atau harga rawan salah ketik manual</td>
+              <td>✅ Terkunci otomatis via Foreign Key &amp; Constraints</td>
+              <td>Kasir tidak bisa menjual barang fiktif yang tidak ada di master</td>
+            </tr>
+            <tr>
+              <td><strong>Keamanan Transaksi (ACID)</strong></td>
+              <td>❌ Jika PC mati tiba-tiba, file rawan rusak (korup)</td>
+              <td>✅ Rollback otomatis jika transaksi gagal di tengah jalan</td>
+              <td>Struk nota tidak akan tercatat setengah jika listrik padam</td>
+            </tr>
+            <tr>
+              <td><strong>Kecepatan Query Data Besar</strong></td>
+              <td>❌ Lambat &amp; <em>lag</em> saat baris data mencapai &gt;100.000</td>
+              <td>✅ Cepat berkat struktur B-Tree Indexing &amp; View</td>
+              <td>Laporan omset tahunan selesai dalam hitungan milidetik</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Prinsip ACID Callout -->
+      <div class="callout-box callout-info margin-top-md">
+        <div class="callout-icon">🛡️</div>
+        <div>
+          <h4>4 Pilar Jaminan Transaksi Basis Data (Prinsip ACID):</h4>
+          <ul class="clean-list margin-top-xs">
+            <li><strong>Atomicity (Keutuhan):</strong> Transaksi diproses tuntas seluruhnya atau dibatalkan sama sekali (<em>All or Nothing</em>).</li>
+            <li><strong>Consistency (Konsistensi):</strong> Saldo stok dan total uang kasir harus selalu sesuai aturan bisnis sebelum dan sesudah transaksi.</li>
+            <li><strong>Isolation (Pemisahan):</strong> Transaksi Kasir A tidak boleh terganggu atau tercampur dengan transaksi Kasir B yang berjalan bersamaan.</li>
+            <li><strong>Durability (Ketahanan):</strong> Sekali transaksi sukses dicetak (*Commit*), data tidak akan hilang meski server mati mendadak.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BAB 2: ERD & KARDINALITAS MERMAID DIAGRAM
+         ========================================== -->
+    <section id="bab-2" class="content-section glass-card">
+      <div class="section-badge-header">
+        <span class="section-step-num">BAB 02</span>
+        <h2>Entity Relationship Diagram (ERD) &amp; Kardinalitas</h2>
+      </div>
+
+      <p class="section-lead">
+        <strong>Entity Relationship Diagram (ERD)</strong> adalah diagram visual yang menggambarkan seluruh entitas tabel basis data beserta atribut (kolom) dan garis relasi antar-entitas.
+      </p>
+
+      <!-- Diagram 2: Mermaid ERD SmartMart POS -->
+      <div class="visual-box">
+        <div class="visual-header">
+          <span class="visual-badge badge-cyan">DIAGRAM ERD RESMI</span>
+          <h4>Diagram Relasi 6 Entitas SmartMart POS (Mermaid.js)</h4>
+        </div>
+        <div class="mermaid-diagram-wrap">
+          <pre class="mermaid">{diagramErd}</pre>
+        </div>
+        <p class="visual-caption">
+          <strong>Gambar 2.1:</strong> Diagram ERD SmartMart POS dengan relasi Crow's Foot. Perhatikan bagaimana tabel <code>DETAIL_TRANSAKSI</code> bertindak sebagai jembatan (junction table) antara <code>TRANSAKSI</code> dan <code>PRODUK</code>.
+        </p>
+      </div>
+
+      <h3 class="sub-heading">Memahami Tipe Kardinalitas Relasi</h3>
+      <div class="card-grid-3 margin-top-sm">
+        <div class="feature-card">
+          <span class="badge badge-purple">1 : 1 (One-to-One)</span>
+          <h4>Satu ke Satu</h4>
+          <p>Satu baris pada Tabel A hanya berpasangan tepat dengan satu baris pada Tabel B.</p>
+          <small class="text-muted">Contoh: 1 Kasir memiliki 1 Rekening Akun Penggajian.</small>
+        </div>
+
+        <div class="feature-card">
+          <span class="badge badge-cyan">1 : N (One-to-Many)</span>
+          <h4>Satu ke Banyak (Paling Umum)</h4>
+          <p>Satu baris pada Tabel A dapat berpasangan dengan banyak baris pada Tabel B.</p>
+          <small class="text-muted">Contoh: 1 Kategori memiliki banyak Produk. 1 Kasir melayani banyak Transaksi.</small>
+        </div>
+
+        <div class="feature-card">
+          <span class="badge badge-amber">M : N (Many-to-Many)</span>
+          <h4>Banyak ke Banyak</h4>
+          <p>Banyak baris di Tabel A berpasangan dengan banyak baris di Tabel B (Wajib dipecah dengan Tabel Perantara).</p>
+          <small class="text-muted">Contoh: 1 Transaksi membeli banyak Produk, dan 1 Produk terjual di banyak Transaksi.</small>
+        </div>
+      </div>
+
+      <!-- Contoh Query Pemecahan Many-to-Many -->
+      <div class="code-example-block margin-top-md">
+        <div class="code-example-header">
+          <span class="code-badge">SQL DDL</span>
+          <strong>Contoh Pemecahan Relasi M:N Menggunakan Junction Table:</strong>
+        </div>
+        <pre class="code-snippet font-mono"><code>-- 1. Tabel Header Transaksi (Menyimpan nomor invoice dan tanggal)
+CREATE TABLE transaksi (
+    id_transaksi SERIAL PRIMARY KEY,
+    kode_invoice VARCHAR(50) NOT NULL UNIQUE,
+    tanggal_transaksi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_kasir INT REFERENCES kasir(id_kasir),
+    total_belanja DECIMAL(12,2) DEFAULT 0
+);
+
+-- 2. Tabel Junction / Detail (Menampung relasi M:N antara Transaksi dan Produk)
+CREATE TABLE detail_transaksi (
+    id_detail SERIAL PRIMARY KEY,
+    id_transaksi INT NOT NULL REFERENCES transaksi(id_transaksi) ON DELETE CASCADE,
+    id_produk INT NOT NULL REFERENCES produk(id_produk),
+    jumlah_beli INT NOT NULL CHECK (jumlah_beli &gt; 0),
+    harga_satuan DECIMAL(10,2) NOT NULL CHECK (harga_satuan &gt;= 0),
+    subtotal DECIMAL(12,2) NOT NULL CHECK (subtotal &gt;= 0)
+);</code></pre>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BAB 3: TEKNIK NORMALISASI (1NF - 3NF)
+         ========================================== -->
+    <section id="bab-3" class="content-section glass-card">
+      <div class="section-badge-header">
+        <span class="section-step-num">BAB 03</span>
+        <h2>Teknik Normalisasi Data (1NF, 2NF, 3NF) Bebas Anomali</h2>
+      </div>
+
+      <p class="section-lead">
+        <strong>Normalisasi</strong> adalah proses pengorganisasian tabel database untuk meminimalkan duplikasi data (redundansi) dan mencegah terjadinya 3 jenis anomali fatal:
+      </p>
+
+      <div class="card-grid-3 margin-top-sm">
+        <div class="feature-card border-red">
+          <span class="badge badge-red">ANOMALI 1</span>
+          <h4>Anomali Sisip (Insert)</h4>
+          <p>Tidak bisa menambahkan produk baru ke sistem jika belum ada pelanggan yang membelinya.</p>
+        </div>
+        <div class="feature-card border-amber">
+          <span class="badge badge-amber">ANOMALI 2</span>
+          <h4>Anomali Ubah (Update)</h4>
+          <p>Jika nama kategori "Minuman" diubah, kita harus mengupdate ribuan baris transaksi satu per satu.</p>
+        </div>
+        <div class="feature-card border-purple">
+          <span class="badge badge-purple">ANOMALI 3</span>
+          <h4>Anomali Hapus (Delete)</h4>
+          <p>Jika satu nota transaksi dibatalkan/dihapus, data master produk dan kasir ikut terhapus hilang selamanya.</p>
+        </div>
+      </div>
+
+      <!-- Studi Kasus Normalisasi Bertahap -->
+      <h3 class="sub-heading margin-top-lg">Studi Kasus: Membedah Nota Kasir Manual SmartMart</h3>
+
+      <!-- 1. UNF -->
+      <div class="norm-step-box margin-top-sm">
+        <div class="norm-badge-row">
+          <span class="step-pill step-unf">BENTUK TIDAK TERNORMALISASI (UNF)</span>
+          <span class="status-pill status-bad">❌ Banyak Nilai Ganda &amp; Kolom Berulang</span>
+        </div>
+        <p>Data faktur manual yang digabung dalam satu lembar flat table:</p>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>No_Invoice</th>
+                <th>Kasir</th>
+                <th>Shift</th>
+                <th>Pelanggan</th>
+                <th>Barang_1 (Qty, Harga)</th>
+                <th>Barang_2 (Qty, Harga)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>INV-001</td>
+                <td>Rian</td>
+                <td>Pagi</td>
+                <td>Budi (08123)</td>
+                <td>Susu Kotak (2 pcs @ 6.000)</td>
+                <td>Roti Manis (1 pcs @ 5.000)</td>
+              </tr>
+              <tr>
+                <td>INV-002</td>
+                <td>Siti</td>
+                <td>Siang</td>
+                <td>Siti (08999)</td>
+                <td>Buku Tulis (5 pcs @ 4.000)</td>
+                <td><em>(Kosong / NULL)</em></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. 1NF -->
+      <div class="norm-step-box margin-top-md">
+        <div class="norm-badge-row">
+          <span class="step-pill step-1nf">BENTUK NORMAL KESATU (1NF)</span>
+          <span class="status-pill status-ok">✅ Nilai Bersifat Atomik (Tunggal) &amp; Tidak Ada Kolom Berulang</span>
+        </div>
+        <p>Setiap sel hanya berisi 1 data tunggal dan setiap baris memiliki Primary Key komposit unik (<code>No_Invoice + Kode_Barang</code>):</p>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>No_Invoice (PK)</th>
+                <th>Kode_Barang (PK)</th>
+                <th>Nama_Barang</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Qty</th>
+                <th>Kasir</th>
+                <th>Shift</th>
+                <th>Pelanggan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>INV-001</strong></td>
+                <td><strong>BRG-01</strong></td>
+                <td>Susu Kotak</td>
+                <td>Minuman</td>
+                <td>6.000</td>
+                <td>2</td>
+                <td>Rian</td>
+                <td>Pagi</td>
+                <td>Budi</td>
+              </tr>
+              <tr>
+                <td><strong>INV-001</strong></td>
+                <td><strong>BRG-02</strong></td>
+                <td>Roti Manis</td>
+                <td>Makanan</td>
+                <td>5.000</td>
+                <td>1</td>
+                <td>Rian</td>
+                <td>Pagi</td>
+                <td>Budi</td>
+              </tr>
+              <tr>
+                <td><strong>INV-002</strong></td>
+                <td><strong>BRG-03</strong></td>
+                <td>Buku Tulis</td>
+                <td>ATK</td>
+                <td>4.000</td>
+                <td>5</td>
+                <td>Siti</td>
+                <td>Siang</td>
+                <td>Siti</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <small class="text-warning">⚠️ Masalah 1NF: Nama_Barang &amp; Kategori hanya bergantung pada <code>Kode_Barang</code>, bukan pada <code>No_Invoice</code> (Partial Dependency).</small>
+      </div>
+
+      <!-- 3. 2NF -->
+      <div class="norm-step-box margin-top-md">
+        <div class="norm-badge-row">
+          <span class="step-pill step-2nf">BENTUK NORMAL KEDUA (2NF)</span>
+          <span class="status-pill status-ok">✅ Memenuhi 1NF + Menghilangkan Ketergantungan Parsial</span>
+        </div>
+        <p>Tabel dipecah menjadi Tabel Transaksi, Tabel Produk, dan Tabel Detail Item agar atribut non-kunci bergantung penuh pada Primary Key masing-masing:</p>
+        
+        <div class="detail-grid-2 margin-top-xs">
+          <div>
+            <strong>1. Tabel Transaksi (Header):</strong>
+            <table class="data-table mini-table">
+              <thead><tr><th>No_Invoice (PK)</th><th>Kasir</th><th>Shift</th><th>Pelanggan</th></tr></thead>
+              <tbody>
+                <tr><td>INV-001</td><td>Rian</td><td>Pagi</td><td>Budi</td></tr>
+                <tr><td>INV-002</td><td>Siti</td><td>Siang</td><td>Siti</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <strong>2. Tabel Detail Transaksi:</strong>
+            <table class="data-table mini-table">
+              <thead><tr><th>No_Invoice (FK)</th><th>Kode_Barang (FK)</th><th>Qty</th></tr></thead>
+              <tbody>
+                <tr><td>INV-001</td><td>BRG-01</td><td>2</td></tr>
+                <tr><td>INV-001</td><td>BRG-02</td><td>1</td></tr>
+                <tr><td>INV-002</td><td>BRG-03</td><td>5</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. 3NF -->
+      <div class="norm-step-box margin-top-md">
+        <div class="norm-badge-row">
+          <span class="step-pill step-3nf">BENTUK NORMAL KETIGA (3NF) - IDEAL INDUSTRI</span>
+          <span class="status-pill status-perfect">🌟 Memenuhi 2NF + Bebas Ketergantungan Transitif</span>
+        </div>
+        <p>Atribut non-kunci tidak boleh bergantung pada atribut non-kunci lain. Data Kasir (Shift bergantung pada Kasir), Pelanggan (Telepon bergantung pada Pelanggan), dan Kategori dipisahkan ke tabel masternya masing-masing.</p>
+        <p class="text-accent font-medium">Hasil Akhir 3NF = Skema 6 Tabel SmartMart POS (<code>kategori</code>, <code>produk</code>, <code>kasir</code>, <code>pelanggan</code>, <code>transaksi</code>, <code>detail_transaksi</code>).</p>
+      </div>
+
+      <!-- Query Rekonstruksi Data 3NF -->
+      <div class="code-example-block margin-top-md">
+        <div class="code-example-header">
+          <span class="code-badge">SQL SELECT JOIN</span>
+          <strong>Query Merekonstruksi Data 3NF Menjadi Struk Kasir Lengkap:</strong>
+        </div>
+        <pre class="code-snippet font-mono"><code>SELECT 
+    t.kode_invoice,
+    t.tanggal_transaksi,
+    k.nama_kasir,
+    COALESCE(p.nama_pelanggan, 'Non-Member') AS nama_pelanggan,
+    pr.nama_produk,
+    dt.jumlah_beli,
+    dt.harga_satuan,
+    (dt.jumlah_beli * dt.harga_satuan) AS subtotal
+FROM transaksi t
+JOIN kasir k ON t.id_kasir = k.id_kasir
+LEFT JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
+JOIN detail_transaksi dt ON t.id_transaksi = dt.id_transaksi
+JOIN produk pr ON dt.id_produk = pr.id_produk
+ORDER BY t.id_transaksi DESC;</code></pre>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BAB 4: SINTAKSIS BAKU DDL & TIPE DATA
+         ========================================== -->
+    <section id="bab-4" class="content-section glass-card">
+      <div class="section-badge-header">
+        <span class="section-step-num">BAB 04</span>
+        <h2>Sintaksis DDL (Data Definition Language) &amp; Tipe Data</h2>
+      </div>
+
+      <p class="section-lead">
+        DDL digunakan untuk mendefinisikan kerangka objek database. Di bawah ini adalah panduan pemilihan tipe data dan sintaksis baku DDL:
+      </p>
+
+      <h3 class="sub-heading">Matriks Pemilihan Tipe Data SQL Efisien</h3>
+      <div class="table-responsive margin-top-sm">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tipe Data</th>
+              <th>Rentang / Kapasitas</th>
+              <th>Kapan Menggunakannya?</th>
+              <th>Contoh Kolom SmartMart</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>INT / SERIAL</code></td>
+              <td>-2 Miliar s.d. +2 Miliar (4 Byte)</td>
+              <td>ID tabel transaksi, jumlah kuantitas stok</td>
+              <td><code>id_produk</code>, <code>stok</code>, <code>jumlah_beli</code></td>
+            </tr>
+            <tr>
+              <td><code>VARCHAR(n)</code></td>
+              <td>Teks variabel dinamis (max <em>n</em> huruf)</td>
+              <td>Nama, barcode, nomor invoice berbatas panjang</td>
+              <td><code>kode_barcode VARCHAR(50)</code>, <code>nama_produk</code></td>
+            </tr>
+            <tr>
+              <td><code>TEXT</code></td>
+              <td>Teks panjang tidak terbatas</td>
+              <td>Catatan, deskripsi produk, feedback guru</td>
+              <td><code>deskripsi TEXT</code>, <code>notes TEXT</code></td>
+            </tr>
+            <tr>
+              <td><code>DECIMAL(12,2)</code></td>
+              <td>Angka presisi desimal eksak (Tanpa pembulatan floating point)</td>
+              <td><strong>Uang &amp; harga</strong> (Wajib untuk sistem keuangan)</td>
+              <td><code>harga_beli</code>, <code>harga_jual</code>, <code>total_belanja</code></td>
+            </tr>
+            <tr>
+              <td><code>DATE / TIMESTAMP</code></td>
+              <td>Tanggal (YYYY-MM-DD) dan Waktu Presisi</td>
+              <td>Waktu pencetakan struk dan riwayat member</td>
+              <td><code>tanggal_transaksi TIMESTAMP DEFAULT NOW()</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-heading margin-top-lg">Perintah DDL Utama: CREATE, ALTER, DROP, TRUNCATE</h3>
+      <div class="code-example-block margin-top-sm">
+        <div class="code-example-header">
+          <span class="code-badge">SQL DDL LENGKAP</span>
+          <strong>Kumpulan Contoh Perintah DDL Operasional:</strong>
+        </div>
+        <pre class="code-snippet font-mono"><code>-- 1. CREATE TABLE: Membuat tabel baru
+CREATE TABLE kasir (
+    id_kasir SERIAL PRIMARY KEY,
+    nama_kasir VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    nomor_hp VARCHAR(20),
+    shift VARCHAR(10) CHECK (shift IN ('Pagi', 'Siang', 'Malam'))
+);
+
+-- 2. ALTER TABLE: Menambahkan kolom baru
+ALTER TABLE produk ADD COLUMN batas_stok_kritis INT DEFAULT 5;
+
+-- 3. ALTER TABLE: Mengubah tipe data kolom
+ALTER TABLE kasir ALTER COLUMN nomor_hp TYPE VARCHAR(30);
+
+-- 4. ALTER TABLE: Menghapus kolom
+ALTER TABLE produk DROP COLUMN batas_stok_kritis;
+
+-- 5. TRUNCATE TABLE: Mengosongkan seluruh isi data tabel sekaligus mereset nomor ID
+TRUNCATE TABLE detail_transaksi RESTART IDENTITY CASCADE;
+
+-- 6. DROP TABLE: Menghapus objek tabel secara permanen dari basis data
+DROP TABLE IF EXISTS tabel_sementara;</code></pre>
+      </div>
+
+      <div class="table-responsive margin-top-md">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Perbandingan</th>
+              <th>DROP TABLE</th>
+              <th>TRUNCATE TABLE</th>
+              <th>DELETE FROM</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Kategori Bahasa</strong></td>
+              <td>DDL (Definition)</td>
+              <td>DDL (Definition)</td>
+              <td>DML (Manipulation)</td>
+            </tr>
+            <tr>
+              <td><strong>Struktur Tabel</strong></td>
+              <td>Dihapus permanen (Hilang dari DB)</td>
+              <td>Tetap ada (Hanya datanya dikosongkan)</td>
+              <td>Tetap ada</td>
+            </tr>
+            <tr>
+              <td><strong>Kecepatan</strong></td>
+              <td>Sangat Cepat</td>
+              <td>Sangat Cepat (Bypass Log)</td>
+              <td>Lambat (Mencatat per baris)</td>
+            </tr>
+            <tr>
+              <td><strong>Filter WHERE</strong></td>
+              <td>❌ Tidak bisa pakai WHERE</td>
+              <td>❌ Tidak bisa pakai WHERE</td>
+              <td>✅ Bisa filter WHERE spesifik</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BAB 5: INTEGRITY CONSTRAINTS
+         ========================================== -->
+    <section id="bab-5" class="content-section glass-card">
+      <div class="section-badge-header">
+        <span class="section-step-num">BAB 05</span>
+        <h2>Batasan Integritas Data (Integrity Constraints)</h2>
+      </div>
+
+      <p class="section-lead">
+        <strong>Constraints</strong> adalah aturan yang diberlakukan pada kolom tabel untuk mencegah data sampah, nilai negatif yang tidak masuk akal, atau data yatim (*orphan data*) masuk ke database.
+      </p>
+
+      <div class="card-grid-3 margin-top-sm">
+        <div class="feature-card">
+          <span class="badge badge-purple">PRIMARY KEY</span>
+          <h4>Kunci Utama (PK)</h4>
+          <p>Identitas unik tiap baris. Otomatis bersifat <code>NOT NULL</code> dan <code>UNIQUE</code>.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="badge badge-cyan">FOREIGN KEY</span>
+          <h4>Kunci Tamu (FK)</h4>
+          <p>Menghubungkan kolom ke PK tabel lain untuk menjaga integritas referensial.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="badge badge-amber">CHECK CONSTRAINT</span>
+          <h4>Validasi Logika Bisnis</h4>
+          <p>Memastikan nilai memenuhi rumus tertentu, misal: <code>CHECK (harga_jual &gt;= harga_beli)</code>.</p>
+        </div>
+      </div>
+
+      <!-- Diagram Aksi Referensial Foreign Key -->
+      <div class="visual-box margin-top-md">
+        <div class="visual-header">
+          <span class="visual-badge">PANDUAN REFERENSIAL</span>
+          <h4>3 Pilihan Aksi Penghapusan Foreign Key (ON DELETE)</h4>
+        </div>
+        <div class="mermaid-diagram-wrap">
+          <pre class="mermaid">{diagramOnDelete}</pre>
+        </div>
+        <p class="visual-caption">
+          <strong>Gambar 5.1:</strong> Contoh kasus SmartMart: Jika nota <code>transaksi</code> dihapus, maka <code>detail_transaksi</code> menggunakan <code>ON DELETE CASCADE</code>. Namun jika <code>kategori</code> dihapus, gunakan <code>ON DELETE RESTRICT</code> agar produk tidak terhapus tanpa sengaja.
+        </p>
+      </div>
+
+      <!-- Simulasi Query Sukses vs Pelanggaran Constraint -->
+      <h3 class="sub-heading margin-top-lg">Simulasi: Kueri Sukses vs Pelanggaran Constraint</h3>
+      
+      <div class="code-example-block margin-top-sm">
+        <div class="code-example-header">
+          <span class="code-badge badge-green">SKENARIO 1: SUKSES</span>
+          <strong>Pemasukan Data Valid (Sesuai Seluruh Batasan Constraint):</strong>
+        </div>
+        <pre class="code-snippet font-mono"><code>-- Valid: harga_jual (7000) &gt;= harga_beli (5000), stok &gt;= 0
+INSERT INTO produk (kode_barcode, nama_produk, id_kategori, harga_beli, harga_jual, stok)
+VALUES ('8991234567', 'Teh Botol 250ml', 1, 5000.00, 7000.00, 50);
+-- Result: INSERT 0 1 (Berhasil Disimpan)</code></pre>
+      </div>
+
+      <div class="code-example-block margin-top-sm">
+        <div class="code-example-header">
+          <span class="code-badge badge-red">SKENARIO 2: ERROR CHECK CONSTRAINT</span>
+          <strong>Pelanggaran Aturan: Harga Jual Lebih Rendah dari Harga Beli:</strong>
+        </div>
+        <pre class="code-snippet font-mono" style="border-left-color: #ef4444;"><code>-- Tidak Valid: harga_jual (3000) &lt; harga_beli (5000) -&gt; TOKO RUGI!
+INSERT INTO produk (kode_barcode, nama_produk, id_kategori, harga_beli, harga_jual, stok)
+VALUES ('8997654321', 'Kopi Instan', 1, 5000.00, 3000.00, 20);
+
+-- ❌ ERROR DATABASE:
+-- ERROR: new row for relation "produk" violates check constraint "chk_harga_valid"
+-- DETAIL: Failing row contains (8997654321, Kopi Instan, 1, 5000.00, 3000.00, 20).</code></pre>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BAB 6: CHEAT SHEET DDL SMARTMART & KUIS
+         ========================================== -->
+    <section id="bab-6" class="content-section glass-card">
+      <div class="section-badge-header">
+        <span class="section-step-num">BAB 06</span>
+        <h2>Cheat Sheet Skrip DDL 6 Tabel &amp; Mini Kuis Interaktif</h2>
+      </div>
+
+      <p class="section-lead">
+        Gunakan template skrip DDL 6 tabel SmartMart POS di bawah ini sebagai referensi baku untuk tugas proyek tim Anda:
+      </p>
+
+      <div class="code-example-block">
+        <div class="code-example-header">
+          <span class="code-badge">SQL DDL SCRIPT (LENGKAP)</span>
+          <button id="copy-ddl-btn" class="btn btn-secondary btn-xs" type="button">📋 Salin Skrip DDL</button>
+        </div>
+        <pre id="ddl-full-code" class="code-snippet font-mono" style="max-height: 420px; overflow-y: auto;"><code>-- ==========================================================
+-- SKRIP DDL RESMI: SMARTMART POS (6 TABEL RELASIONAL)
+-- Mata Pelajaran : Basis Data / Pemrograman Web & RPL (Kelas 11)
+-- ==========================================================
+
+-- 1. TABEL KATEGORI PRODUK
+CREATE TABLE kategori (
+    id_kategori SERIAL PRIMARY KEY,
+    nama_kategori VARCHAR(100) NOT NULL UNIQUE,
+    deskripsi TEXT
+);
+
+-- 2. TABEL MASTER PRODUK & STOK
+CREATE TABLE produk (
+    id_produk SERIAL PRIMARY KEY,
+    kode_barcode VARCHAR(50) NOT NULL UNIQUE,
+    nama_produk VARCHAR(150) NOT NULL,
+    id_kategori INT NOT NULL REFERENCES kategori(id_kategori) ON DELETE RESTRICT,
+    harga_beli DECIMAL(10,2) NOT NULL CHECK (harga_beli &gt;= 0),
+    harga_jual DECIMAL(10,2) NOT NULL CHECK (harga_jual &gt;= harga_beli),
+    stok INT NOT NULL DEFAULT 0 CHECK (stok &gt;= 0),
+    satuan VARCHAR(20) DEFAULT 'Pcs'
+);
+
+-- 3. TABEL PETUGAS KASIR
+CREATE TABLE kasir (
+    id_kasir SERIAL PRIMARY KEY,
+    nama_kasir VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    nomor_hp VARCHAR(25),
+    shift VARCHAR(15) NOT NULL CHECK (shift IN ('Pagi', 'Siang', 'Malam'))
+);
+
+-- 4. TABEL MEMBER PELANGGAN
+CREATE TABLE pelanggan (
+    id_pelanggan SERIAL PRIMARY KEY,
+    nama_pelanggan VARCHAR(100) NOT NULL,
+    nomor_telepon VARCHAR(25) UNIQUE,
+    poin_member INT NOT NULL DEFAULT 0 CHECK (poin_member &gt;= 0),
+    tanggal_bergabung DATE DEFAULT CURRENT_DATE
+);
+
+-- 5. TABEL HEADER TRANSAKSI PENJUALAN
+CREATE TABLE transaksi (
+    id_transaksi SERIAL PRIMARY KEY,
+    kode_invoice VARCHAR(50) NOT NULL UNIQUE,
+    tanggal_transaksi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_kasir INT NOT NULL REFERENCES kasir(id_kasir) ON DELETE RESTRICT,
+    id_pelanggan INT REFERENCES pelanggan(id_pelanggan) ON DELETE SET NULL,
+    total_belanja DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_belanja &gt;= 0),
+    metode_pembayaran VARCHAR(20) NOT NULL CHECK (metode_pembayaran IN ('Tunai', 'QRIS', 'Transfer', 'Debit'))
+);
+
+-- 6. TABEL DETAIL TRANSAKSI (JUNCTION ITEM)
+CREATE TABLE detail_transaksi (
+    id_detail SERIAL PRIMARY KEY,
+    id_transaksi INT NOT NULL REFERENCES transaksi(id_transaksi) ON DELETE CASCADE,
+    id_produk INT NOT NULL REFERENCES produk(id_produk) ON DELETE RESTRICT,
+    jumlah_beli INT NOT NULL CHECK (jumlah_beli &gt; 0),
+    harga_satuan DECIMAL(10,2) NOT NULL CHECK (harga_satuan &gt;= 0),
+    subtotal DECIMAL(12,2) NOT NULL CHECK (subtotal &gt;= 0)
+);
+
+-- INDEX UNTUK OPTIMASI PERFORMA PENCARIAN
+CREATE INDEX idx_produk_barcode ON produk(kode_barcode);
+CREATE INDEX idx_transaksi_tgl ON transaksi(tanggal_transaksi);
+CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
+      </div>
+
+      <!-- Mini Kuis Interaktif Pemahaman -->
+      <div class="quiz-container margin-top-xl" id="quiz-block">
+        <div class="quiz-header">
+          <span class="badge badge-purple">KUIS CEPAT</span>
+          <h3>Uji Pemahaman Arsitektur &amp; DDL (4 Soal)</h3>
+          <p>Pilih jawaban yang paling tepat untuk menguji kesiapan Anda sebelum masuk ke proyek:</p>
+        </div>
+
+        <form id="interactive-quiz-form" class="quiz-form">
+          <!-- Soal 1 -->
+          <div class="quiz-question-card" data-correct="B">
+            <h4>1. Mengapa tabel <code>transaksi</code> dan <code>produk</code> memerlukan tabel perantara <code>detail_transaksi</code>?</h4>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="q1" value="A" /> A. Karena kedua tabel memiliki tipe data yang berbeda</label>
+              <label class="quiz-option"><input type="radio" name="q1" value="B" /> B. Karena relasinya bersifat Many-to-Many (1 nota beli banyak barang, 1 barang dibeli di banyak nota)</label>
+              <label class="quiz-option"><input type="radio" name="q1" value="C" /> C. Agar database bisa berjalan tanpa Primary Key</label>
+            </div>
+            <div class="quiz-feedback" id="feedback-q1"></div>
+          </div>
+
+          <!-- Soal 2 -->
+          <div class="quiz-question-card" data-correct="C">
+            <h4>2. Suatu tabel dikatakan memenuhi Bentuk Normal Ketiga (3NF) apabila:</h4>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="q2" value="A" /> A. Kolomnya memiliki nilai array dan list bertingkat</label>
+              <label class="quiz-option"><input type="radio" name="q2" value="B" /> B. Memiliki minimal 10 kolom foreign key</label>
+              <label class="quiz-option"><input type="radio" name="q2" value="C" /> C. Sudah memenuhi 2NF dan tidak memiliki ketergantungan transitif antarkolom non-kunci</label>
+            </div>
+            <div class="quiz-feedback" id="feedback-q2"></div>
+          </div>
+
+          <!-- Soal 3 -->
+          <div class="quiz-question-card" data-correct="A">
+            <h4>3. Aksi referensial <code>ON DELETE CASCADE</code> pada tabel <code>detail_transaksi</code> berarti:</h4>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="q3" value="A" /> A. Jika nota induk dihapus, seluruh baris rincian item di nota tersebut otomatis ikut terhapus</label>
+              <label class="quiz-option"><input type="radio" name="q3" value="B" /> B. Database menolak penghapusan nota jika ada rincian item</label>
+              <label class="quiz-option"><input type="radio" name="q3" value="C" /> C. Mengubah harga barang menjadi 0</label>
+            </div>
+            <div class="quiz-feedback" id="feedback-q3"></div>
+          </div>
+
+          <!-- Soal 4 -->
+          <div class="quiz-question-card" data-correct="B">
+            <h4>4. Tipe data yang paling tepat dan aman untuk kolom harga uang (<code>harga_jual</code>) adalah:</h4>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="q4" value="A" /> A. <code>FLOAT</code> karena mendukung pecahan desimal cepat</label>
+              <label class="quiz-option"><input type="radio" name="q4" value="B" /> B. <code>DECIMAL(10,2)</code> karena presisi eksak tanpa galat pembulatan floating point</label>
+              <label class="quiz-option"><input type="radio" name="q4" value="C" /> C. <code>VARCHAR(20)</code> agar bisa ditulis format "Rp 10.000"</label>
+            </div>
+            <div class="quiz-feedback" id="feedback-q4"></div>
+          </div>
+
+          <div class="quiz-action-footer">
+            <button type="button" id="check-quiz-btn" class="btn btn-primary btn-md">
+              Periksa Jawaban Kuis &check;
+            </button>
+            <div id="quiz-score-badge" class="quiz-score-pill"></div>
+          </div>
+        </form>
+      </div>
+
+      <!-- CTA Footer Box -->
+      <div class="next-step-card glass-card margin-top-xl">
+        <div class="next-step-content">
+          <span class="badge badge-emerald">SIAP MENGERJAKAN PROYEK</span>
+          <h3>Sudah Menguasai Arsitektur &amp; DDL?</h3>
+          <p>
+            Lanjutkan ke lembar <strong>Tugas Proyek SmartMart POS</strong> untuk membentuk kelompok 2 orang, menyusun skrip DDL &amp; DML, menyelesaikan 5 query analitik bisnis, dan mengumpulkan tugas.
+          </p>
+        </div>
+        <div class="next-step-action">
+          <a href="/belajar/sql/proyek" class="btn btn-primary btn-lg">
+            Buka Tugas Proyek SmartMart POS &rarr;
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</MainLayout>
+
+<!-- Mermaid.js for Rendering Diagrams Client-side -->
+<script is:inline type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#6366f1',
+      primaryTextColor: '#f8fafc',
+      primaryBorderColor: '#818cf8',
+      lineColor: '#38bdf8',
+      secondaryColor: '#1e293b',
+      tertiaryColor: '#0f172a'
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Copy DDL Code Button
+    const copyBtn = document.getElementById('copy-ddl-btn');
+    const ddlCode = document.getElementById('ddl-full-code');
+
+    copyBtn?.addEventListener('click', () => {
+      if (ddlCode) {
+        navigator.clipboard.writeText(ddlCode.textContent || '').then(() => {
+          copyBtn.textContent = '✅ Berhasil Disalin!';
+          setTimeout(() => { copyBtn.textContent = '📋 Salin Skrip DDL'; }, 2000);
+        });
+      }
+    });
+
+    // Interactive Quiz Checker
+    const checkBtn = document.getElementById('check-quiz-btn');
+    const scoreBadge = document.getElementById('quiz-score-badge');
+
+    checkBtn?.addEventListener('click', () => {
+      const cards = document.querySelectorAll('.quiz-question-card');
+      let score = 0;
+      let total = cards.length;
+
+      cards.forEach((card, idx) => {
+        const correct = card.getAttribute('data-correct');
+        const qName = `q${idx + 1}`;
+        const selected = card.querySelector(`input[name="${qName}"]:checked`)?.value;
+        const feedback = card.querySelector('.quiz-feedback');
+
+        if (feedback) {
+          if (!selected) {
+            feedback.className = 'quiz-feedback feedback-warn';
+            feedback.textContent = '⚠️ Silakan pilih salah satu opsi jawaban terlebih dahulu.';
+            feedback.style.display = 'block';
+          } else if (selected === correct) {
+            score++;
+            feedback.className = 'quiz-feedback feedback-correct';
+            feedback.textContent = '✅ Benar! Jawaban Anda tepat sesuai kaidah arsitektur basis data.';
+            feedback.style.display = 'block';
+          } else {
+            feedback.className = 'quiz-feedback feedback-wrong';
+            feedback.textContent = `❌ Kurang tepat. Jawaban yang benar adalah Opsi ${correct}.`;
+            feedback.style.display = 'block';
+          }
+        }
+      });
+
+      if (scoreBadge) {
+        const finalScore = Math.round((score / total) * 100);
+        scoreBadge.style.display = 'inline-block';
+        if (finalScore >= 75) {
+          scoreBadge.className = 'quiz-score-pill score-pass';
+          scoreBadge.innerHTML = `🎉 Skor Anda: <strong>${finalScore}/100</strong> (TUNTAS - Siap Masuk ke Tugas Proyek!)`;
+        } else {
+          scoreBadge.className = 'quiz-score-pill score-fail';
+          scoreBadge.innerHTML = `📖 Skor Anda: <strong>${finalScore}/100</strong> (Pelajari kembali materi di atas & coba lagi)`;
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .materi-container {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  .top-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .top-nav-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Hero Card */
+  .hero-card {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%), var(--bg-card);
+    border: 1px solid var(--border-color);
+  }
+
+  .hero-badge-wrap {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-title {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 860px;
+  }
+
+  .hero-cta-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 0.5rem;
+  }
+
+  /* TOC Card */
+  .toc-card {
+    padding: 1.75rem 2rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .toc-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+  }
+
+  .toc-item:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+  }
+
+  .toc-num {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+  }
+
+  .toc-item div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .toc-item strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
+
+  .toc-item span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Content Sections */
+  .content-section {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .section-badge-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .section-step-num {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .section-badge-header h2 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .section-lead {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .sub-heading {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.75rem;
+  }
+
+  /* Visual Boxes & Mermaid */
+  .visual-box {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .visual-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .visual-badge {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-primary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .visual-header h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .mermaid-diagram-wrap {
+    background: #090d16;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1rem;
+    overflow-x: auto;
+    text-align: center;
+  }
+
+  .visual-caption {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Data Tables */
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8875rem;
+    text-align: left;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .data-table th {
+    background: var(--bg-surface, var(--bg-secondary));
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .data-table td {
+    color: var(--text-secondary);
+    background: var(--bg-card);
+  }
+
+  .mini-table {
+    font-size: 0.8rem;
+  }
+
+  .mini-table th, .mini-table td {
+    padding: 0.45rem 0.65rem;
+  }
+
+  /* Callout Boxes */
+  .callout-box {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    align-items: flex-start;
+  }
+
+  .callout-info {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  .callout-icon {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  .callout-box h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .clean-list {
+    list-style: disc;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8875rem;
+    color: var(--text-secondary);
+  }
+
+  /* Card Grids */
+  .card-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 800px) {
+    .card-grid-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .feature-card {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .feature-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .feature-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .border-red { border-left: 3px solid #ef4444; }
+  .border-amber { border-left: 3px solid #f59e0b; }
+  .border-purple { border-left: 3px solid var(--accent-primary); }
+
+  /* Normalization Step Boxes */
+  .norm-step-box {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .norm-badge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .step-pill {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    color: #fff;
+  }
+
+  .step-unf { background: #64748b; }
+  .step-1nf { background: #0284c7; }
+  .step-2nf { background: #d97706; }
+  .step-3nf { background: #16a34a; }
+
+  .status-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .status-bad { color: #f87171; }
+  .status-ok { color: #38bdf8; }
+  .status-perfect { color: #4ade80; }
+
+  /* Code Example Blocks */
+  .code-example-block {
+    background: #090d16;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .code-example-header {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.65rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+  }
+
+  .code-badge {
+    background: var(--accent-primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+  }
+
+  .code-snippet {
+    padding: 1rem 1.25rem;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+    overflow-x: auto;
+  }
+
+  .btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Mini Quiz */
+  .quiz-container {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+  }
+
+  .quiz-header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .quiz-header h3 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .quiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .quiz-question-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .quiz-question-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.8875rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.4rem 0.65rem;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+  }
+
+  .quiz-option:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+  }
+
+  .quiz-feedback {
+    display: none;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+  }
+
+  .feedback-correct {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+  }
+
+  .feedback-wrong {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  .feedback-warn {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fcd34d;
+  }
+
+  .quiz-action-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .quiz-score-pill {
+    display: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+  }
+
+  .score-pass {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+  }
+
+  .score-fail {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fcd34d;
+  }
+
+  /* Next Step CTA */
+  .next-step-card {
+    padding: 2rem 2.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    flex-wrap: wrap;
+  }
+
+  .next-step-content {
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .next-step-content h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .next-step-content p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Utilities */
+  .margin-top-xs { margin-top: 0.35rem; }
+  .margin-top-sm { margin-top: 0.75rem; }
+  .margin-top-md { margin-top: 1.25rem; }
+  .margin-top-lg { margin-top: 1.75rem; }
+  .margin-top-xl { margin-top: 2.25rem; }
+  .text-muted { color: var(--text-muted); }
+  .text-warning { color: #f59e0b; }
+  .text-accent { color: var(--accent-primary); }
+
+  /* Mobile Responsive */
+  @media (max-width: 640px) {
+    .materi-container {
+      padding: 1rem 0.85rem 4rem;
+      gap: 1.5rem;
+    }
+
+    .hero-card, .content-section, .quiz-container, .next-step-card {
+      padding: 1.5rem 1rem;
+    }
+
+    .hero-title {
+      font-size: 1.75rem;
+    }
+
+    .section-badge-header h2 {
+      font-size: 1.35rem;
+    }
+
+    .next-step-action {
+      width: 100%;
+    }
+
+    .next-step-action .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

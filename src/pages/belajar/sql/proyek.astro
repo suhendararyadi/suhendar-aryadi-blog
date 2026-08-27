@@ -131,6 +131,25 @@ const isPass = score !== null && score >= KKM;
       )}
     </div>
 
+    <!-- Prerequisite Banner: Modul Arsitektur & DDL -->
+    <div class="prerequisite-banner glass-card">
+      <div class="prerequisite-content">
+        <div class="prerequisite-badge-row">
+          <span class="badge badge-purple">MATERI PRASYARAT</span>
+          <span class="badge badge-cyan">PANDUAN KONSEP &amp; ERD</span>
+        </div>
+        <h3>Belum Memahami Perancangan ERD, Normalisasi, atau DDL?</h3>
+        <p>
+          Pelajari modul ajar komprehensif <strong>Arsitektur Basis Data &amp; DDL</strong> untuk memahami langkah demi langkah pembuatan Diagram ERD (Mermaid), teknik normalisasi (1NF&ndash;3NF), serta batasan <em>integrity constraints</em> sebelum mengerjakan proyek ini.
+        </p>
+      </div>
+      <div class="prerequisite-action">
+        <a href="/belajar/sql/arsitektur-ddl" class="btn btn-secondary btn-md">
+          📖 Buka Materi Arsitektur &amp; DDL &rarr;
+        </a>
+      </div>
+    </div>
+
     <!-- 2-Week Roadmap Tracker -->
     <div class="roadmap-card glass-card">
       <div class="section-head">
@@ -839,6 +858,63 @@ const isPass = score !== null && score >= KKM;
     color: var(--text-primary);
     font-size: 0.9rem;
     margin-top: 0.25rem;
+  }
+
+  /* Prerequisite Banner */
+  .prerequisite-banner {
+    padding: 1.75rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: var(--radius-lg);
+    flex-wrap: wrap;
+  }
+
+  .prerequisite-content {
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .prerequisite-badge-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .prerequisite-content h3 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .prerequisite-content p {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 780px;
+  }
+
+  .prerequisite-action {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    .prerequisite-banner {
+      padding: 1.25rem 1rem;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .prerequisite-action .btn {
+      width: 100%;
+      justify-content: center;
+    }
   }
 
   /* Section Headers */
