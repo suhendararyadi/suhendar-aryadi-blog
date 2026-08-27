@@ -124,7 +124,34 @@ try {
   console.warn('Error fetching Email LKPD submissions:', err);
 }
 
-const allSubmissionsWithFlowchart = [...allSubmissions, ...flowchartSubmissions, ...emailSubmissions];
+let sqlProjectSubmissions: any[] = [];
+try {
+  const res = await query(
+    `SELECT s.*, 
+            u.name as leader_name, 
+            u.email as leader_email, 
+            u.class_name as class_name,
+            m.name as member_name_db,
+            m.email as member_email_db
+     FROM sql_project_submissions s
+     JOIN users u ON s.user_id = u.id
+     LEFT JOIN users m ON s.member_user_id = m.id
+     ORDER BY s.updated_at DESC`
+  );
+  if (res.rows) {
+    sqlProjectSubmissions = res.rows.map(row => ({
+      ...row,
+      moduleType: 'SQL_PROJECT',
+      student_name: row.leader_name,
+      student_email: row.leader_email,
+      member_display_name: row.member_name_db ? `${row.member_name_db} (${row.member_email_db})` : (row.member_name_manual || 'Individu / Belum Ditentukan')
+    }));
+  }
+} catch (err) {
+  console.warn('Error fetching SQL Project submissions:', err);
+}
+
+const allSubmissionsWithFlowchart = [...allSubmissions, ...flowchartSubmissions, ...emailSubmissions, ...sqlProjectSubmissions];
 
 // Get unique classes for filter dropdown
 const uniqueClasses = Array.from(new Set(allSubmissionsWithFlowchart.map(s => s.class_name || 'X RPL'))).sort();
@@ -221,6 +248,11 @@ try {
           <span class="tab-badge badge badge-purple">SOFTSKILL</span>
           <span class="tab-title">Etika Email</span>
           <span class="tab-count-pill" id="email-count-pill">{emailSubmissions.length}</span>
+        </button>
+        <button id="tab-btn-sql" class="tab-nav-item" type="button" data-module="SQL_PROJECT">
+          <span class="tab-badge badge badge-amber">PROYEK KELAS 11</span>
+          <span class="tab-title">SQL: SmartMart POS</span>
+          <span class="tab-count-pill" id="sql-count-pill">{sqlProjectSubmissions.length}</span>
         </button>
       </div>
     </div>
@@ -760,6 +792,165 @@ try {
           </div>
         ))}
 
+                <!-- Render SQL Project Submissions -->
+        {sqlProjectSubmissions.map((item) => (
+          <div 
+            class="submission-card glass-card module-card-sql"
+            data-module="SQL_PROJECT"
+            data-class={item.class_name || '11 RPL'}
+            data-status={item.score !== null ? 'GRADED' : 'UNGRADED'}
+            data-search={`${item.student_name} ${item.student_email} ${item.team_name || ''} ${item.member_display_name || ''}`.toLowerCase()}
+            style="display: none;"
+          >
+            <div class="sub-card-header">
+              <div>
+                <span class="badge badge-amber">PROYEK SQL</span>
+                <span class="badge badge-purple">{item.class_name || '11 RPL'}</span>
+                <h3 class="sub-student-name">Tim: <strong>{item.team_name}</strong></h3>
+                <span class="sub-team-name">
+                  Ketua: <strong>{item.student_name}</strong> ({item.student_email}) | Anggota: <strong>{item.member_display_name}</strong>
+                </span>
+              </div>
+              <div class="sub-score-box">
+                {item.score !== null ? (
+                  <span class="badge badge-green">Nilai: {item.score} / 100</span>
+                ) : (
+                  <span class="badge badge-amber">Belum Dinilai</span>
+                )}
+              </div>
+            </div>
+
+            <!-- Quick Answers Overview SQL -->
+            <div class="sub-quick-preview">
+              <div class="quick-item">
+                <strong>Berkas SQL:</strong>
+                <a href={item.sql_script_link} target="_blank" rel="noopener noreferrer" class="link-accent font-mono" style="color: var(--accent-cyan); text-decoration: underline;">
+                  Buka Skrip .sql &nearr;
+                </a>
+              </div>
+              <div class="quick-item">
+                <strong>Laporan / ERD (PDF):</strong>
+                {item.report_pdf_link ? (
+                  <a href={item.report_pdf_link} target="_blank" rel="noopener noreferrer" class="link-accent font-mono" style="color: var(--accent-purple); text-decoration: underline;">
+                    Buka Laporan PDF &nearr;
+                  </a>
+                ) : (
+                  <span class="text-muted">Tidak dilampirkan</span>
+                )}
+              </div>
+            </div>
+
+            <!-- Collapsible Full Detail Drawer Button -->
+            <div class="detail-toggle-bar">
+              <button class="btn-toggle-detail" type="button" data-target={`detail-sql-${item.id}`}>
+                <span>Tampilkan 5 Kueri Analitik &amp; Detail Proyek SmartMart</span>
+                <span class="arrow-icon">&darr;</span>
+              </button>
+            </div>
+
+            <!-- Full Detail Answer Drawer SQL (Hidden by default) -->
+            <div id={`detail-sql-${item.id}`} class="detail-drawer" style="display: none;">
+              <!-- 1. Identitas & Berkas Proyek -->
+              <div class="detail-section">
+                <h4 class="detail-sec-title">1. Identitas Tim &amp; Tautan Berkas Proyek</h4>
+                <div class="detail-grid-2">
+                  <div class="detail-box">
+                    <strong>Nama Tim / Judul:</strong>
+                    <p>{item.team_name} - <em>{item.project_title || 'SmartMart POS'}</em></p>
+                  </div>
+                  <div class="detail-box">
+                    <strong>Anggota Tim (2 Siswa):</strong>
+                    <p>1. {item.student_name} ({item.student_email})<br />2. {item.member_display_name}</p>
+                  </div>
+                </div>
+                <div class="detail-grid-2 margin-top-xs">
+                  <div class="detail-box">
+                    <strong>Tautan Berkas .sql:</strong>
+                    <p><a href={item.sql_script_link} target="_blank" rel="noopener noreferrer" class="link-accent font-mono" style="color: var(--accent-cyan); text-decoration: underline;">{item.sql_script_link} &nearr;</a></p>
+                  </div>
+                  <div class="detail-box">
+                    <strong>Tautan Laporan PDF / ERD:</strong>
+                    {item.report_pdf_link ? (
+                      <p><a href={item.report_pdf_link} target="_blank" rel="noopener noreferrer" class="link-accent font-mono" style="color: var(--accent-purple); text-decoration: underline;">{item.report_pdf_link} &nearr;</a></p>
+                    ) : (
+                      <p class="text-muted">Tidak ada dokumen PDF</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Kueri Q1 -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">2. Kueri Q1: Struk Nota Transaksi Lengkap (Multi-Table JOIN 5 Tabel)</h4>
+                <div class="detail-box">
+                  <pre class="font-mono" style="white-space: pre-wrap; line-height: 1.5; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: var(--accent-cyan); font-size: 0.85rem;">{item.query_1_text}</pre>
+                </div>
+              </div>
+
+              <!-- 3. Kueri Q2 -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">3. Kueri Q2: Rekap Omset &amp; Total Kuantitas Barang per Kategori</h4>
+                <div class="detail-box">
+                  <pre class="font-mono" style="white-space: pre-wrap; line-height: 1.5; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: var(--accent-cyan); font-size: 0.85rem;">{item.query_2_text}</pre>
+                </div>
+              </div>
+
+              <!-- 4. Kueri Q3 -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">4. Kueri Q3: Top 3 Produk Terlaris per Shift Kasir</h4>
+                <div class="detail-box">
+                  <pre class="font-mono" style="white-space: pre-wrap; line-height: 1.5; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: var(--accent-cyan); font-size: 0.85rem;">{item.query_3_text}</pre>
+                </div>
+              </div>
+
+              <!-- 5. Kueri Q4 -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">5. Kueri Q4: Deteksi Stok Kritis (&lt; 5) &amp; Produk Dead Stock</h4>
+                <div class="detail-box">
+                  <pre class="font-mono" style="white-space: pre-wrap; line-height: 1.5; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: var(--accent-cyan); font-size: 0.85rem;">{item.query_4_text}</pre>
+                </div>
+              </div>
+
+              <!-- 6. Kueri Q5 -->
+              <div class="detail-section margin-top-sm">
+                <h4 class="detail-sec-title">6. Kueri Q5: Objek Database View Laporan Harian</h4>
+                <div class="detail-box">
+                  <pre class="font-mono" style="white-space: pre-wrap; line-height: 1.5; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: var(--accent-cyan); font-size: 0.85rem;">{item.query_5_text}</pre>
+                </div>
+              </div>
+
+              <!-- 7. Catatan Tambahan -->
+              {item.notes && (
+                <div class="detail-section margin-top-sm">
+                  <h4 class="detail-sec-title">7. Catatan Tambahan Tim</h4>
+                  <div class="detail-box">
+                    <p style="white-space: pre-wrap;">{item.notes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <!-- Grading Form SQL PROJECT -->
+            <div class="grading-form-wrap">
+              <form class="grade-form" data-id={item.id} data-endpoint="/api/admin/grade-sql-project">
+                <div class="grade-inputs-row">
+                  <div class="input-group">
+                    <label>Skor Nilai Proyek (0 - 100):</label>
+                    <input type="number" name="score" min="0" max="100" class="grade-score-input" value={item.score !== null ? item.score : ''} required />
+                  </div>
+                  <div class="input-group flex-1">
+                    <label>Umpan Balik Guru (Proyek SQL SmartMart):</label>
+                    <input type="text" name="feedback" class="grade-feedback-input" placeholder="Misal: ERD dan constraints 6 tabel sangat baik, kueri JOIN 5 tabel berjalan mulus." value={item.teacher_feedback || ''} />
+                  </div>
+                  <button class="btn btn-primary btn-sm save-grade-btn" type="submit">
+                    Simpan Nilai Proyek SQL
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ))}
+
         <!-- Empty State Container -->
         <div class="empty-state" id="empty-state-display" style="display: none;">
           <p>Belum ada siswa yang mengirimkan LKPD pada kategori ini.</p>
@@ -769,7 +960,7 @@ try {
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions, flowchartSubmissionsData: flowchartSubmissions, emailSubmissionsData: emailSubmissions }}>
+<script is:inline define:vars={{ bkSubmissionsData: bkSubmissions, tikSubmissionsData: tikSubmissions, flowchartSubmissionsData: flowchartSubmissions, emailSubmissionsData: emailSubmissions, sqlProjectSubmissionsData: sqlProjectSubmissions }}>
   document.addEventListener('DOMContentLoaded', () => {
     let currentModule = 'BK'; // 'BK', 'FLOWCHART', 'TIK', or 'EMAIL'
 
@@ -778,6 +969,7 @@ try {
     const tabFlowchart = document.getElementById('tab-btn-flowchart');
     const tabTik = document.getElementById('tab-btn-tik');
     const tabEmail = document.getElementById('tab-btn-email');
+    const tabSql = document.getElementById('tab-btn-sql');
     const moduleTitleDisplay = document.getElementById('module-title-display');
     const moduleSubDisplay = document.getElementById('module-sub-display');
     const exportBtn = document.getElementById('export-csv-btn');
@@ -788,6 +980,7 @@ try {
       tabFlowchart?.classList.remove('active');
       tabTik?.classList.remove('active');
       tabEmail?.classList.remove('active');
+      tabSql?.classList.remove('active');
 
       if (module === 'BK') {
         tabBk?.classList.add('active');
@@ -804,11 +997,16 @@ try {
         if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD TIK (Mail Merge & Search)';
         if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih tugas siswa untuk memeriksa Mail Merge & Advanced Search Operators dan memberikan skor nilai';
         if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD TIK';
-      } else {
+      } else if (module === 'EMAIL') {
         tabEmail?.classList.add('active');
         if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'LKPD Etika Email (Softskill)';
         if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih surel siswa untuk memeriksa subjek, salam, badan pesan, lampiran, dan memberikan skor nilai';
         if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap LKPD Email';
+      } else if (module === 'SQL_PROJECT') {
+        tabSql?.classList.add('active');
+        if (moduleTitleDisplay) moduleTitleDisplay.textContent = 'Proyek SQL: SmartMart POS (Kelas 11 RPL)';
+        if (moduleSubDisplay) moduleSubDisplay.textContent = 'Pilih proyek tim siswa untuk memeriksa skrip .sql, dokumen ERD, dan 5 kueri analitik bisnis';
+        if (exportBtn) exportBtn.textContent = 'Unduh CSV Rekap Proyek SQL';
       }
       applyFilters();
     }
@@ -817,6 +1015,7 @@ try {
     tabFlowchart?.addEventListener('click', () => setModuleTab('FLOWCHART'));
     tabTik?.addEventListener('click', () => setModuleTab('TIK'));
     tabEmail?.addEventListener('click', () => setModuleTab('EMAIL'));
+    tabSql?.addEventListener('click', () => setModuleTab('SQL_PROJECT'));
 
     // 2. Toggle Detail Drawers
     const toggleBtns = document.querySelectorAll('.btn-toggle-detail');
@@ -930,6 +1129,7 @@ try {
       if (currentModule === 'FLOWCHART') activeData = flowchartSubmissionsData;
       else if (currentModule === 'TIK') activeData = tikSubmissionsData;
       else if (currentModule === 'EMAIL') activeData = emailSubmissionsData;
+      else if (currentModule === 'SQL_PROJECT') activeData = sqlProjectSubmissionsData;
 
       if (!activeData || activeData.length === 0) {
         alert(`Tidak ada data kiriman LKPD ${currentModule} untuk di-export.`);
@@ -943,8 +1143,10 @@ try {
         csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Studi Kasus,Jumlah Simbol,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
       } else if (currentModule === 'TIK') {
         csv = 'No,Nama Siswa,Email Siswa,Kelas,Nama Tim,Anggota Tim,Studi Kasus,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
-      } else {
+      } else if (currentModule === 'EMAIL') {
         csv = 'No,Nama Siswa,Email Siswa,Kelas,Penerima To,Tembusan Cc,Subjek Email,Nama Lampiran,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
+      } else {
+        csv = 'No,Nama Tim,Ketua Tim,Email Ketua,Anggota Tim,Kelas,Link Berkas SQL,Link Laporan PDF,Skor Nilai,Umpan Balik Guru,Tanggal Kirim\n';
       }
 
       activeData.forEach((row, index) => {
@@ -970,12 +1172,20 @@ try {
           const teamMembers = `"${(Array.isArray(row.parsedTeamMembers) ? row.parsedTeamMembers.join('; ') : '').replace(/"/g, '""')}"`;
           const caseStudy = `"${(row.case_study_id || '').toUpperCase().replace(/"/g, '""')}"`;
           csv += `${index + 1},${studentName},${studentEmail},${className},${teamName},${teamMembers},${caseStudy},${score},${feedback},${date}\n`;
-        } else {
+        } else if (currentModule === 'EMAIL') {
           const to = `"${(row.recipient_to || '').replace(/"/g, '""')}"`;
           const cc = `"${(row.recipient_cc || '').replace(/"/g, '""')}"`;
           const subj = `"${(row.subject_text || '').replace(/"/g, '""')}"`;
           const att = `"${(row.attachment_name || '').replace(/"/g, '""')}"`;
           csv += `${index + 1},${studentName},${studentEmail},${className},${to},${cc},${subj},${att},${score},${feedback},${date}\n`;
+        } else {
+          const teamName = `"${(row.team_name || '').replace(/"/g, '""')}"`;
+          const leaderName = `"${(row.student_name || '').replace(/"/g, '""')}"`;
+          const leaderEmail = `"${(row.student_email || '').replace(/"/g, '""')}"`;
+          const member = `"${(row.member_display_name || '').replace(/"/g, '""')}"`;
+          const sqlLink = `"${(row.sql_script_link || '').replace(/"/g, '""')}"`;
+          const reportLink = `"${(row.report_pdf_link || '').replace(/"/g, '""')}"`;
+          csv += `${index + 1},${teamName},${leaderName},${leaderEmail},${member},${className},${sqlLink},${reportLink},${score},${feedback},${date}\n`;
         }
       });
 

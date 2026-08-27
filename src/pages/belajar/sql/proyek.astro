@@ -1,0 +1,1244 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { query } from '../../../lib/db';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect(`/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const KKM = 75;
+
+// Fetch existing project submission for this student (either as leader or member)
+let submission: any = null;
+try {
+  const subRes = await query(
+    `SELECT * FROM sql_project_submissions 
+     WHERE user_id = $1 OR member_user_id = $1 
+     ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+  if (subRes.rows && subRes.rows.length > 0) {
+    submission = subRes.rows[0];
+  }
+} catch (err) {
+  console.warn('Error fetching project submission:', err);
+}
+
+// Fetch classmates for member dropdown selection
+let classmates: any[] = [];
+try {
+  const classRes = await query(
+    `SELECT id, name, email FROM users 
+     WHERE class_name = $1 AND id != $2 
+     ORDER BY name ASC`,
+    [user.class_name || '11 RPL', user.id]
+  );
+  if (classRes.rows) {
+    classmates = classRes.rows;
+  }
+} catch (err) {
+  console.warn('Error fetching classmates:', err);
+}
+
+const isGraded = submission?.score !== null && submission?.score !== undefined;
+const score = isGraded ? parseInt(submission.score, 10) : null;
+const isPass = score !== null && score >= KKM;
+---
+
+<MainLayout
+  title="Tugas Proyek Basis Data: SmartMart POS (Sistem Kasir & Inventaris) | SMK RPL"
+  description="Lembar Tugas Proyek Kolaboratif Basis Data SQL Kelas 11 RPL: Perancangan Skema 6 Tabel, DDL Constraints, Seeding DML, dan 5 Query Analitik Bisnis."
+>
+  <div class="project-page-container">
+    <!-- Top Nav -->
+    <div class="page-top-nav">
+      <a href="/belajar/sql" class="btn btn-outline btn-sm">
+        &larr; Kembali ke Katalog Modul SQL
+      </a>
+      <div class="top-nav-right">
+        <span class="badge badge-purple">PROYEK KELAS 11 RPL</span>
+        <span class="badge badge-cyan">2 SISWA / TIM</span>
+        <span class="badge badge-emerald">DURASI 2 PEKAN</span>
+      </div>
+    </div>
+
+    <!-- Hero Header Card -->
+    <div class="hero-project-card glass-card">
+      <div class="hero-badge-wrap">
+        <span class="badge badge-primary">TUGAS BESAR SEMESTER</span>
+        <span class="badge badge-amber">PROJECT-BASED LEARNING (PjBL)</span>
+      </div>
+      <h1 class="hero-project-title">Proyek Basis Data: SmartMart POS</h1>
+      <p class="hero-project-sub">
+        Perancangan Sistem Basis Data Relasional Mini Market &amp; Kasir Sekolah: Dari Desain Skema 6 Entitas, Normalisasi, DDL Constraints, Seeding Data DML, hingga 5 Kueri Analitik Bisnis Ritel.
+      </p>
+
+      <div class="hero-meta-grid">
+        <div class="meta-item">
+          <span class="meta-icon">👥</span>
+          <div>
+            <strong>Format Pengerjaan</strong>
+            <span>Kelompok (2 Siswa)</span>
+          </div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-icon">⏱️</span>
+          <div>
+            <strong>Alokasi Waktu</strong>
+            <span>2 Pekan Praktikum</span>
+          </div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-icon">🎯</span>
+          <div>
+            <strong>Standar Ketuntasan (KKM)</strong>
+            <span>Nilai Minimal {KKM} / 100</span>
+          </div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-icon">🗄️</span>
+          <div>
+            <strong>Ruang Lingkup</strong>
+            <span>6 Tabel + 5 Query Analitik</span>
+          </div>
+        </div>
+      </div>
+
+      {submission && (
+        <div class={`status-banner-box ${isGraded ? (isPass ? 'banner-pass' : 'banner-remedial') : 'banner-waiting'}`}>
+          <div class="status-banner-header">
+            <strong>Status Pengumpulan Tim:</strong>
+            {isGraded ? (
+              <span class="badge badge-lg">{isPass ? `✅ TUNTAS (${score}/100)` : `⚠️ REMEDIAL (${score}/100)`}</span>
+            ) : (
+              <span class="badge badge-lg badge-cyan">⏳ TERKIRIM (MENUNGGU PENILAIAN GURU)</span>
+            )}
+          </div>
+          <p class="status-banner-text">
+            Nama Tim: <strong>{submission.team_name}</strong> | Terakhir Diperbarui: {new Date(submission.updated_at).toLocaleString('id-ID')}
+          </p>
+          {submission.teacher_feedback && (
+            <div class="teacher-feedback-note">
+              <strong>📝 Catatan &amp; Umpan Balik Guru:</strong>
+              <p>{submission.teacher_feedback}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+
+    <!-- 2-Week Roadmap Tracker -->
+    <div class="roadmap-card glass-card">
+      <div class="section-head">
+        <span class="badge badge-purple">TIMELINE PENGERJAAN</span>
+        <h2>Roadmap 2 Pekan Proyek</h2>
+        <p>Gunakan jadwal bertahap ini agar proyek tim Anda selesai tepat waktu dan terstruktur:</p>
+      </div>
+
+      <div class="roadmap-grid">
+        <div class="roadmap-step">
+          <div class="step-badge">PEKAN 1</div>
+          <h3>Perancangan Arsitektur &amp; DDL</h3>
+          <ul class="roadmap-checklist">
+            <li>Analisis proses bisnis kasir &amp; inventaris SmartMart.</li>
+            <li>Rancang ERD lengkap 6 entitas tabel relasional.</li>
+            <li>Lakukan uji normalisasi tabel hingga 3NF (bebas anomali).</li>
+            <li>Tulis skrip DDL (<code>CREATE TABLE</code>) lengkap dengan <code>PRIMARY KEY</code>, <code>FOREIGN KEY</code>, <code>CHECK</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, dan <code>ON DELETE CASCADE / RESTRICT</code>.</li>
+          </ul>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-badge badge-step-2">PEKAN 2</div>
+          <h3>Seeding Data, 5 Query Analitik &amp; Submit</h3>
+          <ul class="roadmap-checklist">
+            <li>Isi minimal 10–15 baris data sampel realistis per tabel (<code>INSERT INTO</code>).</li>
+            <li>Susun dan uji ke-5 skenario Query Analitik Bisnis wajib.</li>
+            <li>Buat objek <code>CREATE VIEW view_rekap_harian</code>.</li>
+            <li>Uji seluruh skrip <code>.sql</code> di database client (DBeaver/phpMyAdmin/pgAdmin).</li>
+            <li>Kumpulkan tautan skrip <code>.sql</code>, laporan PDF, dan tempelkan 5 kueri pada form di bawah.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Panduan Studi Kasus & Spesifikasi 6 Tabel -->
+    <div class="guide-accordion-card glass-card">
+      <div class="section-head">
+        <span class="badge badge-cyan">SPESIFIKASI SISTEM</span>
+        <h2>Studi Kasus &amp; Struktur 6 Entitas Tabel</h2>
+        <p>Pastikan basis data yang Anda buat memenuhi spesifikasi atribut dan tipe data berikut:</p>
+      </div>
+
+      <div class="tables-spec-grid">
+        <!-- 1. Kategori -->
+        <div class="table-spec-box">
+          <div class="table-spec-header">
+            <span class="tbl-num">1</span>
+            <div>
+              <h4>kategori</h4>
+              <span>Master Kategori Produk</span>
+            </div>
+          </div>
+          <ul class="tbl-fields">
+            <li><code>id_kategori</code> (PK, Auto Increment)</li>
+            <li><code>nama_kategori</code> (VARCHAR, NOT NULL, UNIQUE)</li>
+            <li><code>deskripsi</code> (TEXT)</li>
+          </ul>
+        </div>
+
+        <!-- 2. Produk -->
+        <div class="table-spec-box">
+          <div class="table-spec-header">
+            <span class="tbl-num">2</span>
+            <div>
+              <h4>produk</h4>
+              <span>Master Data Produk &amp; Stok</span>
+            </div>
+          </div>
+          <ul class="tbl-fields">
+            <li><code>id_produk</code> (PK, Auto Increment)</li>
+            <li><code>kode_barcode</code> (VARCHAR, NOT NULL, UNIQUE)</li>
+            <li><code>nama_produk</code> (VARCHAR, NOT NULL)</li>
+            <li><code>id_kategori</code> (FK &rarr; kategori.id_kategori)</li>
+            <li><code>harga_beli</code> (DECIMAL, CHECK &gt;= 0)</li>
+            <li><code>harga_jual</code> (DECIMAL, CHECK &gt;= harga_beli)</li>
+            <li><code>stok</code> (INT, CHECK &gt;= 0, DEFAULT 0)</li>
+            <li><code>satuan</code> (VARCHAR, DEFAULT 'Pcs')</li>
+          </ul>
+        </div>
+
+        <!-- 3. Kasir -->
+        <div class="table-spec-box">
+          <div class="table-spec-header">
+            <span class="tbl-num">3</span>
+            <div>
+              <h4>kasir</h4>
+              <span>Petugas / Pengguna POS</span>
+            </div>
+          </div>
+          <ul class="tbl-fields">
+            <li><code>id_kasir</code> (PK, Auto Increment)</li>
+            <li><code>nama_kasir</code> (VARCHAR, NOT NULL)</li>
+            <li><code>username</code> (VARCHAR, NOT NULL, UNIQUE)</li>
+            <li><code>nomor_hp</code> (VARCHAR)</li>
+            <li><code>shift</code> (VARCHAR, CHECK IN ('Pagi','Siang','Malam'))</li>
+          </ul>
+        </div>
+
+        <!-- 4. Pelanggan -->
+        <div class="table-spec-box">
+          <div class="table-spec-header">
+            <span class="tbl-num">4</span>
+            <div>
+              <h4>pelanggan</h4>
+              <span>Member Pelanggan SmartMart</span>
+            </div>
+          </div>
+          <ul class="tbl-fields">
+            <li><code>id_pelanggan</code> (PK, Auto Increment)</li>
+            <li><code>nama_pelanggan</code> (VARCHAR, NOT NULL)</li>
+            <li><code>nomor_telepon</code> (VARCHAR, UNIQUE)</li>
+            <li><code>poin_member</code> (INT, DEFAULT 0, CHECK &gt;= 0)</li>
+            <li><code>tanggal_bergabung</code> (DATE, DEFAULT CURRENT_DATE)</li>
+          </ul>
+        </div>
+
+        <!-- 5. Transaksi -->
+        <div class="table-spec-box">
+          <div class="table-spec-header">
+            <span class="tbl-num">5</span>
+            <div>
+              <h4>transaksi</h4>
+              <span>Header Transaksi Penjualan</span>
+            </div>
+          </div>
+          <ul class="tbl-fields">
+            <li><code>id_transaksi</code> (PK, Auto Increment)</li>
+            <li><code>kode_invoice</code> (VARCHAR, NOT NULL, UNIQUE)</li>
+            <li><code>tanggal_transaksi</code> (TIMESTAMP, DEFAULT NOW)</li>
+            <li><code>id_kasir</code> (FK &rarr; kasir.id_kasir)</li>
+            <li><code>id_pelanggan</code> (FK &rarr; pelanggan.id_pelanggan, NULLABLE)</li>
+            <li><code>total_belanja</code> (DECIMAL, DEFAULT 0, CHECK &gt;= 0)</li>
+            <li><code>metode_pembayaran</code> (VARCHAR, CHECK IN ('Tunai','QRIS','Transfer','Debit'))</li>
+          </ul>
+        </div>
+
+        <!-- 6. Detail Transaksi -->
+        <div class="table-spec-box">
+          <div class="table-spec-header">
+            <span class="tbl-num">6</span>
+            <div>
+              <h4>detail_transaksi</h4>
+              <span>Tabel Junction Item Terjual</span>
+            </div>
+          </div>
+          <ul class="tbl-fields">
+            <li><code>id_detail</code> (PK, Auto Increment)</li>
+            <li><code>id_transaksi</code> (FK &rarr; transaksi.id_transaksi ON DELETE CASCADE)</li>
+            <li><code>id_produk</code> (FK &rarr; produk.id_produk)</li>
+            <li><code>jumlah_beli</code> (INT, CHECK &gt; 0)</li>
+            <li><code>harga_satuan</code> (DECIMAL, CHECK &gt;= 0)</li>
+            <li><code>subtotal</code> (DECIMAL, CHECK &gt;= 0)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 Tantangan Kueri Analitik Bisnis Wajib -->
+    <div class="queries-guide-card glass-card">
+      <div class="section-head">
+        <span class="badge badge-amber">5 TANTANGAN KUERI WAJIB</span>
+        <h2>5 Skenario Kueri Analitik Bisnis</h2>
+        <p>Anda diwajibkan menyusun 5 kueri SQL di bawah ini dan menempelkan sintaksnya pada form pengumpulan:</p>
+      </div>
+
+      <div class="queries-list">
+        <div class="query-item-card">
+          <div class="q-badge">Q1</div>
+          <div class="q-content">
+            <h4>Cetak Struk Nota Transaksi Lengkap (Multi-Table JOIN 5 Tabel)</h4>
+            <p>Gabungkan tabel <code>transaksi</code>, <code>kasir</code>, <code>pelanggan</code>, <code>detail_transaksi</code>, dan <code>produk</code>. Tampilkan kolom: Kode Invoice, Tanggal, Nama Kasir, Nama Pelanggan (tampilkan 'Non-Member' jika NULL menggunakan <code>COALESCE</code>), Nama Produk, Qty, Harga Satuan, dan Subtotal.</p>
+          </div>
+        </div>
+
+        <div class="query-item-card">
+          <div class="q-badge">Q2</div>
+          <div class="q-content">
+            <h4>Laporan Omset &amp; Total Kuantitas Barang per Kategori</h4>
+            <p>Hitung total uang pendapatan (<code>SUM(dt.subtotal)</code>) dan total jumlah pcs barang yang terjual (<code>SUM(dt.jumlah_beli)</code>) untuk setiap kategori produk menggunakan <code>GROUP BY k.nama_kategori</code>, diurutkan dari omset terbesar ke terkecil.</p>
+          </div>
+        </div>
+
+        <div class="query-item-card">
+          <div class="q-badge">Q3</div>
+          <div class="q-content">
+            <h4>Analisis 3 Produk Terlaris pada Shift Tertentu (Pagi vs Siang)</h4>
+            <p>Temukan 3 produk dengan jumlah kuantitas penjualan tertinggi khusus pada transaksi yang dilayani oleh kasir dengan shift 'Pagi' (atau 'Siang') menggunakan filter dan <code>LIMIT 3</code>.</p>
+          </div>
+        </div>
+
+        <div class="query-item-card">
+          <div class="q-badge">Q4</div>
+          <div class="q-content">
+            <h4>Deteksi Stok Kritis &amp; Produk Belum Pernah Terjual (Dead Stock)</h4>
+            <p>Gunakan kombinasi <code>LEFT JOIN</code> atau <code>NOT EXISTS</code> / <code>Subquery</code> untuk menampilkan seluruh produk yang stoknya tersisa &lt; 5 ATAU produk yang sama sekali belum pernah terjual dalam transaksi apapun.</p>
+          </div>
+        </div>
+
+        <div class="query-item-card">
+          <div class="q-badge">Q5</div>
+          <div class="q-content">
+            <h4>Pembuatan Database View: Rekap Penjualan Harian</h4>
+            <p>Tulis perintah <code>CREATE VIEW view_rekap_harian AS ...</code> yang merangkum tanggal transaksi, jumlah nota transaksi unik (<code>COUNT(DISTINCT ...)</code>), total item terjual, total omset harian, dan rata-rata nominal belanja per struk.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rubrik Penilaian Proyek -->
+    <div class="rubric-card glass-card">
+      <div class="section-head">
+        <span class="badge badge-emerald">RUBRIK PENILAIAN RESMI</span>
+        <h2>Kriteria Penilaian Proyek (Skala 0–100)</h2>
+      </div>
+
+      <div class="rubric-grid">
+        <div class="rubric-item">
+          <div class="rubric-weight">25%</div>
+          <div class="rubric-text">
+            <strong>Skema ERD &amp; DDL Constraints</strong>
+            <p>Ketepatan 6 tabel, tipe data efisien, konsistensi Primary/Foreign Key, dan batasan integritas (<code>CHECK</code>, <code>UNIQUE</code>, <code>NOT NULL</code>, <code>CASCADE/RESTRICT</code>).</p>
+          </div>
+        </div>
+
+        <div class="rubric-item">
+          <div class="rubric-weight">20%</div>
+          <div class="rubric-text">
+            <strong>Kualitas Data Sampel DML</strong>
+            <p>Minimal 10–15 baris data per tabel yang masuk akal, memiliki relasi faktual, dan mencerminkan transaksi toko riil.</p>
+          </div>
+        </div>
+
+        <div class="rubric-item">
+          <div class="rubric-weight">35%</div>
+          <div class="rubric-text">
+            <strong>Kebenaran 5 Query Analitik</strong>
+            <p>Kelima kueri SQL (JOIN 5 tabel, Agregasi, Filter shift, Subquery stok kritis, dan Database View) berjalan tanpa error dan menghasilkan data yang akurat.</p>
+          </div>
+        </div>
+
+        <div class="rubric-item">
+          <div class="rubric-weight">20%</div>
+          <div class="rubric-text">
+            <strong>Dokumentasi, File .sql &amp; Kerjasama</strong>
+            <p>Script <code>.sql</code> bersih terstruktur (dapat di-import sekali klik), dokumen laporan PDF rapi, dan kontribusi aktif kedua anggota tim.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulir Pengumpulan Proyek Tim -->
+    <div class="submission-card glass-card" id="form-container">
+      <div class="submission-header">
+        <span class="badge badge-purple">FORMULIR PENGUMPULAN PROYEK</span>
+        <h2>Kirim Berkas &amp; Kueri Proyek SmartMart POS</h2>
+        <p>Lengkapi formulir di bawah ini bersama rekan kelompok Anda. Cukup salah satu anggota tim yang melakukan pengiriman:</p>
+      </div>
+
+      <form id="sql-project-form" class="project-form">
+        <!-- Identitas Tim -->
+        <div class="form-section-title">1. Identitas Tim &amp; Anggota Kelompok</div>
+        
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="input-team-name">Nama Tim / Kelompok: <span class="required-star">*</span></label>
+            <input 
+              type="text" 
+              id="input-team-name" 
+              name="teamName" 
+              class="form-control" 
+              placeholder="Contoh: Tim Alpha SQL / Kode Tim Kasir 01" 
+              value={submission?.team_name || ''} 
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="input-project-title">Judul Proyek:</label>
+            <input 
+              type="text" 
+              id="input-project-title" 
+              name="projectTitle" 
+              class="form-control readonly-input" 
+              value="SmartMart POS - Sistem Basis Data Kasir Ritel" 
+              readonly 
+            />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="input-leader">Anggota 1 (Ketua / Akun Anda):</label>
+            <input 
+              type="text" 
+              id="input-leader" 
+              class="form-control readonly-input" 
+              value={`${user.name} (${user.email}) - Kelas ${user.class_name || '11 RPL'}`} 
+              readonly 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="select-member">Anggota 2 (Pilih Teman Sekelas):</label>
+            <select id="select-member" name="memberUserId" class="form-control">
+              <option value="">-- Pilih Teman Sekelas dari Daftar --</option>
+              {classmates.map((c) => (
+                <option value={c.id} selected={submission?.member_user_id === c.id}>
+                  {c.name} ({c.email})
+                </option>
+              ))}
+            </select>
+            <small class="form-hint">Atau jika nama rekan belum terdaftar di atas, ketik di bawah:</small>
+            <input 
+              type="text" 
+              id="input-member-manual" 
+              name="memberNameManual" 
+              class="form-control margin-top-xs" 
+              placeholder="Nama lengkap rekan tim (manual jika tidak ada di dropdown)" 
+              value={submission?.member_name_manual || ''} 
+            />
+          </div>
+        </div>
+
+        <!-- Berkas Tautan Proyek -->
+        <div class="form-section-title margin-top-lg">2. Tautan Berkas Skrip SQL &amp; Dokumen Laporan</div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="input-sql-link">Link Google Drive / GitHub Berkas <code>.sql</code>: <span class="required-star">*</span></label>
+            <input 
+              type="url" 
+              id="input-sql-link" 
+              name="sqlScriptLink" 
+              class="form-control font-mono" 
+              placeholder="https://drive.google.com/file/d/... (Pastikan akses dibuka)" 
+              value={submission?.sql_script_link || ''} 
+              required 
+            />
+            <small class="form-hint">Wajib memuat seluruh perintah <code>CREATE TABLE</code>, <code>INSERT INTO</code>, <code>5 SELECT Query</code>, dan <code>CREATE VIEW</code>.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="input-report-link">Link Laporan Proyek &amp; Diagram ERD (PDF):</label>
+            <input 
+              type="url" 
+              id="input-report-link" 
+              name="reportPdfLink" 
+              class="form-control font-mono" 
+              placeholder="https://drive.google.com/file/d/... (Opsional / Direkomendasikan)" 
+              value={submission?.report_pdf_link || ''} 
+            />
+            <small class="form-hint">Lampirkan screenshot diagram ERD dan penjelasan singkat relasi basis data tim Anda.</small>
+          </div>
+        </div>
+
+        <!-- 5 Input Kueri Analitik Utama -->
+        <div class="form-section-title margin-top-lg">3. Salinan 5 Kueri SQL Analitik Bisnis Utama</div>
+        <p class="form-subtitle">Tempelkan sintaks kueri SQL tim Anda di bawah ini untuk memudahkan guru memeriksa dan menguji kueri secara langsung:</p>
+
+        <!-- Q1 -->
+        <div class="form-group margin-top-sm">
+          <label for="input-q1">Kueri Q1: Struk Nota Transaksi Lengkap (Multi-Table JOIN 5 Tabel) <span class="required-star">*</span></label>
+          <textarea 
+            id="input-q1" 
+            name="query1Text" 
+            class="form-control font-mono query-textarea" 
+            rows="5" 
+            placeholder="SELECT t.kode_invoice, t.tanggal_transaksi, k.nama_kasir, COALESCE(p.nama_pelanggan, 'Non-Member') AS nama_pelanggan, pr.nama_produk, dt.jumlah_beli, dt.harga_satuan, dt.subtotal FROM transaksi t JOIN kasir k ON ... JOIN detail_transaksi dt ON ... JOIN produk pr ON ...;" 
+            required
+          >{submission?.query_1_text || ''}</textarea>
+        </div>
+
+        <!-- Q2 -->
+        <div class="form-group margin-top-sm">
+          <label for="input-q2">Kueri Q2: Rekap Omset &amp; Kuantitas per Kategori Produk <span class="required-star">*</span></label>
+          <textarea 
+            id="input-q2" 
+            name="query2Text" 
+            class="form-control font-mono query-textarea" 
+            rows="5" 
+            placeholder="SELECT k.nama_kategori, COUNT(DISTINCT dt.id_produk) AS jumlah_jenis_produk, SUM(dt.jumlah_beli) AS total_item_terjual, SUM(dt.subtotal) AS total_omset FROM kategori k JOIN produk pr ON ... GROUP BY k.nama_kategori ORDER BY total_omset DESC;" 
+            required
+          >{submission?.query_2_text || ''}</textarea>
+        </div>
+
+        <!-- Q3 -->
+        <div class="form-group margin-top-sm">
+          <label for="input-q3">Kueri Q3: Top 3 Produk Terlaris per Shift Kasir <span class="required-star">*</span></label>
+          <textarea 
+            id="input-q3" 
+            name="query3Text" 
+            class="form-control font-mono query-textarea" 
+            rows="5" 
+            placeholder="SELECT pr.nama_produk, k.shift, SUM(dt.jumlah_beli) AS total_qty FROM detail_transaksi dt JOIN transaksi t ON ... JOIN kasir k ON ... WHERE k.shift = 'Pagi' GROUP BY pr.nama_produk, k.shift ORDER BY total_qty DESC LIMIT 3;" 
+            required
+          >{submission?.query_3_text || ''}</textarea>
+        </div>
+
+        <!-- Q4 -->
+        <div class="form-group margin-top-sm">
+          <label for="input-q4">Kueri Q4: Deteksi Stok Kritis (&lt; 5) &amp; Produk Dead Stock <span class="required-star">*</span></label>
+          <textarea 
+            id="input-q4" 
+            name="query4Text" 
+            class="form-control font-mono query-textarea" 
+            rows="5" 
+            placeholder="SELECT pr.kode_barcode, pr.nama_produk, pr.stok, CASE WHEN pr.stok < 5 THEN 'Stok Kritis' WHEN dt.id_produk IS NULL THEN 'Belum Pernah Terjual' ELSE 'Normal' END AS status_inventaris FROM produk pr LEFT JOIN detail_transaksi dt ON ... WHERE pr.stok < 5 OR dt.id_produk IS NULL;" 
+            required
+          >{submission?.query_4_text || ''}</textarea>
+        </div>
+
+        <!-- Q5 -->
+        <div class="form-group margin-top-sm">
+          <label for="input-q5">Kueri Q5: Skrip Objek Database View Laporan Harian <span class="required-star">*</span></label>
+          <textarea 
+            id="input-q5" 
+            name="query5Text" 
+            class="form-control font-mono query-textarea" 
+            rows="5" 
+            placeholder="CREATE OR REPLACE VIEW view_rekap_harian AS SELECT DATE(t.tanggal_transaksi) AS tanggal, COUNT(DISTINCT t.id_transaksi) AS total_transaksi, SUM(dt.jumlah_beli) AS total_barang, SUM(dt.subtotal) AS total_omset, ROUND(AVG(t.total_belanja), 2) AS rata_rata_belanja FROM transaksi t JOIN detail_transaksi dt ON ... GROUP BY DATE(t.tanggal_transaksi);" 
+            required
+          >{submission?.query_5_text || ''}</textarea>
+        </div>
+
+        <!-- Catatan Tambahan -->
+        <div class="form-group margin-top-sm">
+          <label for="input-notes">Catatan Tambahan Tim (Opsional):</label>
+          <textarea 
+            id="input-notes" 
+            name="notes" 
+            class="form-control" 
+            rows="3" 
+            placeholder="Catatan tentang kendala, pembagian tugas anggota, atau informasi DBMS yang digunakan (MySQL / PostgreSQL / MariaDB)..."
+          >{submission?.notes || ''}</textarea>
+        </div>
+
+        <!-- Submit Button Footer -->
+        <div class="form-submit-footer margin-top-lg">
+          <div id="submit-status-msg" class="status-msg"></div>
+          <button 
+            type="submit" 
+            id="submit-project-btn" 
+            class={`btn btn-md ${isPass ? 'btn-secondary' : 'btn-primary'}`}
+            disabled={isPass}
+          >
+            {isPass ? '🔒 Proyek Terkunci (Tuntas KKM)' : (submission ? '🔄 Perbarui Kiriman Proyek Tim' : '🚀 Kumpulkan Tugas Proyek SmartMart POS')}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline define:vars={{ initialSubmission: submission }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('sql-project-form');
+    const submitBtn = document.getElementById('submit-project-btn');
+    const statusMsg = document.getElementById('submit-status-msg');
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!confirm('Apakah Anda yakin data proyek tim sudah lengkap dan siap dikirimkan ke Guru?')) {
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menyimpan berkas proyek...';
+      }
+      if (statusMsg) {
+        statusMsg.textContent = '';
+        statusMsg.className = 'status-msg';
+      }
+
+      const teamName = document.getElementById('input-team-name')?.value || '';
+      const memberUserId = document.getElementById('select-member')?.value || '';
+      const memberNameManual = document.getElementById('input-member-manual')?.value || '';
+      const projectTitle = document.getElementById('input-project-title')?.value || '';
+      const sqlScriptLink = document.getElementById('input-sql-link')?.value || '';
+      const reportPdfLink = document.getElementById('input-report-link')?.value || '';
+      const query1Text = document.getElementById('input-q1')?.value || '';
+      const query2Text = document.getElementById('input-q2')?.value || '';
+      const query3Text = document.getElementById('input-q3')?.value || '';
+      const query4Text = document.getElementById('input-q4')?.value || '';
+      const query5Text = document.getElementById('input-q5')?.value || '';
+      const notes = document.getElementById('input-notes')?.value || '';
+
+      const payload = {
+        teamName,
+        memberUserId,
+        memberNameManual,
+        projectTitle,
+        sqlScriptLink,
+        reportPdfLink,
+        query1Text,
+        query2Text,
+        query3Text,
+        query4Text,
+        query5Text,
+        notes
+      };
+
+      try {
+        const res = await fetch('/api/sql/submit-project', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          alert('✅ ' + data.message);
+          window.location.reload();
+        } else {
+          if (statusMsg) {
+            statusMsg.className = 'status-msg status-error';
+            statusMsg.textContent = '❌ ' + (data.error || 'Gagal menyimpan tugas proyek.');
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🚀 Kumpulkan Tugas Proyek SmartMart POS';
+          }
+        }
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.className = 'status-msg status-error';
+          statusMsg.textContent = '❌ Terjadi kesalahan jaringan saat mengirim tugas.';
+        }
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '🚀 Kumpulkan Tugas Proyek SmartMart POS';
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .project-page-container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .page-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .top-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Hero Card */
+  .hero-project-card {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 50%), var(--bg-card);
+    border: 1px solid var(--border-color);
+  }
+
+  .hero-badge-wrap {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-project-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .hero-project-sub {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 850px;
+  }
+
+  .hero-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  @media (max-width: 850px) {
+    .hero-meta-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 500px) {
+    .hero-meta-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-surface, var(--bg-secondary));
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+
+  .meta-icon {
+    font-size: 1.5rem;
+  }
+
+  .meta-item div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .meta-item strong {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .meta-item span {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* Status Banner */
+  .status-banner-box {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .banner-pass {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+  }
+
+  .banner-remedial {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fcd34d;
+  }
+
+  .banner-waiting {
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    color: #67e8f9;
+  }
+
+  .status-banner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .status-banner-header strong {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+  }
+
+  .status-banner-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .teacher-feedback-note {
+    background: var(--bg-surface, rgba(0, 0, 0, 0.2));
+    border-left: 3px solid var(--accent-primary);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-top: 0.35rem;
+  }
+
+  .teacher-feedback-note strong {
+    color: var(--accent-primary);
+    font-size: 0.85rem;
+  }
+
+  .teacher-feedback-note p {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Section Headers */
+  .section-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-head h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .section-head p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* Roadmap Grid */
+  .roadmap-card {
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .roadmap-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .roadmap-step {
+    background: var(--bg-surface, var(--bg-secondary));
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .step-badge {
+    background: var(--accent-primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    align-self: flex-start;
+  }
+
+  .badge-step-2 {
+    background: var(--accent-cyan);
+  }
+
+  .roadmap-step h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .roadmap-checklist {
+    list-style: disc;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.8875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* 6 Tables Spec Grid */
+  .guide-accordion-card {
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .tables-spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .table-spec-box {
+    background: var(--bg-surface, var(--bg-secondary));
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .table-spec-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+  }
+
+  .tbl-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-primary);
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .table-spec-header h4 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+  }
+
+  .table-spec-header span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .tbl-fields {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .tbl-fields code {
+    color: var(--accent-cyan);
+    background: rgba(6, 182, 212, 0.08);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+  }
+
+  /* 5 Queries List */
+  .queries-guide-card {
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .queries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .query-item-card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: var(--bg-surface, var(--bg-secondary));
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+
+  .q-badge {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+
+  .q-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .q-content h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .q-content p {
+    font-size: 0.8875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Rubric Grid */
+  .rubric-card {
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .rubric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .rubric-item {
+    background: var(--bg-surface, var(--bg-secondary));
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .rubric-weight {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+  }
+
+  .rubric-text strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .rubric-text p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Submission Form */
+  .submission-card {
+    padding: 2.25rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .submission-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .submission-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .submission-header p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .form-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .form-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .required-star {
+    color: #ef4444;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary) !important;
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .form-control:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    color: var(--text-primary) !important;
+  }
+
+  .readonly-input {
+    color: var(--text-muted) !important;
+    cursor: default;
+    background: var(--bg-secondary);
+  }
+
+  .query-textarea {
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  .form-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .margin-top-xs { margin-top: 0.35rem; }
+  .margin-top-sm { margin-top: 1rem; }
+  .margin-top-lg { margin-top: 1.75rem; }
+
+  .form-submit-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .status-msg {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .status-error { color: #fca5a5; }
+
+  /* Mobile Optimization */
+  @media (max-width: 640px) {
+    .project-page-container {
+      padding: 1rem 0.85rem 4rem;
+      gap: 1.25rem;
+    }
+
+    .hero-project-card {
+      padding: 1.5rem 1rem;
+    }
+
+    .hero-project-title {
+      font-size: 1.65rem;
+    }
+
+    .roadmap-card, .guide-accordion-card, .queries-guide-card, .rubric-card, .submission-card {
+      padding: 1.25rem 1rem;
+    }
+
+    .form-submit-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .form-submit-footer .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

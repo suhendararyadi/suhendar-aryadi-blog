@@ -145,6 +145,29 @@ const CREATE_TABLES_PG = `
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS sql_project_submissions (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    member_user_id INT REFERENCES users(id) ON DELETE SET NULL,
+    member_name_manual VARCHAR(255) DEFAULT '',
+    team_name VARCHAR(150) NOT NULL,
+    project_title VARCHAR(200) DEFAULT 'SmartMart POS - Sistem Basis Data Kasir Ritel',
+    sql_script_link TEXT NOT NULL,
+    report_pdf_link TEXT DEFAULT '',
+    query_1_text TEXT NOT NULL,
+    query_2_text TEXT NOT NULL,
+    query_3_text TEXT NOT NULL,
+    query_4_text TEXT NOT NULL,
+    query_5_text TEXT NOT NULL,
+    notes TEXT DEFAULT '',
+    score INT DEFAULT NULL,
+    teacher_feedback TEXT DEFAULT '',
+    graded_by_email VARCHAR(255) DEFAULT NULL,
+    graded_at TIMESTAMP DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS course_enrollments (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
@@ -167,6 +190,10 @@ const CREATE_TABLES_PG = `
 
   INSERT INTO course_enrollments (user_id, course_id)
   SELECT DISTINCT user_id, 'sql' FROM user_progress
+  ON CONFLICT (user_id, course_id) DO NOTHING;
+
+  INSERT INTO course_enrollments (user_id, course_id)
+  SELECT DISTINCT user_id, 'sql' FROM sql_project_submissions
   ON CONFLICT (user_id, course_id) DO NOTHING;
 `;
 
