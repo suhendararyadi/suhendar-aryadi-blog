@@ -5,64 +5,65 @@ import { getSessionUser } from '../../../lib/auth';
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
 
-const diagramArchitecture = `graph TD
-    UI["📱 Aplikasi Kasir POS / Web Client"]
+const diagramArchitecture = `flowchart TD
+    UI["📱 Aplikasi Kasir POS"]
     Engine["⚙️ Database Engine (PostgreSQL / MySQL)"]
     Parser["1. SQL Parser & Query Optimizer"]
     Exec["2. Transaction & Execution Engine (ACID)"]
     Buffer["3. Memory Buffer & Cache"]
-    Disk[("💾 Storage Disk (Data Files & WAL Logs)")]
+    Disk[("💾 Storage Disk")]
 
-    UI -->|Kirim Perintah SQL: SELECT / INSERT| Engine
+    UI -->|Kirim Perintah SQL| Engine
     Engine --> Parser
     Parser --> Exec
     Exec --> Buffer
-    Buffer <-->|Read / Write Blocks| Disk`;
+    Buffer -->|Write to Disk| Disk
+    Disk -->|Read to Buffer| Buffer`;
 
 const diagramErd = `erDiagram
-    KATEGORI ||--o{ PRODUK : "mengelompokkan (1:N)"
-    KASIR ||--o{ TRANSAKSI : "melayani (1:N)"
-    PELANGGAN ||--o{ TRANSAKSI : "melakukan (1:N)"
-    TRANSAKSI ||--|{ DETAIL_TRANSAKSI : "memuat (1:N)"
-    PRODUK ||--o{ DETAIL_TRANSAKSI : "tercatat_di (1:N)"
+    KATEGORI ||--o{ PRODUK : memiliki
+    KASIR ||--o{ TRANSAKSI : melayani
+    PELANGGAN ||--o{ TRANSAKSI : melakukan
+    TRANSAKSI ||--|{ DETAIL_TRANSAKSI : memuat
+    PRODUK ||--o{ DETAIL_TRANSAKSI : dicatat_di
 
     KATEGORI {
         int id_kategori PK
-        varchar nama_kategori
-        text deskripsi
+        string nama_kategori
+        string deskripsi
     }
     PRODUK {
         int id_produk PK
-        varchar kode_barcode
-        varchar nama_produk
+        string kode_barcode
+        string nama_produk
         int id_kategori FK
         decimal harga_beli
         decimal harga_jual
         int stok
-        varchar satuan
+        string satuan
     }
     KASIR {
         int id_kasir PK
-        varchar nama_kasir
-        varchar username
-        varchar nomor_hp
-        varchar shift
+        string nama_kasir
+        string username
+        string nomor_hp
+        string shift
     }
     PELANGGAN {
         int id_pelanggan PK
-        varchar nama_pelanggan
-        varchar nomor_telepon
+        string nama_pelanggan
+        string nomor_telepon
         int poin_member
         date tanggal_bergabung
     }
     TRANSAKSI {
         int id_transaksi PK
-        varchar kode_invoice
+        string kode_invoice
         timestamp tanggal_transaksi
         int id_kasir FK
         int id_pelanggan FK
         decimal total_belanja
-        varchar metode_pembayaran
+        string metode_pembayaran
     }
     DETAIL_TRANSAKSI {
         int id_detail PK
@@ -73,11 +74,12 @@ const diagramErd = `erDiagram
         decimal subtotal
     }`;
 
-const diagramOnDelete = `graph LR
-    subgraph Aksi_Referensial["Perilaku Foreign Key saat Baris Induk Dihapus"]
-        CASCADE["1. ON DELETE CASCADE<br/>Baris anak otomatis ikut terhapus"]
-        RESTRICT["2. ON DELETE RESTRICT<br/>Penghapusan ditolak jika masih ada data anak"]
-        SETNULL["3. ON DELETE SET NULL<br/>Kolom FK anak otomatis diubah menjadi NULL"]
+const diagramOnDelete = `flowchart LR
+    subgraph Aksi [3 Pilihan Perilaku Aksi Foreign Key ON DELETE]
+        direction TB
+        C["1. ON DELETE CASCADE - Baris anak otomatis ikut terhapus"]
+        R["2. ON DELETE RESTRICT - Penghapusan ditolak jika ada data anak"]
+        S["3. ON DELETE SET NULL - Kolom FK anak otomatis diubah jadi NULL"]
     end`;
 ---
 
@@ -912,7 +914,7 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
 <script is:inline type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
   mermaid.initialize({
-    startOnLoad: true,
+    startOnLoad: false,
     theme: 'dark',
     themeVariables: {
       primaryColor: '#6366f1',
@@ -924,7 +926,14 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     }
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      await mermaid.run({
+        nodes: document.querySelectorAll('.mermaid')
+      });
+    } catch (err) {
+      console.warn('Mermaid render note:', err);
+    }
     // Copy DDL Code Button
     const copyBtn = document.getElementById('copy-ddl-btn');
     const ddlCode = document.getElementById('ddl-full-code');
