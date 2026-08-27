@@ -74,13 +74,11 @@ const diagramErd = `erDiagram
         decimal subtotal
     }`;
 
-const diagramOnDelete = `flowchart LR
-    subgraph Aksi [3 Pilihan Perilaku Aksi Foreign Key ON DELETE]
-        direction TB
-        C["1. ON DELETE CASCADE - Baris anak otomatis ikut terhapus"]
-        R["2. ON DELETE RESTRICT - Penghapusan ditolak jika ada data anak"]
-        S["3. ON DELETE SET NULL - Kolom FK anak otomatis diubah jadi NULL"]
-    end`;
+const diagramOnDelete = `flowchart TD
+    A["Baris Induk Dihapus"]
+    A -->|Opsi 1| C["ON DELETE CASCADE (Baris anak otomatis ikut terhapus)"]
+    A -->|Opsi 2| R["ON DELETE RESTRICT (Penghapusan ditolak jika ada data anak)"]
+    A -->|Opsi 3| S["ON DELETE SET NULL (Kolom FK anak otomatis diubah jadi NULL)"]`;
 ---
 
 <MainLayout
@@ -911,8 +909,8 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
 </MainLayout>
 
 <!-- Mermaid.js for Rendering Diagrams Client-side -->
-<script is:inline type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+<script>
+  import mermaid from 'mermaid';
   mermaid.initialize({
     startOnLoad: false,
     theme: 'dark',
@@ -926,14 +924,20 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     }
   });
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  const renderMermaid = async () => {
     try {
-      await mermaid.run({
-        nodes: document.querySelectorAll('.mermaid')
-      });
+      const nodes = document.querySelectorAll<HTMLElement>('.mermaid');
+      if (nodes.length > 0) {
+        await mermaid.run({ nodes });
+      }
     } catch (err) {
-      console.warn('Mermaid render note:', err);
+      console.warn('Mermaid render error:', err);
     }
+  };
+
+  const setupPage = () => {
+    renderMermaid();
+
     // Copy DDL Code Button
     const copyBtn = document.getElementById('copy-ddl-btn');
     const ddlCode = document.getElementById('ddl-full-code');
@@ -952,15 +956,15 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     const scoreBadge = document.getElementById('quiz-score-badge');
 
     checkBtn?.addEventListener('click', () => {
-      const cards = document.querySelectorAll('.quiz-question-card');
+      const cards = document.querySelectorAll<HTMLElement>('.quiz-question-card');
       let score = 0;
       let total = cards.length;
 
       cards.forEach((card, idx) => {
         const correct = card.getAttribute('data-correct');
         const qName = `q${idx + 1}`;
-        const selected = card.querySelector(`input[name="${qName}"]:checked`)?.value;
-        const feedback = card.querySelector('.quiz-feedback');
+        const selected = (card.querySelector(`input[name="${qName}"]:checked`) as HTMLInputElement | null)?.value;
+        const feedback = card.querySelector<HTMLElement>('.quiz-feedback');
 
         if (feedback) {
           if (!selected) {
@@ -992,7 +996,13 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
         }
       }
     });
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupPage);
+  } else {
+    setupPage();
+  }
 </script>
 
 <style>
