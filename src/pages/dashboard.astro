@@ -75,8 +75,9 @@ try {
   console.warn('Could not fetch dashboard progress from database:', err);
 }
 
-// Fetch BK & TIK LKPD Submissions and Course Enrollments
+// Fetch BK (LKPD 1 & LKPD 2) and TIK LKPD Submissions and Course Enrollments
 let bkSubmission: any = null;
+let flowchartSubmission: any = null;
 let tikSubmission: any = null;
 let enrolledSubjectIds: string[] = [];
 
@@ -93,6 +94,18 @@ try {
 }
 
 try {
+  const flowRes = await query(
+    `SELECT score, teacher_feedback, updated_at FROM lkpd_flowchart_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+  if (flowRes.rows && flowRes.rows.length > 0) {
+    flowchartSubmission = flowRes.rows[0];
+  }
+} catch (err) {
+  console.warn('Could not fetch Flowchart submission:', err);
+}
+
+try {
   const tikRes = await query(
     `SELECT score, teacher_feedback, updated_at FROM lkpd_tik_submissions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1`,
     [user.id]
@@ -106,7 +119,7 @@ try {
 
 // Auto-sync existing student progress to course_enrollments
 try {
-  if (bkSubmission || tikSubmission) {
+  if (bkSubmission || flowchartSubmission || tikSubmission) {
     await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'informatika') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
   if (completedModules.length > 0) {
@@ -128,7 +141,7 @@ try {
   console.warn('Could not fetch course_enrollments:', err);
 }
 
-const isInformatikaEnrolled = enrolledSubjectIds.includes('informatika') || enrolledSubjectIds.includes('bk') || enrolledSubjectIds.includes('tik') || !!bkSubmission || !!tikSubmission;
+const isInformatikaEnrolled = enrolledSubjectIds.includes('informatika') || enrolledSubjectIds.includes('bk') || enrolledSubjectIds.includes('tik') || !!bkSubmission || !!flowchartSubmission || !!tikSubmission;
 const isRplSqlEnrolled = enrolledSubjectIds.includes('rpl_web_sql') || enrolledSubjectIds.includes('sql') || completedModules.length > 0;
 
 const completedCount = completedModules.length;
@@ -146,16 +159,15 @@ if (completedCount >= 40) {
 
 // Calculate Scores & Average Grade for Informatika
 let bkScore: number | null = bkSubmission && bkSubmission.score !== null && bkSubmission.score !== undefined ? parseInt(bkSubmission.score, 10) : null;
+let flowScore: number | null = flowchartSubmission && flowchartSubmission.score !== null && flowchartSubmission.score !== undefined ? parseInt(flowchartSubmission.score, 10) : null;
 let tikScore: number | null = tikSubmission && tikSubmission.score !== null && tikSubmission.score !== undefined ? parseInt(tikSubmission.score, 10) : null;
 
+const activeScores = [bkScore, flowScore, tikScore].filter((s): s is number => s !== null && !isNaN(s));
 let avgScore: number | null = null;
-if (bkScore !== null && !isNaN(bkScore) && tikScore !== null && !isNaN(tikScore)) {
-  const rawAvg = (bkScore + tikScore) / 2;
+if (activeScores.length > 0) {
+  const sum = activeScores.reduce((a, b) => a + b, 0);
+  const rawAvg = sum / activeScores.length;
   avgScore = Number.isInteger(rawAvg) ? rawAvg : Math.round(rawAvg * 10) / 10;
-} else if (bkScore !== null && !isNaN(bkScore)) {
-  avgScore = bkScore;
-} else if (tikScore !== null && !isNaN(tikScore)) {
-  avgScore = tikScore;
 }
 
 const avgScoreText = avgScore !== null ? `${avgScore} / 100` : 'Belum Ada Nilai';
@@ -169,7 +181,17 @@ const bkScoreColor = bkSubmission && bkScore !== null
   : (bkSubmission ? '#0ea5e9' : 'var(--text-muted)');
 const bkFeedbackText = bkSubmission
   ? (bkSubmission.teacher_feedback ? `Catatan Guru: "${bkSubmission.teacher_feedback}"` : (bkScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD telah dikirim, menunggu penilaian Guru.'))
-  : (isInformatikaEnrolled ? 'Kerjakan LKPD 4 Pilar Berpikir Komputasional untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD 1 (4 Pilar BK) untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
+
+const flowScoreText = flowchartSubmission
+  ? (flowScore !== null ? `${flowScore} / 100` : 'Belum Dinilai')
+  : (isInformatikaEnrolled ? 'Belum Mengerjakan' : 'Terkunci');
+const flowScoreColor = flowchartSubmission && flowScore !== null
+  ? (flowScore >= 75 ? '#10b981' : '#f59e0b')
+  : (flowchartSubmission ? '#0ea5e9' : 'var(--text-muted)');
+const flowFeedbackText = flowchartSubmission
+  ? (flowchartSubmission.teacher_feedback ? `Catatan Guru: "${flowchartSubmission.teacher_feedback}"` : (flowScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD 2 telah dikirim, menunggu penilaian Guru.'))
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD 2 (Algoritma & Flowchart) untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
 
 const tikScoreText = tikSubmission
   ? (tikScore !== null ? `${tikScore} / 100` : 'Belum Dinilai')
@@ -361,18 +383,36 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
             )}
           </div>
 
-          <div class="subject-body">
             <div class="lkpd-items-grid">
-              <!-- LKPD 1 (BK) -->
+              <!-- LKPD 1 (BK 4 Pilar) -->
               <div class="lkpd-item-box">
-                <div class="lkpd-item-title">LKPD 1 — Berpikir Komputasional (BK)</div>
+                <div class="lkpd-item-top">
+                  <span class="badge badge-cyan badge-xs">BK ELEMEN 1</span>
+                  <a href="/belajar/informatika/bk/lkpd" class="lkpd-card-link">Buka LKPD &rarr;</a>
+                </div>
+                <div class="lkpd-item-title">LKPD 1 — 4 Pilar Berpikir Komputasional</div>
                 <div class="lkpd-item-score" style={`color: ${bkScoreColor};`}>{bkScoreText}</div>
                 <p class="lkpd-item-feedback">{bkFeedbackText}</p>
               </div>
 
-              <!-- LKPD 2 (TIK) -->
+              <!-- LKPD 2 (BK Flowchart & Pseudocode) -->
               <div class="lkpd-item-box">
-                <div class="lkpd-item-title">LKPD 2 — TIK & Mail Merge</div>
+                <div class="lkpd-item-top">
+                  <span class="badge badge-emerald badge-xs">BK ELEMEN 1</span>
+                  <a href="/belajar/informatika/bk/lkpd-2" class="lkpd-card-link">Buka LKPD &rarr;</a>
+                </div>
+                <div class="lkpd-item-title">LKPD 2 — Perancangan Algoritma &amp; Flowchart</div>
+                <div class="lkpd-item-score" style={`color: ${flowScoreColor};`}>{flowScoreText}</div>
+                <p class="lkpd-item-feedback">{flowFeedbackText}</p>
+              </div>
+
+              <!-- LKPD TIK (Mail Merge) -->
+              <div class="lkpd-item-box">
+                <div class="lkpd-item-top">
+                  <span class="badge badge-purple badge-xs">TIK ELEMEN 2</span>
+                  <a href="/belajar/informatika/tik/lkpd" class="lkpd-card-link">Buka LKPD &rarr;</a>
+                </div>
+                <div class="lkpd-item-title">LKPD TIK — Mail Merge &amp; Search Engine</div>
                 <div class="lkpd-item-score" style={`color: ${tikScoreColor};`}>{tikScoreText}</div>
                 <p class="lkpd-item-feedback">{tikFeedbackText}</p>
               </div>
@@ -1674,14 +1714,8 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
 
   .lkpd-items-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 0.75rem;
-  }
-
-  @media (max-width: 500px) {
-    .lkpd-items-grid {
-      grid-template-columns: 1fr;
-    }
   }
 
   .lkpd-item-box {
@@ -1691,7 +1725,33 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     padding: 0.875rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.35rem;
+  }
+
+  .lkpd-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+  }
+
+  .badge-xs {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    font-weight: 700;
+  }
+
+  .lkpd-card-link {
+    font-size: 0.725rem;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .lkpd-card-link:hover {
+    color: var(--accent-blue);
+    text-decoration: underline;
   }
 
   .lkpd-item-title {
