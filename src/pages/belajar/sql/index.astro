@@ -46,6 +46,7 @@ interface LearningPathDef {
   badgeClass: string;
   description: string;
   modulesRange: string;
+  iconSymbol: string;
 }
 
 const LEARNING_PATHS: LearningPathDef[] = [
@@ -54,45 +55,50 @@ const LEARNING_PATHS: LearningPathDef[] = [
     title: 'Path 1: SQL Basics',
     shortTitle: 'Basics',
     badgeText: 'Level 1',
-    badgeClass: 'badge-emerald',
+    badgeClass: 'm3-chip-tonal-primary',
     description: 'Kuasai dasar-dasar SQL: sintaksis SELECT, filter WHERE, pengurutan ORDER BY, hingga manipulasi data INSERT, UPDATE, dan DELETE.',
-    modulesRange: 'Modul 1 – 10'
+    modulesRange: 'Modul 1 – 10',
+    iconSymbol: 'database'
   },
   {
     id: 'aggregates',
     title: 'Path 2: SQL Aggregates & Functions',
     shortTitle: 'Aggregates',
     badgeText: 'Level 2',
-    badgeClass: 'badge-amber',
+    badgeClass: 'm3-chip-tonal-tertiary',
     description: 'Pelajari fungsi agregasi data (COUNT, SUM, AVG, MIN, MAX), kalkulasi aritmatika, filter teks LIKE, serta fungsi String dan Date.',
-    modulesRange: 'Modul 11 – 18'
+    modulesRange: 'Modul 11 – 18',
+    iconSymbol: 'functions'
   },
   {
     id: 'joins',
     title: 'Path 3: SQL Joins & Relasi Tabel',
     shortTitle: 'Joins',
     badgeText: 'Level 3',
-    badgeClass: 'badge-sky',
+    badgeClass: 'm3-chip-tonal-primary',
     description: 'Gabungkan informasi dari berbagai tabel relasional dengan INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN, dan Self Join.',
-    modulesRange: 'Modul 19 – 24'
+    modulesRange: 'Modul 19 – 24',
+    iconSymbol: 'join_inner'
   },
   {
     id: 'grouping',
     title: 'Path 4: SQL Grouping & Subqueries',
     shortTitle: 'Grouping',
     badgeText: 'Level 4',
-    badgeClass: 'badge-purple',
+    badgeClass: 'm3-chip-tonal-tertiary',
     description: 'Analisis kelompok data dengan GROUP BY & HAVING, query bersarang (Subqueries), kueri kondisi EXISTS, operator ANY/ALL, dan UNION.',
-    modulesRange: 'Modul 25 – 30'
+    modulesRange: 'Modul 25 – 30',
+    iconSymbol: 'account_tree'
   },
   {
     id: 'ddl_security',
     title: 'Path 5: SQL DDL, Constraints & Security',
     shortTitle: 'DDL & Security',
     badgeText: 'Level 5',
-    badgeClass: 'badge-orange',
+    badgeClass: 'm3-chip-tonal-warning',
     description: 'Definisikan skema database (CREATE, ALTER, DROP), kelola batasan data (Constraints), Transaksi, Views, dan Proteksi Keamanan SQL.',
-    modulesRange: 'Modul 31 – 40'
+    modulesRange: 'Modul 31 – 40',
+    iconSymbol: 'shield'
   }
 ];
 
@@ -131,11 +137,14 @@ const pathGroups = LEARNING_PATHS.map((path) => {
   description="Kurikulum pembelajaran SQL interaktif 40 Modul bergaya W3Schools. Pelajari SELECT, JOINs, Subqueries, DDL, Constraints & Keamanan."
 >
   <div class="container">
-    <div class="catalog-hero glass-card">
+    <div class="m3-card m3-card-elevated catalog-hero">
       <div class="hero-content">
-        <span class="badge badge-cyan">KURIKULUM SQL INTERAKTIF 40 MODUL</span>
-        <h1 class="hero-title">Katalog Pembelajaran <span class="text-gradient">SQL Masterclass</span></h1>
-        <p class="hero-description">
+        <span class="m3-chip m3-chip-tonal-primary">
+          <span class="material-symbols-rounded icon-sm">database</span>
+          KURIKULUM SQL INTERAKTIF 40 MODUL
+        </span>
+        <h1 class="hero-title m3-display-medium margin-top-xs">Katalog Pembelajaran <span class="text-m3-primary">SQL Masterclass</span></h1>
+        <p class="hero-description m3-body-large">
           Kuasai sintaksis database SQL dari tingkat dasar hingga profesional melalui 5 Learning Path terstruktur.
           Tulis query pada editor SQLite WASM, eksekusi real-time, dan dapatkan umpan balik evaluasi otomatis.
         </p>
@@ -153,8 +162,9 @@ const pathGroups = LEARNING_PATHS.map((path) => {
               <div class="progress-bar-fill" style={`width: ${completionPercentage}%`}></div>
             </div>
             <div class="status-actions">
-              <a href="/dashboard" class="btn btn-secondary btn-sm">
-                Lihat Dashboard Siswa
+              <a href="/dashboard" class="m3-btn m3-btn-tonal btn-sm">
+                <span class="material-symbols-rounded icon-sm">dashboard</span>
+                Dashboard Siswa
               </a>
             </div>
           </div>
@@ -167,8 +177,8 @@ const pathGroups = LEARNING_PATHS.map((path) => {
               </div>
             </div>
             <div class="auth-prompt-buttons">
-              <a href="/auth/login" class="btn btn-primary btn-sm">Login Siswa</a>
-              <a href="/auth/register" class="btn btn-outline btn-sm">Daftar Akun Baru</a>
+              <a href="/auth/login" class="m3-btn m3-btn-filled btn-sm">Login Siswa</a>
+              <a href="/auth/register" class="m3-btn m3-btn-outlined btn-sm">Daftar Akun Baru</a>
             </div>
           </div>
         )}
@@ -176,52 +186,73 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     </div>
 
     <!-- Special Project Banner: SmartMart POS (Kelas 11 RPL) -->
-    <div class="project-banner-card glass-card">
+    <div class="m3-card m3-card-elevated project-banner-card margin-top-md">
       <div class="project-banner-content">
         <div class="project-badge-row">
-          <span class="badge badge-purple">PROYEK KELAS 11 RPL</span>
-          <span class="badge badge-amber">TUGAS BESAR SEMESTER</span>
-          <span class="badge badge-cyan">2 PEKAN</span>
+          <span class="m3-chip m3-chip-tonal-tertiary">
+            <span class="material-symbols-rounded icon-sm">code</span>
+            PROYEK KELAS 11 RPL
+          </span>
+          <span class="m3-chip m3-chip-tonal-warning">
+            <span class="material-symbols-rounded icon-sm">assignment</span>
+            TUGAS BESAR SEMESTER
+          </span>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">schedule</span>
+            2 PEKAN
+          </span>
         </div>
-        <h2 class="project-banner-title">Tugas Proyek: SmartMart POS (Sistem Kasir &amp; Inventaris Ritel)</h2>
-        <p class="project-banner-desc">
+        <h2 class="project-banner-title m3-title-large margin-top-xs">Tugas Proyek: SmartMart POS (Sistem Kasir &amp; Inventaris Ritel)</h2>
+        <p class="project-banner-desc m3-body-medium">
           Rancang basis data relasional 6 tabel, definisikan skema DDL &amp; batasan constraints, isi data sampel DML, dan selesaikan 5 tantangan kueri analitik bisnis ritel bersama tim (2 orang).
         </p>
       </div>
       <div class="project-banner-action">
-        <a href="/belajar/sql/arsitektur-ddl" class="btn btn-secondary btn-md">
-          📖 Materi: Arsitektur &amp; DDL
+        <a href="/belajar/sql/arsitektur-ddl" class="m3-btn m3-btn-tonal btn-sm">
+          <span class="material-symbols-rounded icon-sm">menu_book</span>
+          Materi: Arsitektur &amp; DDL
         </a>
-        <a href="/belajar/sql/proyek" class="btn btn-primary btn-md">
-          🚀 Form Proyek Tim &rarr;
+        <a href="/belajar/sql/proyek" class="m3-btn m3-btn-filled btn-sm">
+          <span class="material-symbols-rounded icon-sm">rocket_launch</span>
+          Form Proyek Tim
         </a>
       </div>
     </div>
 
     <!-- Special CBT Try Out Banner -->
-    <div class="project-banner-card glass-card tryout-banner-accent">
+    <div class="m3-card m3-card-elevated project-banner-card tryout-banner-accent margin-top-md">
       <div class="project-banner-content">
         <div class="project-badge-row">
-          <span class="badge badge-emerald">SIMULASI MANDIRI</span>
-          <span class="badge badge-cyan">CBT 25 SOAL (5 OPSI A-E)</span>
-          <span class="badge badge-purple">DILENGKAPI TOKEN UJIAN</span>
+          <span class="m3-chip m3-chip-tonal-success">
+            <span class="material-symbols-rounded icon-sm">quiz</span>
+            SIMULASI MANDIRI
+          </span>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">checklist</span>
+            CBT 25 SOAL (5 OPSI A-E)
+          </span>
+          <span class="m3-chip m3-chip-tonal-secondary">
+            <span class="material-symbols-rounded icon-sm">key</span>
+            DILENGKAPI TOKEN UJIAN
+          </span>
         </div>
-        <h2 class="project-banner-title">Try Out Ujian SQL &amp; Basis Data Relasional</h2>
-        <p class="project-banner-desc">
+        <h2 class="project-banner-title m3-title-large margin-top-xs">Try Out Ujian SQL &amp; Basis Data Relasional</h2>
+        <p class="project-banner-desc m3-body-medium">
           Uji kesiapan pemahaman materi SQL Anda dengan simulasi Computer-Based Test (CBT) berdurasi 45 menit. Dilengkapi penilaian otomatis instan dan pembahasan lengkap tiap nomor soal!
         </p>
       </div>
       <div class="project-banner-action">
-        <a href="/belajar/sql/tryout" class="btn btn-emerald btn-lg">
-          📝 Masuk Try Out CBT &rarr;
+        <a href="/belajar/sql/tryout" class="m3-btn m3-btn-filled m3-btn-success btn-sm">
+          <span class="material-symbols-rounded icon-sm">play_circle</span>
+          Masuk Try Out CBT
         </a>
       </div>
     </div>
 
     <!-- Interactive Filter Bar -->
-    <div class="filter-bar glass-card">
+    <div class="filter-bar m3-card margin-top-lg">
       <div class="filter-header">
-        <span class="filter-title">Filter Learning Path:</span>
+        <span class="filter-title m3-label-large">Filter Learning Path:</span>
       </div>
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">
@@ -241,15 +272,18 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     <div class="paths-container">
       {pathGroups.map((path) => (
         <section class="path-section" data-path={path.id}>
-          <div class:list={['path-header-card', 'glass-card', path.id]}>
+          <div class:list={['path-header-card', 'm3-card', 'm3-card-elevated', path.id]}>
             <div class="path-header-top">
               <div class="path-title-group">
                 <div>
                   <div class="path-badge-wrap">
-                    <span class:list={['badge', path.badgeClass]}>{path.badgeText}</span>
-                    <span class="module-range-badge">{path.modulesRange}</span>
+                    <span class:list={['m3-chip', path.badgeClass]}>
+                      <span class="material-symbols-rounded icon-sm">{path.iconSymbol}</span>
+                      {path.badgeText}
+                    </span>
+                    <span class="module-range-badge m3-chip m3-chip-tonal-secondary">{path.modulesRange}</span>
                   </div>
-                  <h2 class="path-title">{path.title}</h2>
+                  <h2 class="path-title m3-title-large margin-top-xs">{path.title}</h2>
                 </div>
               </div>
               <div class="path-progress-box">

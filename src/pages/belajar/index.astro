@@ -63,9 +63,9 @@ const curricula = [
     link: '/belajar/informatika',
     btnText: 'Buka Mata Pelajaran Informatika',
     subjectTitle: 'Mata Pelajaran: Informatika SMK (Fase E)',
-    accentColor: '#a855f7',
-    gradient: 'linear-gradient(135deg, #1e1b4b 0%, #a855f7 50%, #6366f1 100%)',
-    icon: 'cpu'
+    accentColor: 'var(--m3-primary)',
+    gradient: 'linear-gradient(135deg, var(--m3-primary-container) 0%, var(--m3-surface-container-high) 100%)',
+    iconSymbol: 'memory'
   },
   {
     id: 'rpl_web_sql',
@@ -80,9 +80,9 @@ const curricula = [
     link: '/belajar/sql',
     btnText: 'Buka Mata Pelajaran Web & SQL',
     subjectTitle: 'Mata Pelajaran: Pemrograman Web & Basis Data (RPL)',
-    accentColor: 'var(--accent-cyan)',
-    gradient: 'linear-gradient(135deg, #0f172a 0%, #06b6d4 50%, #6366f1 100%)',
-    icon: 'database'
+    accentColor: 'var(--m3-primary)',
+    gradient: 'linear-gradient(135deg, var(--m3-secondary-container) 0%, var(--m3-surface-container-high) 100%)',
+    iconSymbol: 'database'
   },
   {
     id: 'pbo',
@@ -97,9 +97,9 @@ const curricula = [
     link: '#',
     btnText: 'Segera Hadir',
     subjectTitle: 'Mata Pelajaran: Pemrograman Berbasis Objek (PBO)',
-    accentColor: '#f59e0b',
-    gradient: 'linear-gradient(135deg, #451a03 0%, #d97706 50%, #f59e0b 100%)',
-    icon: 'code'
+    accentColor: 'var(--m3-tertiary)',
+    gradient: 'linear-gradient(135deg, var(--m3-surface-container-highest) 0%, var(--m3-surface-container-low) 100%)',
+    iconSymbol: 'terminal'
   }
 ];
 ---
@@ -110,15 +110,12 @@ const curricula = [
 >
   <div class="curriculum-container">
     <div class="curriculum-header">
-      <span class="badge badge-cyan">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-          <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-        </svg>
+      <span class="m3-chip m3-chip-tonal-primary">
+        <span class="material-symbols-rounded icon-sm">school</span>
         Kurikulum Pembelajaran RPL
       </span>
-      <h1 class="page-title">Pusat Pembelajaran <span class="text-gradient">Pemrograman</span></h1>
-      <p class="page-subtitle">
+      <h1 class="page-title m3-display-medium margin-top-xs">Pusat Pembelajaran <span class="text-m3-primary">Pemrograman</span></h1>
+      <p class="page-subtitle m3-body-large">
         Pilih modul dan alur kurikulum Rekayasa Perangkat Lunak SMK. Tingkatkan keahlian coding secara praktis dan interaktif.
       </p>
     </div>
@@ -135,76 +132,34 @@ const curricula = [
         );
 
         let badgeLabel = item.statusLabel;
-        let badgeClass = 'badge-status-coming';
+        let badgeClass = 'm3-chip-tonal-error';
+        let badgeIcon = 'schedule';
 
         if (item.status === 'active') {
           if (!user) {
             badgeLabel = 'Siap & Aktif';
-            badgeClass = 'badge-status-active';
+            badgeClass = 'm3-chip-tonal-primary';
+            badgeIcon = 'bolt';
           } else if (isEnrolled) {
             badgeLabel = 'Terdaftar';
-            badgeClass = 'badge-status-enrolled';
+            badgeClass = 'm3-chip-tonal-success';
+            badgeIcon = 'check_circle';
           } else {
-            badgeLabel = 'Belum Enroll';
-            badgeClass = 'badge-status-locked';
+            badgeLabel = 'Belum Terdaftar';
+            badgeClass = 'm3-chip-tonal-warning';
+            badgeIcon = 'lock';
           }
         }
 
         return (
-          <div class={`glass-card curriculum-card ${item.status === 'active' ? 'card-active' : 'card-disabled'}`}>
+          <div class={`m3-card m3-card-elevated curriculum-card ${item.status === 'active' ? 'card-active' : 'card-disabled'}`}>
             <div class="card-thumb" style={`background: ${item.gradient}`}>
               <div class="thumb-pattern"></div>
               <div class="thumb-icon-box">
-                {item.icon === 'cpu' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                    <rect x="9" y="9" width="6" height="6"></rect>
-                    <line x1="9" y1="1" x2="9" y2="4"></line>
-                    <line x1="15" y1="1" x2="15" y2="4"></line>
-                    <line x1="9" y1="20" x2="9" y2="23"></line>
-                    <line x1="15" y1="20" x2="15" y2="23"></line>
-                    <line x1="20" y1="9" x2="23" y2="9"></line>
-                    <line x1="20" y1="15" x2="23" y2="15"></line>
-                    <line x1="1" y1="9" x2="4" y2="9"></line>
-                    <line x1="1" y1="15" x2="4" y2="15"></line>
-                  </svg>
-                )}
-                {item.icon === 'database' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                  </svg>
-                )}
-                {item.icon === 'layout' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                    <line x1="9" y1="21" x2="9" y2="9"></line>
-                  </svg>
-                )}
-                {item.icon === 'code' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="16 18 22 12 16 6"></polyline>
-                    <polyline points="8 6 2 12 8 18"></polyline>
-                  </svg>
-                )}
-                {item.icon === 'server' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                  </svg>
-                )}
-                {item.icon === 'terminal' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="4 17 10 11 4 5"></polyline>
-                    <line x1="12" y1="19" x2="20" y2="19"></line>
-                  </svg>
-                )}
+                <span class="material-symbols-rounded icon-xl" style="color: var(--m3-primary);">{item.iconSymbol}</span>
               </div>
-              <span class={`status-badge ${badgeClass}`}>
+              <span class={`status-badge m3-chip ${badgeClass}`}>
+                <span class="material-symbols-rounded icon-sm">{badgeIcon}</span>
                 {badgeLabel}
               </span>
             </div>
@@ -215,8 +170,8 @@ const curricula = [
                 <span class="module-count">{item.moduleCount}</span>
               </div>
 
-              <h2 class="card-title">{item.title}</h2>
-              <p class="card-desc">{item.description}</p>
+              <h2 class="card-title m3-title-large">{item.title}</h2>
+              <p class="card-desc m3-body-medium">{item.description}</p>
 
               <div class="card-tags">
                 {item.tags.map((tag) => (
@@ -227,26 +182,30 @@ const curricula = [
               <div class="card-footer">
                 {item.status === 'active' ? (
                   isEnrolled ? (
-                    <a href={item.link} class="btn btn-primary btn-full">
-                      <span>{item.btnText} →</span>
+                    <a href={item.link} class="m3-btn m3-btn-filled btn-full">
+                      <span>{item.btnText}</span>
+                      <span class="material-symbols-rounded icon-sm">arrow_forward</span>
                     </a>
                   ) : user ? (
                     <button
                       type="button"
-                      class="btn btn-enroll-trigger btn-full"
+                      class="m3-btn m3-btn-tonal-primary btn-enroll-trigger btn-full"
                       data-subject-id={subjectId}
                       data-course-id={subjectId}
                       data-course-title={item.subjectTitle || `Mata Pelajaran: ${item.title}`}
                     >
-                      <span>🔒 Enroll Mata Pelajaran (Kode Akses)</span>
+                      <span class="material-symbols-rounded icon-sm">key</span>
+                      <span>Enroll Mata Pelajaran (Kode Akses)</span>
                     </button>
                   ) : (
-                    <a href={`/auth/login?redirect=/belajar`} class="btn btn-primary btn-full">
-                      <span>Login untuk Enroll →</span>
+                    <a href={`/auth/login?redirect=/belajar`} class="m3-btn m3-btn-filled btn-full">
+                      <span>Login untuk Membuka</span>
+                      <span class="material-symbols-rounded icon-sm">login</span>
                     </a>
                   )
                 ) : (
-                  <button class="btn btn-secondary btn-full" disabled type="button">
+                  <button class="m3-btn m3-btn-tonal btn-full" disabled type="button">
+                    <span class="material-symbols-rounded icon-sm">schedule</span>
                     <span>Segera Hadir</span>
                   </button>
                 )}

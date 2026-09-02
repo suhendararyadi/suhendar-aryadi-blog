@@ -67,26 +67,34 @@ if (existingSubmission) {
   <div class="lkpd-page-container">
     <!-- Top Nav Controls (Hidden on print) -->
     <div class="page-top-nav no-print">
-      <a href="/belajar/informatika/tik" class="btn btn-outline btn-sm">
-        &larr; Kembali ke Elemen 2 TIK
+      <a href="/belajar/informatika/tik" class="m3-btn m3-btn-outlined btn-sm">
+        <span class="material-symbols-rounded icon-sm">arrow_back</span>
+        Kembali ke Elemen 2 TIK
       </a>
       <div class="top-nav-actions">
-        <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
+        <button id="print-lkpd-btn" class="m3-btn m3-btn-outlined btn-sm" type="button">
+          <span class="material-symbols-rounded icon-sm">print</span>
           Cetak / Unduh PDF
         </button>
-        <span class="badge badge-cyan">LKPD DIGITAL TIK</span>
+        <span class="m3-chip m3-chip-tonal-primary">
+          <span class="material-symbols-rounded icon-sm">assignment</span>
+          LKPD DIGITAL TIK
+        </span>
       </div>
     </div>
 
     <!-- Deadline Notice Banner -->
     {lkpdDeadlineStr && (
-      <div class={`deadline-notice-card glass-card no-print ${isPastDeadline ? 'banner-expired' : 'banner-active'}`}>
+      <div class={`deadline-notice-card m3-card no-print ${isPastDeadline ? 'm3-banner-error' : 'm3-banner-primary'}`}>
         {isPastDeadline ? (
           <div class="deadline-notice-flex">
-            <span class="badge badge-red">PENGUMPULAN DITUTUP</span>
+            <span class="m3-chip m3-chip-tonal-error">
+              <span class="material-symbols-rounded icon-sm">event_busy</span>
+              PENGUMPULAN DITUTUP
+            </span>
             <div>
               <strong class="notice-title">Tenggat Waktu Pengumpulan LKPD TIK Telah Berakhir</strong>
-              <p class="notice-desc">
+              <p class="notice-desc m3-body-small">
                 Batas pengumpulan: {new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB.
                 {!existingSubmission && ' Pengajuan formulir LKPD TIK baru telah ditutup oleh Guru.'}
               </p>
@@ -94,10 +102,13 @@ if (existingSubmission) {
           </div>
         ) : (
           <div class="deadline-notice-flex">
-            <span class="badge badge-cyan">TENGGAT PENGUMPULAN</span>
+            <span class="m3-chip m3-chip-tonal-primary">
+              <span class="material-symbols-rounded icon-sm">schedule</span>
+              TENGGAT PENGUMPULAN
+            </span>
             <div>
               <strong class="notice-title">Batas Waktu Pengumpulan Tugas TIK</strong>
-              <p class="notice-desc">
+              <p class="notice-desc m3-body-small">
                 Kumpulkan LKPD sebelum: <strong>{new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
               </p>
             </div>
@@ -108,15 +119,24 @@ if (existingSubmission) {
 
     <!-- Submitted Task Status Indicator Banner -->
     {existingSubmission && (
-      <div class="submitted-status-card glass-card no-print">
+      <div class="m3-card m3-card-elevated submitted-status-card no-print margin-top-sm">
         <div class="status-banner-flex">
           <div class="status-left">
             <div class="badge-row">
-              <span class="badge badge-success">✓ BERHASIL MENGUMPULKAN TUGAS</span>
+              <span class="m3-chip m3-chip-tonal-success">
+                <span class="material-symbols-rounded icon-sm">check_circle</span>
+                BERHASIL MENGUMPULKAN TUGAS
+              </span>
               {isGraded ? (
-                <span class="badge badge-purple">SUDAH DINILAI GURU</span>
+                <span class="m3-chip m3-chip-tonal-primary">
+                  <span class="material-symbols-rounded icon-sm">verified</span>
+                  SUDAH DINILAI GURU
+                </span>
               ) : (
-                <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
+                <span class="m3-chip m3-chip-tonal-warning">
+                  <span class="material-symbols-rounded icon-sm">pending</span>
+                  MENUNGGU PENILAIAN GURU
+                </span>
               )}
             </div>
             <h3 class="status-title">Tugas LKPD 2 (TIK) Terdaftar &amp; Tersimpan</h3>

@@ -50,29 +50,38 @@ try {
   <div class="lkpd-page-container">
     <!-- Top Nav Controls (Hidden on print) -->
     <div class="page-top-nav no-print">
-      <a href="/belajar/informatika/bk" class="btn btn-outline btn-sm">
-        &larr; Kembali ke Elemen 1 BK
+      <a href="/belajar/informatika/bk" class="m3-btn m3-btn-outlined btn-sm">
+        <span class="material-symbols-rounded icon-sm">arrow_back</span>
+        Kembali ke Elemen 1 BK
       </a>
       <div class="top-nav-actions">
-        <a href="/belajar/informatika/bk/lkpd-2" class="btn btn-outline btn-sm">
-          Lanjut ke LKPD 2 &rarr;
+        <a href="/belajar/informatika/bk/lkpd-2" class="m3-btn m3-btn-tonal btn-sm">
+          Lanjut ke LKPD 2
+          <span class="material-symbols-rounded icon-sm">arrow_forward</span>
         </a>
-        <button id="print-lkpd-btn" class="btn btn-secondary btn-sm" type="button">
+        <button id="print-lkpd-btn" class="m3-btn m3-btn-outlined btn-sm" type="button">
+          <span class="material-symbols-rounded icon-sm">print</span>
           Cetak / Unduh PDF
         </button>
-        <span class="badge badge-cyan">LKPD 1 DIGITAL</span>
+        <span class="m3-chip m3-chip-tonal-primary">
+          <span class="material-symbols-rounded icon-sm">assignment</span>
+          LKPD 1 DIGITAL
+        </span>
       </div>
     </div>
 
     <!-- Deadline Notice Banner -->
     {lkpdDeadlineStr && (
-      <div class={`deadline-notice-card glass-card no-print ${isPastDeadline ? 'banner-expired' : 'banner-active'}`}>
+      <div class={`deadline-notice-card m3-card no-print ${isPastDeadline ? 'm3-banner-error' : 'm3-banner-primary'}`}>
         {isPastDeadline ? (
           <div class="deadline-notice-flex">
-            <span class="badge badge-red">PENGUMPULAN DITUTUP</span>
+            <span class="m3-chip m3-chip-tonal-error">
+              <span class="material-symbols-rounded icon-sm">event_busy</span>
+              PENGUMPULAN DITUTUP
+            </span>
             <div>
               <strong class="notice-title">Tenggat Waktu Pengumpulan LKPD Telah Berakhir</strong>
-              <p class="notice-desc">
+              <p class="notice-desc m3-body-small">
                 Batas pengumpulan: {new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB.
                 {!existingSubmission && ' Pengajuan formulir LKPD baru telah ditutup oleh Guru.'}
               </p>
@@ -80,10 +89,13 @@ try {
           </div>
         ) : (
           <div class="deadline-notice-flex">
-            <span class="badge badge-cyan">TENGGAT PENGUMPULAN</span>
+            <span class="m3-chip m3-chip-tonal-primary">
+              <span class="material-symbols-rounded icon-sm">schedule</span>
+              TENGGAT PENGUMPULAN
+            </span>
             <div>
               <strong class="notice-title">Batas Waktu Pengumpulan Tugas</strong>
-              <p class="notice-desc">
+              <p class="notice-desc m3-body-small">
                 Kumpulkan LKPD sebelum: <strong>{new Date(lkpdDeadlineStr).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
               </p>
             </div>
@@ -94,26 +106,35 @@ try {
 
     <!-- Submitted Task Status Indicator Banner -->
     {existingSubmission && (
-      <div class="submitted-status-card glass-card no-print">
+      <div class="m3-card m3-card-elevated submitted-status-card no-print margin-top-sm">
         <div class="status-banner-flex">
           <div class="status-left">
             <div class="badge-row">
-              <span class="badge badge-success">BERHASIL MENGUMPULKAN TUGAS</span>
+              <span class="m3-chip m3-chip-tonal-success">
+                <span class="material-symbols-rounded icon-sm">check_circle</span>
+                BERHASIL MENGUMPULKAN TUGAS
+              </span>
               {isGraded ? (
-                <span class="badge badge-cyan">SUDAH DINILAI GURU</span>
+                <span class="m3-chip m3-chip-tonal-primary">
+                  <span class="material-symbols-rounded icon-sm">verified</span>
+                  SUDAH DINILAI GURU
+                </span>
               ) : (
-                <span class="badge badge-amber">MENUNGGU PENILAIAN GURU</span>
+                <span class="m3-chip m3-chip-tonal-warning">
+                  <span class="material-symbols-rounded icon-sm">pending</span>
+                  MENUNGGU PENILAIAN GURU
+                </span>
               )}
             </div>
-            <h3 class="status-title">Tugas LKPD 1 (BK) Terdaftar &amp; Tersimpan</h3>
-            <p class="status-sub">
+            <h3 class="status-title m3-title-medium margin-top-xs">Tugas LKPD 1 (BK) Terdaftar &amp; Tersimpan</h3>
+            <p class="status-sub m3-body-small">
               Dikirim pada: <strong>{new Date(existingSubmission.updated_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })} WIB</strong>
               | Tim: <strong>{existingSubmission.team_name || 'Mandiri'}</strong>
             </p>
           </div>
           {isGraded && (
             <div class="status-grade-pill">
-              <span class="grade-pill-label">NILAI AKHIR</span>
+              <span class="grade-pill-label m3-label-small">NILAI AKHIR</span>
               <span class="grade-pill-value">{existingSubmission.score} / 100</span>
             </div>
           )}
@@ -123,21 +144,27 @@ try {
 
     <!-- Teacher Evaluation Banner (If Graded) -->
     {isGraded && (
-      <div class="grade-banner glass-card no-print">
+      <div class="grade-banner m3-card m3-card-elevated no-print margin-top-sm">
         <div class={`grade-badge-box ${isKkmPassed ? 'grade-badge-pass' : 'grade-badge-remedial'}`}>
-          <span class="grade-label">NILAI AKHIR LKPD</span>
+          <span class="grade-label m3-label-small">NILAI AKHIR LKPD</span>
           <span class="grade-score">{existingSubmission.score} / 100</span>
           {isKkmPassed ? (
-            <span class="badge badge-success">TUNTAS KKM ({KKM_THRESHOLD})</span>
+            <span class="m3-chip m3-chip-tonal-success">
+              <span class="material-symbols-rounded icon-sm">verified</span>
+              TUNTAS KKM ({KKM_THRESHOLD})
+            </span>
           ) : (
-            <span class="badge badge-amber">BELUM TUNTAS KKM ({KKM_THRESHOLD}) — REMEDIASI</span>
+            <span class="m3-chip m3-chip-tonal-warning">
+              <span class="material-symbols-rounded icon-sm">warning</span>
+              BELUM TUNTAS KKM ({KKM_THRESHOLD}) — REMEDIASI
+            </span>
           )}
         </div>
         <div class="grade-feedback-box">
-          <strong>Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
-          <p>{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan analisis 4 pilar berpikir komputasional tim kalian.'}</p>
+          <strong class="m3-title-small">Umpan Balik Guru (Suhendar Aryadi, S.Pd.,Gr.):</strong>
+          <p class="m3-body-medium margin-top-xs">{existingSubmission.teacher_feedback || 'Sangat baik! Pertahankan analisis 4 pilar berpikir komputasional tim kalian.'}</p>
           {!isKkmPassed && (
-            <p class="remedial-note">Nilai kamu belum mencapai KKM. Silakan perbaiki jawaban pada form di bawah, lalu kirim ulang untuk dinilai kembali.</p>
+            <p class="remedial-note m3-body-small text-m3-warning margin-top-xs">Nilai kamu belum mencapai KKM. Silakan perbaiki jawaban pada form di bawah, lalu kirim ulang untuk dinilai kembali.</p>
           )}
         </div>
       </div>

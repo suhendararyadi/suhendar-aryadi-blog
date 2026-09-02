@@ -324,7 +324,7 @@ const commonMistakes = [
                   </>
                 ))}
               </div>
-              <div class="cs-example"><strong>💡 Contoh RPL:</strong> {cs.example}</div>
+              <div class="cs-example"><span class="material-symbols-rounded icon-sm" style="color: var(--m3-warning);">lightbulb</span> <strong>Contoh RPL:</strong> {cs.example}</div>
             </div>
           ))}
         </div>
@@ -382,7 +382,7 @@ const commonMistakes = [
             ))}
           </tbody>
         </table>
-        <p class="algo-hint-note">👉 Bandingkan cara kerja ketiganya secara visual pada <strong>Interactive Visualizer</strong> di bagian bawah halaman ini.</p>
+        <p class="algo-hint-note"><span class="material-symbols-rounded icon-sm text-m3-primary">info</span> Bandingkan cara kerja ketiganya secara visual pada <strong>Interactive Visualizer</strong> di bagian bawah halaman ini.</p>
       </div>
 
       <!-- 5. Queue & Stack -->
@@ -394,7 +394,7 @@ const commonMistakes = [
               <h4>{ds.name}</h4>
               <p><strong>Prinsip:</strong> {ds.principle}</p>
               <p><strong>Operasi:</strong> {ds.operations}</p>
-              <div class="ds-example"><strong>💡 Contoh RPL:</strong> {ds.rplExample}</div>
+              <div class="ds-example"><span class="material-symbols-rounded icon-sm" style="color: var(--m3-warning);">lightbulb</span> <strong>Contoh RPL:</strong> {ds.rplExample}</div>
             </div>
           ))}
         </div>
@@ -432,9 +432,9 @@ const commonMistakes = [
             <div class="mistake-item">
               <span class="mistake-num">{i + 1}</span>
               <div class="mistake-body">
-                <strong class="mistake-title">⚠️ {m.mistake}</strong>
+                <strong class="mistake-title"><span class="material-symbols-rounded icon-sm text-m3-warning">warning</span> {m.mistake}</strong>
                 <p class="mistake-impact"><em>Dampak:</em> {m.impact}</p>
-                <p class="mistake-fix">✅ <em>Solusi:</em> {m.fix}</p>
+                <p class="mistake-fix"><span class="material-symbols-rounded icon-sm text-m3-success">check_circle</span> <em>Solusi:</em> {m.fix}</p>
               </div>
             </div>
           ))}
