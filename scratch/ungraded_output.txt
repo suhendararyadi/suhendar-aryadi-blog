@@ -1,0 +1,1844 @@
+=== UNGRADED LKPD 1 (lkpd_submissions) ===
+Found 22 ungraded in LKPD 1
+
+======================================================
+ID: 68 | User: Ulpi paujiah (ulfifaujiah4@gmail.com) | Team: Ulpi paujiah | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"Katalog pruduk ","func":"Menampilkan menu , harga, foto dan stok dari semua kantin"},{"mod":"Pencarian dan filter","func":"Cari menu by kategori dan urutkan by harga"},{"mod":"pemesanan prabayar","func":"Pilih menu lalu Bayar mengunakan saldo"},{"mod":"Jadwal pengambilan","func":"Pilih jam lalu akan ada notifikasi untuk pengambilan "}]
+Pattern: [{"name":"siswa yang antri lama di kantin saat jam istrirahat ","sol":"Fitur pre-order  dan jadwal pengambilan agar sesuai  waktu "},{"name":"Stok makanan tidak di ketahui, sering ke habisan saat di pesan","sol":"Update stok Real- time yang otomatis akan berkurang saat pesanan di pesankan "}]
+Abstraction: {"kept":"Informasi penyimpanan data yang wajib di simpan.\nID-siswa,namasiwa,ID-marchant,harga,email,kelas,kategori stok ,ID-pesanan, jadwal ambil status pembayaran ","ignored":"warna seragam siswa,foto propil, cuaca dan lain lain "}
+Algorithm: {"search":"Binary Search","sort":"Bubble Sort","queue":"antrian pesnan dan jadwal pengambilan fifo yang pesan lebih awal akan di layani lebih cepat ","stack":"Tombol\" Batal\" di keranjang / R. Terakhir lifo yang terakhir di tambah ,pertama di hapus","pseudocode":"ALGORITMA\n-stock\n-pilih makanan- jumlah pesanan-jadwal pengambilan \n-if stok cukupTHEN\n  bayar->simpan pesanan-> kurangi stock Else Tampilan  stock\" Habis\"\n- Notifikasi ke merchant\n-END"}
+Reflection: undefined
+
+======================================================
+ID: 81 | User: Deviana Aprilia (devyyaprilia@gmail.com) | Team: Deviana Aprilia  | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"Katalog menu ","func":"Menampilkan daftar,makanan,dan minuman,Poto,serta harga"},{"mod":"Pemesanan ","func":"Mencatat makanan yang di pilih dan jumlah pesanan"},{"mod":"Pembayaran ","func":"Memperoses pembayaran dan menampilkan setatus pembayaran"},{"mod":"Antrean dan pengambilan pesanan","func":"Mengatur nomer antrean dan status pesanan hingga siap di ambil"}]
+Pattern: [{"name":"Alur login siswa dan penjual","sol":"Membuat satu pungsi terpusat untuk palidasi user name password dan sesi pengguna "},{"name":"Fitur pencarian data menu makanan dan minuman","sol":"Memakai algoritma searching terstandar untuk pencarian kata kunci nama menu"}]
+Abstraction: {"kept":"Id transaksi,nama siswa/pembeli,daftar menu,total bayar,waktu transaksi ","ignored":"Warna baju pembeli, jenis sepatu,suasana hati pelanggan saat memesan "}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Manajemen antrean pesanan dapur kantin ","stack":"Fitur undo/ redo pembatalan transaksi kasir","pseudocode":"ALGORITMA Proses_Pemesanan_Kantin\nSTART\n    INPUT id_menu, jumlah\n    CEK stok_menu\n    IF stok_menu >= jumlah THEN\n        Hitung total_bayar\n        Potong saldo_siswa\n        MASUKKAN antrean_dapur (QUEUE)\n    ELSE\n        TAMPILKAN 'Stok Tidak Cukup'\n    ENDIF\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 82 | User: Ai ghina anggraeni (aighinaai26@gmail.com) | Team: ai ghina anggraeni | Case: kiosk
+Team Members: []
+Decomposition: [{"mod":"Katalog Menu\n ","func":"Menampilkan daftar makanan dan minuman, foto, serta harga."},{"mod":"Pemesanan\n","func":"Mencatat makanan yang dipilih dan jumlah pesanan."},{"mod":"Pembayaran","func":"Memproses pembayaran dan menampilkan status pembayaran.\n"},{"mod":"Antrean & Pengambilan Pesanan","func":"Mengatur nomor antrean dan status pesanan hingga siap diambil."}]
+Pattern: [{"name":"Alur Login Siswa & Penjual","sol":"Membuat satu fungsi terpusat untuk validasi username, password, dan sesi pengguna."},{"name":"Fitur Pencarian Menu","sol":"Menggunakan pola pencarian kata kunci untuk menemukan makanan atau minuman yang diinginkan."}]
+Abstraction: {"kept":"ID Pesanan, Nama Siswa, Menu yang Dibeli, Jumlah Pesanan, Total Harga, Metode Pembayaran, dan Waktu Transaksi.","ignored":"Warna baju siswa, jenis sepatu, kondisi cuaca, dan suasana hati siswa saat membeli."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Antrean pesanan makanan di kantin.","stack":"Fitur undo pembatalan pesanan/transaksi.","pseudocode":""}
+Reflection: undefined
+
+======================================================
+ID: 83 | User: Nadila Damayanti (nd2214327@gmail.com) | Team: Nadila Damayanti  | Case: klinik
+Team Members: []
+Decomposition: [{"mod":"modul pendaftaran pasien ","func":"mencatat data pasien dan membuat nomor antrian secara otomatis"},{"mod":"modul pemangilan pasien","func":"memanggil pasien berdasarkan nomor antrean dan menampilkan nomor  yang sedang dilayani"},{"mod":"modul jadwal dokter","func":"menampilkan jadwal praktik dokter dan informasi dokter yang tersedia "},{"mod":"modul notifikasi ","func":"memberikan pemberitahuan kepada pasien ketika nomor antrean nya sudah mendekati gilirannya "}]
+Pattern: [{"name":"pola pengambilan nomor antrean ","sol":"setiap pasien yang mendaftar akan mendapatkan nomor antrean secara berurutan "},{"name":"pola pemanggilan pasien","sol":"sistemnya pakai algoritma pencarian standar biar bisa cari data pasien "}]
+Abstraction: {"kept":"ID pasien,nama pasien,nomor antrean,poli tujuan,nama dokter,waktu daftar,status panggilan ","ignored":"warna baju pasien,jenis kendaraan yang dipakai,keluhan detail pasien saat daftar"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"pasien yang mendaftar pertama akan masuk pertama dan dipanggil pertama oleh sistem","stack":"data pasien yang terakhir dipanggil disimpan di stack jika pasien tidak ada bisa langsung panggil ulang data teratas","pseudocode":""}
+Reflection: undefined
+
+======================================================
+ID: 84 | User: Muhamad Jibril abdillah (jibrilwe123@gmail.com) | Team: Muhamad Jibril abdillah | Case: kiosk
+Team Members: []
+Decomposition: [{"mod":"Menu","func":"Menampilkan menu"},{"mod":"Mendapat antrean","func":"Menampilkan no urut antrean"},{"mod":"Memesan","func":"Belanja dan menghitung total"},{"mod":"Bisa dengan hp","func":"Bisa dengan transfer Qris"}]
+Pattern: [{"name":"Login membuat akun","sol":"Membuat pasword validasi"},{"name":"Mencari data dan menu pasien","sol":"Memakai ALGORITMA searching"}]
+Abstraction: {"kept":"Nama pelanggan apaa yangg dii belii menghitung jumlah lalu bayar bisa dengan cash atau transfer menggunakan hp","ignored":"Harus ingat dengan baju nya"}
+Algorithm: {"search":"Binary Search","sort":"Quick Sort","queue":"Mendapatkan no antrian ","stack":"Membatalkan transaksi","pseudocode":"ALGORITMA Proses_Pemesanan_FoodExpress\nSTART\n  INPUT id_menu, jumlah\n  CEK stok_menu\n  \n  stok_menu >= jumlah THEN\n    Hitung total_bayar = harga_menu * jumlah\n    TAMBAHKAN menu_ke_keranjang\n    MASUKKAN nomor_antrian_ke_QUEUE\n    PROSES pembayaran: tunai / QRIS / e-wallet\n    CETAK struk_transaksi\n    TAMPILKAN 'Pesanan Sedang Diproses'\n  ELSE\n    TAMPILKAN 'Maaf, Stok Tidak Cukup'\n  ENDIF\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 85 | User: Silvi nurpaujiah (silvinurpaujiah870@gmail.com) | Team: Silvi nurpaujiah  | Case: kiosk
+Team Members: []
+Decomposition: [{"mod":"menampilkan daftar makanan dan minuman ","func":"harga, foto, dan kategori "},{"mod":"memungkinkan pelanggan memilih menu, menentukan jumlah pesanan","func":"memasukkan ke dalam keranjang "},{"mod":"menampilkan daftar pesanan","func":"menghitung harga dan mengonfirmasi pesanan"},{"mod":"memproses pembayaran secara digital","func":"menampilkan bukti pembayaran atau nomer pesanan"}]
+Pattern: [{"name":"pelanggan memilih menu","sol":"menentukan jumlah dan memasukan ke keranjang "},{"name":"harga menu dan jumlah pesanan","sol":"dijumlah menjadi total pembayaran "}]
+Abstraction: {"kept":"ID Transaksi, Nama Pelanggan, Daftar Menu, Jumlah Pesanan, Harga, Total Bayar, Metode Pembayaran, Waktu Transaksi, Nomor Pesanan","ignored":"Warna pakaian pelanggan, jenis kendaraan pelanggan, kondisi cuaca, suasana hati pelanggan, dan penampilan pelanggan saat memesan"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Mengatur antrean pesanan pelanggan di dapur berdasarkan urutan pesanan masuk. Pesanan yang masuk terlebih dahulu akan diproses terlebih dahulu.","stack":"Menyimpan riwayat perubahan pesanan sehingga pembatalan atau Undo dapat dilakukan dari perubahan yang paling terakhir.","pseudocode":"ALGORITMA Pemesanan_Resto\nSTART\n    Tampilkan daftar menu\n    INPUT id_menu, jumlah\n\n    Cek stok menu\n\n    IF stok >= jumlah THEN\n        Hitung total_bayar\n        Masukkan pesanan ke keranjang\n        INPUT metode_pembayaran\n\n        Proses pembayaran\n\n        IF pembayaran berhasil THEN\n            Buat nomor_pesanan\n            Masukkan pesanan ke QUEUE\n            Tampilkan \"Pesanan berhasil\"\n        ELSE\n            Tampilkan \"Pembayaran gagal\"\n        ENDIF\n\n    ELSE\n        Tampilkan \"Stok tidak cukup\"\n    ENDIF\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 86 | User: yusril abdullah (rylabdullah01@gmail.com) | Team: yusril abdullah  | Case: custom
+Team Members: []
+Decomposition: [{"mod":"katalog menu","func":"menampilkan daftar makanan minuman foto dan filter harga"},{"mod":"antrean dan dapur","func":"mengatur nomer urut pesanan sesuai kedatangan meneruskan pesanan ke dapur dan memantau status pembuatan makanan"},{"mod":"keranjang dan cek out","func":"menambah mengedit menghapus pesanan menghitung total harga memproses metode pembayaran dan mencatat data transaksi"},{"mod":"data dan laporan transaksi","func":"menyimpan riwayat pesanan menampilkan id transaksi nama pelanggan daftar belanja total bayar dan waktu transaksi"}]
+Pattern: [{"name":"masukan akun cek data validasi kata sandi buat sesi token beri akses ","sol":"satu aturan pemeriksaan kata sandi dan token sesi di pakai berulang kali untuk siswa maupun guru tidak perlu buat kode berbeda"},{"name":"input kata kunci cocokan dengan data tampilkan hasil bisa di pakai berulang ulang","sol":"baik cari menu maupun cari pasien langkah kerjanya sama"}]
+Abstraction: {"kept":"id transaksi nama pelanggan daftar menu di beli total bayar waktu transaksi ","ignored":"warna baju pembeli jenis sepatu pembeli suasana hati pelanggan saat memesan"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"pesanan yang masuk paling awal akan di kerjakan dan di sajikan paling dulu sesuai urutan kedatangan","stack":"saat membatalkan menarik kembali transaksi yang di proses adalah transaksi yang paling baru di buat","pseudocode":"ALGORITMA Proses_Pemesanan_Kantin\nSTART\n  INPUT id_menu, jumlah\n  CEK stok_menu\n  IF stok_menu >= jumlah THEN\n    Hitung total_bayar\n    Potong saldo_siswa\n    MASUKKAN antrean_dapur (QUEUE)\n    TAMPILKAN 'Pesanan Berhasil'\n  ELSE\n    TAMPILKAN 'Stok Tidak Cukup'\n  END IF\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 87 | User: Cinta aulia (liaf81766@gmail.com) | Team: Cinta aulia | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"Modul katalog","func":"Menampilkan daftar makanan, minuman Poto dan filter harga"},{"mod":"Modul antrean&dapur","func":"Mengatur nomor urut pesanan sesuai kedatangan (queue)"},{"mod":"Modul keranjang& chek out ","func":"Merekam daftar belanja dan menghitung total harga"},{"mod":"Modul pembelajaran digital","func":"Integrasi saldo/Qris dan mencetak struk transaksi"}]
+Pattern: [{"name":"Alur autentikasi/ Login siswa guru ","sol":"Membuat 1 fungsi terpusat validasi password & token session"},{"name":"Fitur pencarian data menu & pembeli","sol":"Memakai algoritma searching terstandar untuk pencarian kata kunci"}]
+Abstraction: {"kept":"ID transaksi, Nama pelanggan, daftar meni belanja, total bayar, waktu transaksi ","ignored":"Warna baju pembeli, jenis sepatu dan suasana hati pembeli"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Manajemen antrian pesanan dapur/Nomor berobat pasien","stack":"Fitur undo / Redo pembatalan transaksi kasir","pseudocode":"ALGORITMA \nproses_pemesanan_kantin\nSTART\n    INPUT id_menu, jumlah \n    CEK stok_menu \n    IF stok_menu>=jumlah \nTHEN\n     Hitung total_bayar \n     Potong saldo_siswa\n     MASUKKAN\nantrean_dapur (QUEUE)\n  ELSE\n       TAMPILKAN 'Stok tidak \nCukup'\n   ENDIF \nEND"}
+Reflection: undefined
+
+======================================================
+ID: 88 | User: M. NABRIL HAFIZ (mnabrilhafiz31@gmail.com) | Team: hecker | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"Modul Katalog Produk & Manajemen Menu (Catalog & Menu Management)","func":"Modul ini menjadi etalase digital bagi penjual untuk menawarkan makanan dan tempat bagi pembeli untuk memilih hidangan."},{"mod":"Modul Pemesanan & Penjadwalan Pre-Order (Ordering & Pre-Order System)","func":"Modul ini mengatur alur transaksi dari keranjang belanja hingga makanan siap diambil, khusus dirancang untuk mengurai antrean jam istirahat."},{"mod":"Modul Dompet Digital & Transaksi Non-Tunai (E-Wallet & Payment Gateways).","func":"Modul finansial yang mendukung ekosistem cashless di lingkungan sekolah untuk transaksi yang lebih higienis dan transparan"},{"mod":"Modul Manajemen Pengguna & Otentikasi (User Management)","func":"Modul ini mengelola profil, hak akses, dan keamanan seluruh pengguna sistem (siswa, guru, pengelola kantin/penjual, dan admin sekolah)."}]
+Pattern: [{"name":"Alur Kerja Berulang (Repetitive Workflows)","sol":"Proses bisnis yang polanya selalu sama, dipicu oleh aksi pengguna yang berbeda, dan terjadi terus-menerus:"},{"name":"Pola Kesamaan Sistem (System Patterns)","sol":"Beberapa komponen dan logika pemrograman yang digunakan berulang kali di berbagai modul yang berbeda:"}]
+Abstraction: {"kept":"\nID Transaksi, Nama Pelanggan, Daftar Menu Dibelanja, Total Bayar, Waktu Transaksi dan lain-lain\n","ignored":"\nmakanan yang di beli, warna baju pembeli, jenis sepatu, suasana hati pelanggan saat memesan dan lainnya\n"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"manajemen antrian di dapur kantin","stack":"pitur pembatalan pesanan","pseudocode":"ALGORITMA Pemesanan_Dan_Pengambilan_EKantin\n{ Kamus Utama }\nDAFTAR_STRUKTUR Keranjang:\n    id_menu : string\n    jumlah  : integer\n    harga   : integer\n\nDEKLARASI:\n    id_siswa, id_pesanan, id_penjual, status_input : string\n    item_keranjang : Keranjang\n    total_bayar, saldo_siswa, batas_harian, total_pengeluaran_hari_ini : integer\n    porsi_tersedia, jam_ambil : integer\n    valid_stok, valid_dana : boolean\n    qr_code : string\n"}
+Reflection: undefined
+
+======================================================
+ID: 89 | User: m Fadil Pratama (af6339322@gmail.com) | Team: Fadil Pratama  | Case: klinik
+Team Members: []
+Decomposition: [{"mod":"modul login & akun ","func":"mengatur pendaftaran ,login,dan data penguna."},{"mod":"modul perncari","func":"mencari makan atau produk berdasarkan nama dan kategori."},{"mod":"modul notifikasi ","func":"memberikan informasi tentang pesanan dan setatus pembayaran."},{"mod":"modul riwayat pesanan ","func":"menyimpan dan menampilkan daftar pesanan yang pernah di lakukan."}]
+Pattern: [{"name":"Pola Pengelolaan Akun Pengguna","sol":"Data pengguna selalu diperiksa sebelum dapat mengakses sistem."},{"name":"Pola pengelola stok","sol":"Jumlah stok otomatis berkurang setelah produk berhasil dipesan."}]
+Abstraction: {"kept":"ID Pengguna, Nama, Nomor telepon, Alamat, ID Pesanan, Produk, Jumlah Harga, dan status pesanan","ignored":"Warna pakaian pengguna, kondisi cuaca, suasana tempat, dan percakapan pribadi pelanggan.\n\n"}
+Algorithm: {"search":"Binary Search","sort":"Selection Sort","queue":"Mengatur antrean pelanggan sesuai urutan kedatangan.","stack":"Menyimpan aktivitas terakhir pengguna untuk fitur pembatalan/undo.","pseudocode":"ALGORITMA Pemesanan_Produk\nSTART\n    INPUT nama_produk, jumlah\n    CARI produk\n    CEK ketersediaan_stok\n    IF stok >= jumlah THEN\n        Hitung total_harga\n        Simpan pesanan\n        MASUKKAN pesanan ke antrean (QUEUE)\n        Tampilkan \"Pesanan berhasil\"\n    ELSE\n        Tampilkan \"Stok tidak tersedia\"\n    ENDIF\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 90 | User: Neng Eka Sari (29engka@gmail.com) | Team: Neng Eka Sari  | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"Dikantin terdapat gorengan,jajanan ringan,dan minuman","func":"Satu gorengan berharga 1.000\nSatu jajanan ringan berharga antara 500-2.000\nSatu minuman berharga 1.000-5.000"},{"mod":"Dikantin sekolah terdapat ruangan kantin yang terdiri dari 7 warung/dapur yang menjual beragam makanan dan minuman","func":"Pendatang pertama mendapatkan Queue"},{"mod":"Modul keranjang,modul pembayaran, modul produk","func":"Makanan apa yang dipilih oleh pembeli, menghitung subtotal, lalu melanjutkan ke proses checkout "},{"mod":"Pembayaran dikantin sekolah bisa menggunakan aplikasi seperti dana,gopay dan lain lain","func":"Setiap selesai berbelanja dan check out akan membayar oleh aplikasi seperti dana dan lain lain,setelah itu akan mendapatkan struk hasil belanja"}]
+Pattern: [{"name":"Wlur autentikasi/login pembeli ","sol":"Membuat 1 fungsi untuk pembayaran "},{"name":"Fitur yang mencari item makanan/minuman yang dijual serta data transaksi atau identitas pembeli dikantin","sol":"Mencari nama menu makanan atau nama pembeli "}]
+Abstraction: {"kept":"ID pesanan,nomor antrian, daftar item pesanan,total harga,metode pembayaran,status pesanan ","ignored":"Warna baju dan sepatu pembeli"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Pesanan yang masuk paling awal akan disajikan terlebih dahulu ","stack":"Item yang dikembalikan akan menjadi item yang dihapus/dibatalkan ","pseudocode":"Proses _pemesanan_kantin start\nINPUT Id_menu>=jumlah\nTHEN\nhitung total _baywr potong saldo_siswa\nMASUKKAN\nantrean _dapur(QUEUE)\nELSE\nTAMPILKAN 'stok tidak cukup' \nENDIF\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 91 | User: AI DALFA HODIJAH MUKAROMAH (ai.dalfa87@smp.belajar.id) | Team: AI DALFA HODIJAH MUKAROMAH  | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"cireng,gorengan,mie ayam,pop ice,jus buah,piscok,bubur ayam,air mineral","func":"cireng : 2ribu/pcs\ngorengan : 1ribu/pcs\nmie ayam : 8ribu\npop ice : 3ribu/cup\njus buah : 8ribu/cup\npiscok : 2ribu/pcs\nbubur ayam : 7ribu\nair mineral : 3ribu/botol\n"},{"mod":"mendapat nomor antrian sesuai waktu kedatangan","func":"mengatur pesanan sesuai urutan agar tidak ada pesanan yang terlewat dan sesuai kedatangan "},{"mod":"merekam daftar belanja dan menghitung total harga belanjaan","func":"mempermudah pelanggan atau kasir melihat rincian barang yang dibeli beserta jumlah total yang harus dibayar sebelum melakukan pembayaran diakhir"},{"mod":"pelanggan bisa membayar lewat aplikasi pembayaran belanjaan kantin","func":"mengecheck saldo pelanggan cukup atau tidak.dan memberikan struck belanja"}]
+Pattern: [{"name":"tulis nisn untuk siswa","sol":"membuat alat untuk pembayaran kantin digital"},{"name":"menyajikan tabel menu","sol":"menyajikan semuanya secara rinci.seperti daftar menu ,harga ,dll .urutan pesanan"}]
+Abstraction: {"kept":"nama pembeli,daftar menu,ide transaksi,waktu pembelian,nomer antrean pembeli,harga, total harga","ignored":"suasana hati pembeli(memberikan rating/emoji suasana hati)\nwarna baju,memakai sepatu"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"","stack":"","pseudocode":"MULAI\n1. TAMPILKAN MENU\n   - Ambil data menu dari database: nama, harga, stok\n   - Filter menu yang stok > 0 saja\n\n2. TERIMA PESANAN DARI PEMBELI\n   - Input: ID Pembeli, daftar menu + jumlah\n   - Validasi: \n     a. Jika menu tidak ada -> tolak\n     b. Jika jumlah > stok -> tolak + info \"stok sisa X\"\n   \n3. HITUNG TOTAL BAYAR\n   total = 0\n   UNTUK setiap item di pesanan:\n       subtotal = harga * jumlah\n       total = total + subtotal\n   \n   - Cek ada promo? diskon member? -> potong total\n\n4. PROSES PEMBAYARAN\n   - Pilih metode: Tunai, QRIS, Saldo Kantin, Transfer\n   - Jika Tunai: input uang bayar -> kembalian = bayar - total\n   - Jika gagal bayar -> batalkan pesanan"}
+Reflection: undefined
+
+======================================================
+ID: 92 | User: Salsa Nabila Putri (sutandiudin@gmail.com) | Team: Salsa Nabila Putri | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"katalog menu","func":"menampilkan daftar makanan, foto, deskripsi, dan kategori/harga"},{"mod":"antrean dan dapur","func":"mengatur nomor urut pesanan sesuai kedatangan"},{"mod":"keranjang dan checkout","func":"merekam daftar belanja dan menghitung total belanja"},{"mod":"pembayaran digital","func":"integrasi saldo dan mencetak struk pembayaran"}]
+Pattern: [{"name":"autentikasi/login siswa dan guru","sol":"membuat 1 fungsi terpusat validasi password dan token"},{"name":"pencarian data atau menu","sol":"memakai algoritma searching standar untuk mencari kata kunci"}]
+Abstraction: {"kept":"ID transaksi, nama pelanggan, daftar menu dibelanja,  total bayar, waktu transaksi","ignored":"warna baju, suasana hati pembeli, merek sepatu"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"manajemen antrean pesanan dapur","stack":"Redo pembatalan transaksi kasir","pseudocode":"ALGORITMA Proses_Pemesanan_Kantin\nSTART\n  INPUT id_menu, jumlah\n  CEK stok_menu\n  \n  IF stok_menu >= jumlah THEN\n      Hitung total_bayar\n      Potong saldo_siswa\n      Tambahkan pesanan ke Queue_Antrean_Dapur\n      Tampilkan \"Pesanan Berhasil. Nomor Antrean: X\"\n  ELSE\n      Tampilkan \"Stok Tidak Cukup\"\n  END IF\n  \n  SIMPAN data_transaksi ke Database\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 93 | User: M FASYA SYAHREZA (syafinatunajah90@gmail.com) | Team: M Fasya Syahreza | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"Modul Katalog Produk","func":"Menampilkan daftar makanan dan minuman, harga, serta stok yang tersedia."},{"mod":"Modul Keranjang Belanja","func":"Menyimpan menu yang dipilih, jumlah pesanan, dan menghitung total harga."},{"mod":"Modul Gateway Pembayaran","func":"Memproses pembayaran dan mencatat transaksi pembelian."},{"mod":"Modul Sistem Antrean","func":"Mengatur urutan pesanan yang masuk ke dapur berdasarkan waktu pemesanan."}]
+Pattern: [{"name":"Pola Proses Pemesanan","sol":"Setiap pemesanan memiliki pola yang sama, yaitu memilih menu, menentukan jumlah, mengecek stok, menghitung total, dan melakukan pembayaran."},{"name":"Pola Antrean Pesanan","sol":"Setiap pesanan yang masuk ke dapur mengikuti pola antrean, yaitu pesanan yang masuk lebih dulu akan diproses lebih dulu."}]
+Abstraction: {"kept":"ID Transaksi, ID Menu, Nama Menu, Harga, Jumlah Pesanan, Total Bayar, Status Pesanan, Waktu Transaksi.","ignored":"Warna baju pembeli, jenis sepatu, tinggi badan pembeli, dan suasana hati pembeli saat memesan."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Mengatur antrean pesanan dapur, sehingga pesanan yang masuk lebih dulu akan diproses lebih dulu.","stack":"Fitur Undo pada keranjang, sehingga perubahan pesanan terakhir dapat dibatalkan terlebih dahulu.","pseudocode":"ALGORITMA Proses_Pemesanan_Kantin\nSTART\n    INPUT id_menu, jumlah\n    CEK stok_menu\n\n    IF stok_menu >= jumlah THEN\n        Hitung total_bayar\n        Potong saldo_siswa\n        Simpan transaksi\n        Masukkan pesanan ke antrean_dapur (QUEUE)\n        Tampilkan \"Pesanan berhasil\"\n    ELSE\n        Tampilkan \"Stok Tidak Cukup\"\n    ENDIF\n\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 94 | User: NAGITA AGUSTIN (mel433048@gmail.com) | Team: NAGITA AGUSTIN  | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"pengguna ","func":"siswa,guru,penjual/kantin,admin"},{"mod":"manajemen produk ","func":"tambah menu,edit menu,hapus menu,lihat daftar menu,kelola stok"},{"mod":"pengelola pesanan ","func":"penjual penerimaan pesanan, konfirmasi pembayaran,riwayat pembayaran "},{"mod":"pembayaran ","func":"pilih mode pembayaran, konfirmasi pembayaran, riwayat pembayaran "}]
+Pattern: [{"name":"pola pesanan ","sol":"Siswa atau guru memiliki pola pemesanan yang hampir sama, yaitu:\n\nPilih makanan/minuman → Masukkan ke keranjang → Pesan → Bayar → Pesanan proses"},{"name":"pola menu dan stok","sol":"sistem dapat mengenali makanan atau minuman yang paling sering dibeli dan melihat perubahan stoknya. \nmenu sering dibeli -stok cepat berkurang-penjual perlu menambah stok"}]
+Abstraction: {"kept":"Pengguna\tID Pengguna, Nama, Username, Password, Role (Siswa/Guru)\nProduk/Menu\tID Produk, Nama Produk, Harga, Stok, Kategori\nPesanan\tID Pesanan, ID Pengguna, Tanggal Pesanan, Total Harga, Status Pesanan\nDetail Pesanan\tID Detail, ID Pesanan, ID Produk, Jumlah, Subtotal\nPembayaran\tID Pembayaran, ID Pesanan, Metode Pembayaran, Total Bayar, Status Pembayaran","ignored":"Data pribadi yang tidak diperlukan, seperti alamat rumah, hobi, dan umur.\nDetail kemasan produk, seperti warna, bentuk, dan ukuran kemasan.\nAktivitas pribadi penjual atau pengguna di luar E-Kantin.\nPercakapan atau informasi yang tidak berkaitan dengan transaksi."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Pesanan yang masuk terlebih dahulu akan diproses terlebih dahulu.\nPesanan yang masuk setelahnya akan menunggu sesuai urutan antrean.\nContoh: Pesanan A → Pesanan B → Pesanan C, maka penjual memproses A → B → C.","stack":"Aktivitas yang terakhir dilakukan akan ditampilkan atau diproses terlebih dahulu.\nContoh: pengguna melihat Menu A → Menu B → Menu C, maka aktivitas Menu C menjadi aktivitas yang paling baru.\nSaat pengguna menekan kembali/undo, sistem mengembalikan aktivitas dari C → B → A.","pseudocode":"ALGORITMA E-KANTIN\n\nMulai\n    Tampilkan halaman Login\n    Input username dan password\n\n    Jika data login benar maka\n        Tampilkan Dashboard\n        Tampilkan menu makanan/minuman\n\n        Pilih produk\n        Input jumlah produk\n        Masukkan ke keranjang\n\n        Jika pengguna melakukan checkout maka\n            Hitung total harga\n            Pilih metode pembayaran\n            Lakukan pembayaran\n\n            Jika pembayaran berhasil maka\n                Masukkan pesanan ke antrean (FIFO)\n                Tampilkan \"Pesanan sedang diproses\"\n                Penjual memproses pesanan\n                Tampilkan \"Pesanan selesai\"\n            Jika tidak\n                Tampilkan \"Pembayaran gagal\"\n            Akhir Jika\n        Akhir Jika\n\n    Jika data login salah maka\n        Tampilkan \"Username atau password salah\"\n    Akhir Jika\n\nSelesai"}
+Reflection: undefined
+
+======================================================
+ID: 95 | User: Desi kurnia (desikurniadesikurnia2@gmail.com) | Team: desi kurnia  | Case: klinik
+Team Members: []
+Decomposition: [{"mod":"modul pendaftaran pasien ","func":"mengelola pendaftaran pasien secara online dan menyimpan data identitas pasien "},{"mod":"modul antrean","func":"memungkinkan pasien mengambil nomer antrean berobat dan melihat status antrean"},{"mod":"modul pencarian dokter dan jadwal ","func":"memungkinkan pasien mencari dokter berdasarkan spesialisasi dan jam praktek"},{"mod":"modul rekam medis","func":"menyimpan dan menampilkan riwayat pemeriksaan serta rekam medis pasien secara terstruktur "}]
+Pattern: [{"name":"1. Pola antrean pasien\nPasien yang mendaftar untuk dokter dan jadwal yang sama akan mendapatkan nomor antrean secara berurutan.\nContoh: Pasien A → nomor 01, Pasien B → nomor 02, Pasien C → nomor 03.","sol":"Memeriksa username/NIS/NIP.\nMemeriksa password.\nMemastikan akun terdaftar.\nMenentukan apakah pengguna adalah siswa atau guru.\nJika data benar → pengguna dapat masuk.\nJika salah → sistem menampilkan pesan “Username atau password salah.”"},{"name":"1. Pencarian Data Menu\nFungsi: Memudahkan pengguna mencari menu atau fitur yang tersedia dalam sistem.\nContoh: Pengguna mengetik “antrean”, lalu sistem menampilkan menu Antrean Pasien.\n2. Pencarian Data Pasien\nFungsi: Memudahkan admin atau petugas mencari data pasien yang sudah terdaftar.\nContoh: Petugas memasukkan nama pasien atau nomor rekam medis, kemudian sistem...","sol":"Pasien mengetik kata kunci “dokter anak”.\nSistem membandingkan kata kunci dengan data dokter yang tersedia.\nSistem menampilkan dokter yang memiliki spesialisasi anak.\nJika tidak ditemukan, sistem menampilkan “Data tidak ditemukan.”"}]
+Abstraction: {"kept":"Data/atribut utama yang wajib disimpan dalam database:\nData pasien → NIK, nama, tanggal lahir, jenis kelamin, alamat.\nData dokter → ID dokter, nama dokter, spesialisasi.\nData pendaftaran → ID pendaftaran, ID pasien, tanggal pendaftaran, poli yang dipilih.\nData antrean → nomor antrean, ID pendaftaran, status antrean.\nData pemeriksaan → ID pemeriksaan, keluhan/diagnosis, tindakan, dan tanggal pemeriksaan.","ignored":"Detail informasi yang diabstraksikan (tidak perlu disimpan secara berlebihan):\nWarna pakaian pasien.\nBentuk fisik pasien.\nPercakapan pribadi yang tidak berkaitan dengan pelayanan.\nKondisi lingkungan saat pasien datang.\nDetail teknis yang tidak diperlukan untuk proses pendaftaran dan antrean."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Yaitu pasien yang mendaftar lebih dulu akan dilayani lebih dulu.\nPasien A → Pasien B → Pasien C\n↓\nDilayani terlebih dahulu\nOperasi:\nEnqueue → menambahkan pasien ke belakang antrean.\nDequeue → mengambil pasien paling depan untuk dilayani.","stack":"Stack = Last In First Out, yaitu data yang terakhir masuk akan dikeluarkan terlebih dahulu.\nPada sistem klinik, Stack dapat digunakan untuk riwayat aktivitas, misalnya:\nLogin → Pendaftaran → Pembatalan\n↑\naktivitas terakhir\nOperasi:\nPush → menambahkan aktivitas ke Stack.\nPop → mengambil aktivitas terakhir.\nPeek → melihat aktivitas terakhir tanpa menghapusnya.","pseudocode":"Tampilkan halaman Login.\nMasukkan username dan password.\nJika username dan password benar:\n→ Tampilkan menu utama.\nJika salah:\n→ Tampilkan pesan “Login gagal”\n→ Kembali ke Login.\nPilih menu Pendaftaran.\nMasukkan data pasien.\nCari data pasien menggunakan Linear Search.\nJika pasien sudah terdaftar:\n→ Gunakan data pasien.\nJika belum:\n→ Simpan data pasien baru.\nPilih dokter/poli.\nBuat nomor antrean.\nMasukkan pasien ke Queue menggunakan Enqueue.\nUrutkan data antrean menggunakan Bubble Sort.\nSaat dokter siap melayani:\n→ Ambil pasien paling depan menggunakan Dequeue.\n→ Tampilkan data pasien.\nSimpan aktivitas ke Stack menggunakan Push.\nJika diperlukan pembatalan/riwayat:\n→ Ambil aktivitas terakhir menggunakan Pop.\nTampilkan status antrean."}
+Reflection: undefined
+
+======================================================
+ID: 96 | User: Ai nurazifa (zifaazifa903@gmail.com) | Team: Ai nurazifa  | Case: klinik
+Team Members: []
+Decomposition: [{"mod":"pendaftaran pasien ","func":"untuk mengisi data pasien dan mendaftar berobat di klinik "},{"mod":"antrian digital","func":"memberikan nomor antrian dan mengatur urutan pasien yang akan di periksa "},{"mod":"modul poli dan pemeriksaan ","func":"untuk memilih poli atau dokter lalu pasien di periksa sesuai nomor antrian"},{"mod":"modul pembayaran","func":"Menghitung biaya pemeriksaan dan mencatat pembayaran pasien setelah selesai berobat."}]
+Pattern: [{"name":"Pola pendaftaran dan antrian pasien","sol":"Pasien mendaftar → memilih poli → mendapat nomor antrian → menunggu → dipanggil sesuai urutan."},{"name":"Pola pembayaran pasien","sol":"Setelah pemeriksaan selesai → biaya dihitung → pasien melakukan pembayaran → pembayaran dicatat oleh sistem."}]
+Abstraction: {"kept":"ID Pasien, Nama Pasien, Nomor Antrian, Poli/Dokter, Waktu Pendaftaran, Hasil Pemeriksaan, Total Biaya, Status Pembayaran.","ignored":"Warna baju pasien, makanan yang dibawa pasien, kendaraan pasien, dan kegiatan pasien sebelum datang ke klinik."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Mengatur nomor antrian pasien, pasien yang datang lebih dulu akan dipanggil lebih dulu.","stack":"Menyimpan riwayat pembatalan atau perubahan data pasien, sehingga perubahan terakhir bisa dibatalkan terlebih dahulu.","pseudocode":"ALGORITMA Antrian_SmartKlinik\nSTART\n    INPUT data_pasien\n    INPUT pilih_poli\n\n    DAFTAR pasien\n    AMBIL nomor_antrian\n\n    MASUKKAN pasien ke QUEUE\n\n    PANGGIL pasien sesuai urutan antrian\n\n    PERIKSA pasien\n\n    HITUNG total_biaya\n\n    INPUT pembayaran\n\n    IF pembayaran berhasil THEN\n        SIMPAN data pembayaran\n        TAMPILKAN \"Pembayaran Berhasil\"\n    ELSE\n        TAMPILKAN \"Pembayaran Gagal\"\n    ENDIF\n\n    TAMPILKAN \"Pelayanan Selesai\"\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 97 | User: Nadila Ramadani (nr311241@gmail.com) | Team: Nadila Ramadani | Case: kiosk
+Team Members: []
+Decomposition: [{"mod":"pengguna","func":"siswa,guru, penjual/kantin, admin"},{"mod":"manajemen produk","func":"tambah menu, edit menu, hapus menu, lihat daftar menu, kelola stok"},{"mod":"pengelola pesanan","func":"penjual penerimaan pesanan, proses pesanan, pesanan siap diambil, pesanan selesai"},{"mod":"pembayaran","func":"pilih metode pembayaran, konfirmasi pembayaran, riwayat pembayaran"}]
+Pattern: [{"name":"pola pemesanan","sol":"Siswa atau guru memiliki pola pemesanan yang hampir sama, yaitu:\n\nPilih makanan/minuman → Masukkan ke keranjang → Pesan → Bayar → Pesanan proses"},{"name":"pola menu dan stok","sol":"sistem dapat mengenali makanan atau minuman yang paling sering dibeli dan melihat perubahan stoknya. \nmenu sering dibeli -stok cepat berkurang-penjual perlu menambah stok"}]
+Abstraction: {"kept":"Pengguna\tID Pengguna, Nama, Username, Password, Role (Siswa/Guru)\nProduk/Menu\tID Produk, Nama Produk, Harga, Stok, Kategori\nPesanan\tID Pesanan, ID Pengguna, Tanggal Pesanan, Total Harga, Status Pesanan\nDetail Pesanan\tID Detail, ID Pesanan, ID Produk, Jumlah, Subtotal\nPembayaran\tID Pembayaran, ID Pesanan, Metode Pembayaran, Total Bayar, Status Pembayaran","ignored":"Data pribadi yang tidak diperlukan, seperti alamat rumah, hobi, dan umur.\nDetail kemasan produk, seperti warna, bentuk, dan ukuran kemasan.\nAktivitas pribadi penjual atau pengguna di luar E-Kantin.\nPercakapan atau informasi yang tidak berkaitan dengan transaksi."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Pesanan yang masuk terlebih dahulu akan diproses terlebih dahulu.\nPesanan yang masuk setelahnya akan menunggu sesuai urutan antrean.\nContoh: Pesanan A → Pesanan B → Pesanan C, maka penjual memproses A → B → C.","stack":"Aktivitas yang terakhir dilakukan akan ditampilkan atau diproses terlebih dahulu.\nContoh: pengguna melihat Menu A → Menu B → Menu C, maka aktivitas Menu C menjadi aktivitas yang paling baru.\nSaat pengguna menekan kembali/undo, sistem mengembalikan aktivitas dari C → B → A.","pseudocode":"ALGORITMA E-KANTIN\n\nMulai\n    Tampilkan halaman Login\n    Input username dan password\n\n    Jika data login benar maka\n        Tampilkan Dashboard\n        Tampilkan menu makanan/minuman\n\n        Pilih produk\n        Input jumlah produk\n        Masukkan ke keranjang\n\n        Jika pengguna melakukan checkout maka\n            Hitung total harga\n            Pilih metode pembayaran\n            Lakukan pembayaran\n\n            Jika pembayaran berhasil maka\n                Masukkan pesanan ke antrean (FIFO)\n                Tampilkan \"Pesanan sedang diproses\"\n                Penjual memproses pesanan\n                Tampilkan \"Pesanan selesai\"\n            Jika tidak\n                Tampilkan \"Pembayaran gagal\"\n            Akhir Jika\n        Akhir Jika\n\n    Jika data login salah maka\n        Tampilkan \"Username atau password salah\"\n    Akhir Jika\n\nSelesai"}
+Reflection: undefined
+
+======================================================
+ID: 98 | User: ismi nurjanah (isminurjanah024@gmail.com) | Team: ismi nurjanah  | Case: klinik
+Team Members: []
+Decomposition: [{"mod":"modul: pendaftaran ","func":"memungkinkan pasien datang melalui website/aplikasi"},{"mod":"modul antrean","func":"menggunakan nomer antrean otomatis yang terhubung ke layar monitor ruang tunggu dan suara pemangil dizital (audio) lengkap dengan estimasi waktu tunggu agar pasien tidak numpuk"},{"mod":"modul rekam medis elektronik ","func":"membantu perawat dan dokter mencatat keluhan tanda pital diagonosis standar (lcd-10)serta riwayat medis pasien secara digital dan ter pusat"},{"mod":"modul kasir dan pembayaran","func":"biyaya layanan tindakan dan obat ke dalam satu tagihan,yang di dukung pembayaran nontunai kris/transfer "}]
+Pattern: [{"name":"nama pasien -nik -nomer hp -tanggal lahir ","sol":"membuat formulir pendaftaran yang dapat di gunakan berulang kali oleh setiap pasien "},{"name":"pasien mendaftar -mendaptarkan antrian -menungu -di panggil ","sol":"menggunakan sistem antrian otomatis sehingga pasien tidak perlu mengambil moninal "}]
+Abstraction: {"kept":"data pasien: menyimpan identitas pasien untuk men menenali dan mengelola data pasien \ndata dokter:nama dokter dan spesifikasinya \njadwal dokter: hari dan jam praktik \npencarian dokter:pasien dapat mencari dokter dan spesialisasi \npendaftaran online:pasien dapat mendaftar melalu aplikasi \nnomer anteraan:pasien dapat mengambil antrian secara online\ninformasi anterin: mengetahui nomer antrian pasien","ignored":"Warna pakaian pasien, makanan kesukaan pasien, hobi pasien, jenis kendaraan pasien, dan warna favorit pasien."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Digunakan untuk mengatur antrean pasien. Pasien yang mengambil nomor antrean terlebih dahulu akan dilayani terlebih dahulu. Contohnya, pasien A mendapat nomor 1, pasien B nomor 2, dan pasien C nomor 3, maka urutan pelayanan adalah A → B → C.","stack":"Digunakan untuk fitur Undo pada pendaftaran atau perubahan data pasien. Data yang terakhir dimasukkan akan dibatalkan terlebih dahulu.","pseudocode":"ALGORITMA Pendaftaran_Pasien\n\nSTART\nINPUT data_pasien\nINPUT spesialisasi_dokter\nCARI dokter\nTAMPILKAN jadwal_dokter\nPILIH dokter dan jadwal\nAMBIL nomor_antrean\nSIMPAN pendaftaran\nTAMPILKAN nomor_antrean\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 99 | User: Tika sri rahayu (tkaajahh@gmail.com) | Team: Tika sri r | Case: kiosk
+Team Members: []
+Decomposition: [{"mod":"Katalog menu","func":"Menampilkan daftar makanan, harga, menu"},{"mod":"Antrean ","func":"Mengatur nomor urut pesanan sesuai kedatangan"},{"mod":"Pembayaran digital","func":"Integrasi saldo/qris dan mencetak struk transaksi"},{"mod":"Checkout","func":"Merekam daftar belanja dan menghitung total harga"}]
+Pattern: [{"name":"Alur Autentikasi / Login Buyer & Admin`\n","sol":"Membuat 1 fungsi terpusat validasi email, password & token session untuk semua role`\n"},{"name":"Fitur Pencarian Data Produk & Riwayat Pesanan`","sol":"Memakai algoritma searching terstandar untuk pencarian kata kunci nama produk, kategori, atau nomor pesanan`\n"}]
+Abstraction: {"kept":"Id transaksi, nama pelanggan, daftar menu belanja, total bayar waktu transaksi","ignored":"Warna baju, jenis sepatu, suasana hati pembeli"}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Manajemen antrian pesanan dapur","stack":"Peminjaman buku","pseudocode":"ALGORITMA\nProses_Masuk_Parkir\nSTART\n  INPUT plat_nomor, jenis_kendaraan\n  SCAN kartu_parkir\n  CATAT waktu_masuk\n  HITUNG biaya_parkir\n  BUKA palang (QUEUE)\n  SIMPAN data_ke_database\nEND"}
+Reflection: undefined
+
+======================================================
+ID: 100 | User: nazma azahra nurhafifah (nazmaazahranurhafifah@gmail.com) | Team: nazma azahra nurhafifah  | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"pengguna","func":"siswa, guru,penjual/kantin,admin"},{"mod":"manajemen produk","func":"tambah menu, edit menu, hapus menu, lihat daftar menu, kelola stok"},{"mod":"pengelola pesanan","func":"penjual penerimaan pesanan, proses pesanan, pesanan siap di ambil, pesanan selesai"},{"mod":"pembayaran ","func":"konfirmasi pembayaran, riwayat pembayaran"}]
+Pattern: [{"name":"pola pemesanan ","sol":"siswa atau guru memiliki pola pemesanan yang hampir sama,yaitu :\npilih makanan/minuman→ masukan ke keranjang → pesan→ bayar→ pesanan proses"},{"name":"pola menu dan stok","sol":"sistem dapat mengenali makanan atau minuman yang paling sering dibeli dan melihat perubahan stok nya.\nmanu sering dibeli- stok cepat berkurang - penjual perlu menambah stok"}]
+Abstraction: {"kept":"Pengguna\tID Pengguna, Nama, Username, Password, Role (Siswa/Guru)\nProduk/Menu\tID Produk, Nama Produk, Harga, Stok, Kategori\nPesanan\tID Pesanan, ID Pengguna, Tanggal Pesanan, Total Harga, Status Pesanan\nDetail Pesanan\tID Detail, ID Pesanan, ID Produk, Jumlah, Subtotal\nPembayaran\tID Pembayaran, ID Pesanan, Metode Pembayaran, Total Bayar, Status Pembayaran","ignored":"Data pribadi yang tidak diperlukan, seperti alamat rumah, hobi, dan umur.\nDetail kemasan produk, seperti warna, bentuk, dan ukuran kemasan.\nAktivitas pribadi penjual atau pengguna di luar E-Kantin.\nPercakapan atau informasi yang tidak berkaitan dengan transaksi."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Pesanan yang masuk terlebih dahulu akan diproses terlebih dahulu.\nPesanan yang masuk setelahnya akan menunggu sesuai urutan antrean.\nContoh: Pesanan A → Pesanan B → Pesanan C, maka penjual memproses A → B → C.","stack":"Aktivitas yang terakhir dilakukan akan ditampilkan atau diproses terlebih dahulu.\nContoh: pengguna melihat Menu A → Menu B → Menu C, maka aktivitas Menu C menjadi aktivitas yang paling baru.\nSaat pengguna menekan kembali/undo, sistem mengembalikan aktivitas dari C → B → A.","pseudocode":"ALGORITMA E-KANTIN\n\nMulai\n    Tampilkan halaman Login\n    Input username dan password\n\n    Jika data login benar maka\n        Tampilkan Dashboard\n        Tampilkan menu makanan/minuman\n\n        Pilih produk\n        Input jumlah produk\n        Masukkan ke keranjang\n\n        Jika pengguna melakukan checkout maka\n            Hitung total harga\n            Pilih metode pembayaran\n            Lakukan pembayaran\n\n            Jika pembayaran berhasil maka\n                Masukkan pesanan ke antrean (FIFO)\n                Tampilkan \"Pesanan sedang diproses\"\n                Penjual memproses pesanan\n                Tampilkan \"Pesanan selesai\"\n            Jika tidak\n                Tampilkan \"Pembayaran gagal\"\n            Akhir Jika\n        Akhir Jika\n\n    Jika data login salah maka\n        Tampilkan \"Username atau password salah\"\n    Akhir Jika\n\nSelesai"}
+Reflection: undefined
+
+======================================================
+ID: 101 | User: Nadila Ramadani (nr311241@gmail.com) | Team: Nadila Ramadani | Case: ekantin
+Team Members: []
+Decomposition: [{"mod":"pengguna","func":"siswa,guru, penjual/kantin, admin"},{"mod":"manajemen produk","func":"tambah menu, edit menu, hapus menu, lihat daftar menu, kelola stok"},{"mod":"pengelola pesanan","func":"penjual penerimaan pesanan, proses pesanan, pesanan siap diambil, pesanan selesai"},{"mod":"pembayaran","func":"pilih metode pembayaran, konfirmasi pembayaran, riwayat pembayaran"}]
+Pattern: [{"name":"pola pemesanan","sol":"Siswa atau guru memiliki pola pemesanan yang hampir sama, yaitu:\n\nPilih makanan/minuman → Masukkan ke keranjang → Pesan → Bayar → Pesanan proses"},{"name":"pola menu dan stok","sol":"sistem dapat mengenali makanan atau minuman yang paling sering dibeli dan melihat perubahan stoknya. \nmenu sering dibeli -stok cepat berkurang-penjual perlu menambah stok"}]
+Abstraction: {"kept":"Pengguna\tID Pengguna, Nama, Username, Password, Role (Siswa/Guru)\nProduk/Menu\tID Produk, Nama Produk, Harga, Stok, Kategori\nPesanan\tID Pesanan, ID Pengguna, Tanggal Pesanan, Total Harga, Status Pesanan\nDetail Pesanan\tID Detail, ID Pesanan, ID Produk, Jumlah, Subtotal\nPembayaran\tID Pembayaran, ID Pesanan, Metode Pembayaran, Total Bayar, Status Pembayaran","ignored":"Data pribadi yang tidak diperlukan, seperti alamat rumah, hobi, dan umur.\nDetail kemasan produk, seperti warna, bentuk, dan ukuran kemasan.\nAktivitas pribadi penjual atau pengguna di luar E-Kantin.\nPercakapan atau informasi yang tidak berkaitan dengan transaksi."}
+Algorithm: {"search":"Linear Search","sort":"Bubble Sort","queue":"Pesanan yang masuk terlebih dahulu akan diproses terlebih dahulu.\nPesanan yang masuk setelahnya akan menunggu sesuai urutan antrean.\nContoh: Pesanan A → Pesanan B → Pesanan C, maka penjual memproses A → B → C.","stack":"Aktivitas yang terakhir dilakukan akan ditampilkan atau diproses terlebih dahulu.\nContoh: pengguna melihat Menu A → Menu B → Menu C, maka aktivitas Menu C menjadi aktivitas yang paling baru.\nSaat pengguna menekan kembali/undo, sistem mengembalikan aktivitas dari C → B → A.","pseudocode":"ALGORITMA E-KANTIN\n\nMulai\n    Tampilkan halaman Login\n    Input username dan password\n\n    Jika data login benar maka\n        Tampilkan Dashboard\n        Tampilkan menu makanan/minuman\n\n        Pilih produk\n        Input jumlah produk\n        Masukkan ke keranjang\n\n        Jika pengguna melakukan checkout maka\n            Hitung total harga\n            Pilih metode pembayaran\n            Lakukan pembayaran\n\n            Jika pembayaran berhasil maka\n                Masukkan pesanan ke antrean (FIFO)\n                Tampilkan \"Pesanan sedang diproses\"\n                Penjual memproses pesanan\n                Tampilkan \"Pesanan selesai\"\n            Jika tidak\n                Tampilkan \"Pembayaran gagal\"\n            Akhir Jika\n        Akhir Jika\n\n    Jika data login salah maka\n        Tampilkan \"Username atau password salah\"\n    Akhir Jika\n\nSelesai"}
+Reflection: undefined
+
+
+=== UNGRADED LKPD 2 (lkpd_flowchart_submissions) ===
+Found 63 ungraded in LKPD 2
+
+======================================================
+ID: 14 | User: Salsa Nabila Putri (sutandiudin@gmail.com) | Team: salsa nabila putri | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input data pesanan"},{"shape":"process","text":"cek saldo jika < maka isi saldo"},{"shape":"process","text":"jika > lanjutan pesan"},{"shape":"decision","text":"antri di dapur"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: mulai
+input data pesanan
+IF saldo > THEN 
+lanjutkan pesanan lalu antri kedapur
+ELSE
+isi saldo
+DISPLAY ambil pesanan
+END
+
+======================================================
+ID: 34 | User: Rido Purnama (izuna9455@gmail.com) | Team: Rido Purnama  | Case: kiosk
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"process","text":"Proses"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+
+INPUT kode_pesanan
+
+IF stok_tersedia == TRUE THEN
+
+DISPLAY 'Stok ada, lanjutkan
+
+pembayaran'
+
+HITUNG total_tagihan
+
+ELSE
+
+DISPLAY 'Maaf, stok menu
+
+habis'
+
+ENDIF
+
+END
+
+======================================================
+ID: 35 | User: Kirani Setiawati (kiranisetiawati123@gmail.com) | Team: Kirani Setiawati | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Siswa login dan melihat daftar menu di E-kantin"},{"shape":"process","text":"Siswa memilih menu dan memasukkan ke keranjang"},{"shape":"process","text":"Sistem menampilkan total harga dan saldo e-wallet"},{"shape":"decision","text":"Apakah saldo e-wallet >= total harga?\r\nYa → lanjut ke no 6\r\nTidak → lanjut ke no 8"},{"shape":"process","text":"Sistem memotong saldo dan mengirim pesanan ke kantin"},{"shape":"process","text":"Kantin menyiapkan makanan sesuai pesanan"},{"shape":"io","text":"Sistem mengirim notifikasi \"Pesanan Siap Diambil\" ke siswa\r\n    Catatan: kalau dari Decision jawabannya \"Tidak\", isi labelnya: Tampilkan pesan \"Saldo tidak cukup. Silakan top up\""},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    DISPLAY 'Selamat datang di E-kantin Sekolah'
+    INPUT username
+    INPUT menu_yang_dipilih
+    INPUT jumlah_pesanan
+    INPUT saldo_ewallet
+    
+    HITUNG harga_menu
+    HITUNG total_tagihan = harga_menu * jumlah_pesanan
+    DISPLAY 'Total tagihan:', total_tagihan
+    DISPLAY 'Saldo anda:', saldo_ewallet
+    
+    IF saldo_ewallet >= total_tagihan THEN
+        HITUNG saldo_akhir = saldo_ewallet - total_tagihan
+        DISPLAY 'Pembayaran berhasil'
+        DISPLAY 'Sisa saldo:', saldo_akhir
+        PROSES kirim_pesanan_ke_kantin
+        PROSES kantin_menyiapkan_makanan
+        DISPLAY 'Pesanan sedang diproses. Tunggu notifikasi'
+        DISPLAY 'Notifikasi: Pesanan siap diambil'
+    ELSE
+        DISPLAY 'Saldo tidak cukup. Silakan lakukan top up terlebih dahulu'
+    ENDIF
+    
+END
+
+======================================================
+ID: 36 | User: Muhamad lutpi (ltpiiiiii77@gmail.com) | Team: m.lutpi | Case: kiosk
+Flowchart JSON: [{"shape":"terminal","text":"mulai"},{"shape":"io","text":"tampilkan daftar menu"},{"shape":"process","text":"cek ketersediaan stok"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"io","text":"masukan kode dan jumlah pesanan"}]
+Pseudocode Text: START
+    INPUT kode_pesanan
+    IF stok_tersedia == TRUE THEN
+        DISPLAY "Stok ada, lanjutkan pesanan"
+        HITUNG total_tagihan
+        DISPLAY "Total pembayaran: Rp ", total_tagihan
+    ELSE
+        DISPLAY "Maaf, menu yang dipilih sedang habis"
+    ENDIF
+END
+saat
+
+======================================================
+ID: 37 | User: anggun aulia (iyaaa6075@gmail.com) | Team: tim cypher rpl3 | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"makanan dan jumlah pesanan"},{"shape":"decision","text":"apakah stok>=jumlah pesan?"},{"shape":"process","text":"hitung total harga jumlah pesanan"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START 
+DISPLAY E-KANTIN SEKOLAH 
+DISPLAY silahkan pilih menu makanan 
+INPUT kode_makanan
+INPUT jumlah_makanan
+1. CEK STOK
+IF stok_tersedia>=jumlah _pesan THEN
+DISPLAY stok ada, lanjutkan ke pembayaran '
+
+// 2. HITUNG TOTAL 
+SET total_tagihan=harga_menu*jumlah_pesan
+DISPLAY total tagihan:Rp, total_tagihan
+// 3.PROSES PEMBAYARAN 
+INPUT uang_bayar
+
+IF uang_bayar>=total tagihan THEN
+SET kembalian =uang_tagihan,total_tagihan
+SET stok_tersedia = stok_tersedia-jumlah_pesan
+
+// 4.CETAK STRUK
+DISPLAY STRUK PEMBAYARAN 
+DISPLAY KODE MENU:kode makanan
+DISPLAY JUMLAH:jumlah_pesanan
+DISPLAY TOTAL BAYAR:Rp.total_tagihab
+DISPLAY UANG BAYAR:Rp uang_bayar
+DISPLAY KEMBALIAN:Rp kembalian 
+DISPLAY pesanan berhasil silahkan ambil di kantin
+ELSE 
+  DISPLAY 'uang mencukupi transaksi dibatalkan 
+ENDIF
+ELSE
+  DISPLAY 'maaf,stok menu habis atau tidak mencukupi 
+ENDIF
+END
+
+
+
+======================================================
+ID: 38 | User: salsa bilaa (salsabilanurkamila05@gmail.com) | Team: salsa bilaa | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input"},{"shape":"decision","text":"total belanja"},{"shape":"process","text":"total akhir"},{"shape":"io","text":"display"},{"shape":"io","text":"display total akhir"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START:
+TOTAL BELANJA:total akhir.          REAL
+INPUT total belanja
+"validasi batasan INPUT
+IF (total belanja→ 50.000.)         THEN
+    diskon=total belanja * 0,10
+ELSE 
+   diskon=0
+Total akhir= Total belanja - diskon
+ENDIF
+DISPLAY"diskon
+DISPLAY total akhir
+FINISHED....
+
+======================================================
+ID: 39 | User: Ai ghina anggraeni (aighinaai26@gmail.com) | Team: ai ghina anggraeni | Case: custom
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"Proses"},{"shape":"io","text":"Input/Output"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    INPUT nama_proyek, kebutuhan_fitur, tenggat_waktu
+    HITUNG estimasi_waktu_pengerjaan
+
+    IF estimasi_waktu_pengerjaan <= tenggat_waktu THEN
+        DISPLAY 'Proyek Disetujui. Memulai Tahap Desain & Coding'
+        
+        FOR setiap fitur IN kebutuhan_fitur DO
+            PROSES pembuatan_kode_fitur
+            PROSES pengujian_fitur (Testing)
+        ENDFOR
+
+        CEK status_bug
+
+        IF status_bug == 0 THEN
+            DISPLAY 'Proyek Perangkat Lunak Mandiri Selesai & Siap Rilis!'
+        ELSE
+            DISPLAY 'Perlu Perbaikan: Lakukan Debugging Kode'
+        ENDIF
+
+    ELSE
+        DISPLAY 'Proyek Ditolak: Estimasi Waktu Melebihi Tenggat'
+    ENDIF
+END
+
+======================================================
+ID: 40 | User: Deviana Aprilia (devyyaprilia@gmail.com) | Team: Deviana Aprilia  | Case: custom
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"Proses"},{"shape":"io","text":"Input/Output"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    INPUT nama_proyek, kebutuhan_fitur, tenggat_waktu
+    HITUNG estimasi_waktu_pengerjaan
+
+    IF estimasi_waktu_pengerjaan <= tenggat_waktu THEN
+        DISPLAY 'Proyek Disetujui. Memulai Tahap Desain & Coding'
+        
+        FOR setiap fitur IN kebutuhan_fitur DO
+            PROSES pembuatan_kode_fitur
+            PROSES pengujian_fitur (Testing)
+        ENDFOR
+
+        CEK status_bug
+
+        IF status_bug == 0 THEN
+            DISPLAY 'Proyek Perangkat Lunak Mandiri Selesai & Siap Rilis!'
+        ELSE
+            DISPLAY 'Perlu Perbaikan: Lakukan Debugging Kode'
+        ENDIF
+
+    ELSE
+        DISPLAY 'Proyek Ditolak: Estimasi Waktu Melebihi Tenggat'
+    ENDIF
+END
+
+======================================================
+ID: 41 | User: Nadila Damayanti (nd2214327@gmail.com) | Team: Nadila Damayanti  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"process","text":"Proses"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"decision","text":"Kondisi Valid?"}]
+Pseudocode Text: *NOTASI PSEUDOCODE - SISTEM ANTREAN KLINIK*
+START
+  INPUT id_pasien, nama_pasien, poli_tujuan
+  GENERATE nomor_antrean
+  
+  DISPLAY "Nomor Antrean Anda: ", nomor_antrean
+  ENQUEUE(antrean_poli, nomor_antrean)
+
+  WHILE antrean_poli TIDAK KOSONG DO
+    IF dokter_tersedia == TRUE THEN
+      pasien_dipanggil = DEQUEUE(antrean_poli)
+      DISPLAY "Nomor ", pasien_dipanggil, " silakan masuk ke poli"
+      PUSH(riwayat_panggil, pasien_dipanggil)
+    ELSE
+      DISPLAY "Mohon tunggu, dokter masih melayani pasien lain"
+    END IF
+    WAIT 10 detik
+  END WHILE
+
+  DISPLAY "Semua pasien telah dilayani"
+END
+Udah sesuai format: `START, INPUT, IF...THEN...ELSE, WHILE, DISPLAY, END`
+
+======================================================
+ID: 42 | User: Silvi nurpaujiah (silvinurpaujiah870@gmail.com) | Team: Silvil nurpaujiah  | Case: custom
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"Proses"},{"shape":"io","text":"Input/Output"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    INPUT nama_proyek, kebutuhan_fitur, tenggat_waktu
+    HITUNG estimasi_waktu_pengerjaan
+
+    IF estimasi_waktu_pengerjaan <= tenggat_waktu THEN
+        DISPLAY 'Proyek Disetujui. Memulai Tahap Desain & Coding'
+        
+        FOR setiap fitur IN kebutuhan_fitur DO
+            PROSES pembuatan_kode_fitur
+            PROSES pengujian_fitur (Testing)
+        ENDFOR
+
+        CEK status_bug
+
+        IF status_bug == 0 THEN
+            DISPLAY 'Proyek Perangkat Lunak Mandiri Selesai & Siap Rilis!'
+        ELSE
+            DISPLAY 'Perlu Perbaikan: Lakukan Debugging Kode'
+        ENDIF
+
+    ELSE
+        DISPLAY 'Proyek Ditolak: Estimasi Waktu Melebihi Tenggat'
+    ENDIF
+END
+
+======================================================
+ID: 43 | User: Alika (aalika77@gmail.com) | Team: alika | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"total belanja , saldo siswa"},{"shape":"decision","text":"apakah saldo siswa >= total belanja?"},{"shape":"decision","text":"apakah total belanja >= 50.000?"},{"shape":"process","text":"diskon = total belanja 0.1 total bayar = total belanja - diskon"},{"shape":"process","text":"diskon = 0 total bayar = total belanja"},{"shape":"process","text":"sisa saldo = saldo siswa - total bayar"},{"shape":"io","text":"tampilkan total bayar, diskon, sisa saldo"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+INPUT saldo_siswa
+HITUNG total_belanja = harga_menu × jumlah_pesanan
+IF saldo_siswa >= total_belanja THEN
+ IF total_belanja >= 50000 THEN
+  HITUNG diskon = total_belanja × 0.1
+  HITUNG total_bayar = total_belanja − diskon
+ ELSE
+  HITUNG total_bayar = total_belanja
+ ENDIF
+ HITUNG saldo_akhir = saldo_siswa − total_bayar
+ DISPLAY 'Pesanan berhasil'
+ DISPLAY total_bayar
+ DISPLAY saldo_akhir
+ELSE
+ DISPLAY 'Saldo tidak mencukupi'
+ENDIF
+END
+
+======================================================
+ID: 44 | User: Muhamad Jibril abdillah (jibrilwe123@gmail.com) | Team: Muhamad Jibril abdillah | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"io","text":"buka aplikasi smart klinik"},{"shape":"io","text":"Input:nama pasien,poli dan keluhan"},{"shape":"process","text":"Proses"},{"shape":"process","text":"sistem ngecek jadwal dokter dan sisa kuota"},{"shape":"decision","text":"Kondisi"},{"shape":"decision","text":"apakah kuota poli masih ada"},{"shape":"io","text":"tampilkan nomor antrean dan astimasi tunggu"},{"shape":"io","text":"tampilkan\"maaf kuota penuh dan kembali lagi besok"},{"shape":"io","text":"selesai"}]
+Pseudocode Text: START
+DISPLAY 'Buka aplikasi smart klinik'
+INPUT nama_pasien, poli, keluhan
+PROSES sistem_cek_jadwal_dokter_dan_sisa_kuota
+
+IF kuota_poli > 0 THEN
+    DISPLAY 'Nomor antrean: ', nomor_antrean
+    DISPLAY 'Estimasi tunggu: ', estimasi_waktu
+ELSE
+    DISPLAY 'Maaf kuota penuh dan kembali lagi besok'
+ENDIF
+
+END
+
+
+
+======================================================
+ID: 45 | User: Abdul Aziz (abdul.aziz.24108@smp.belajar.id) | Team: Abdul Aziz  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/output"},{"shape":"io","text":"buka aplikasi smart klinik"},{"shape":"process","text":"proses"},{"shape":"process","text":"sistem mengecek jadwal dokter dan sisa kouta"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"decision","text":"apakah kouta poli masih ada"},{"shape":"io","text":"tampilkan nomor antrean dan astimasi tunggu"},{"shape":"io","text":"tampilkan nomor antrean dan astimasi tunggu"},{"shape":"io","text":"tampilkan \"maaf kouta penuh silahkan daftar besok"},{"shape":"io","text":"selesai"}]
+Pseudocode Text: START
+DISPLAY 'Buka aplikasi smart klinik'
+INPUT nama_pasien, poli, keluhan
+PROSES sistem_cek_jadwal_dokter_dan_sisa_kuota
+
+IF kuota_poli > 0 THEN
+    DISPLAY 'Nomor antrean: ', nomor_antrean
+    DISPLAY 'Estimasi tunggu: ', estimasi_waktu
+ELSE
+    DISPLAY 'Maaf kuota penuh dan kembali lagi besok'
+ENDIF
+
+END
+
+======================================================
+ID: 46 | User: Fitri puspita (fit240311@gmail.com) | Team: Fitri Puspita  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input Daftar Pesanan"},{"shape":"process","text":"Hitung total harga"},{"shape":"decision","text":"Saldo cukup?"},{"shape":"process","text":"Ya: Potong saldo & Enqueue ke Antrean dapur"},{"shape":"process","text":"Tidak: Tampilkan \"Saldo tidak cukup\""},{"shape":"io","text":"Tampilkan Nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA
+SELESAI
+
+======================================================
+ID: 47 | User: SILVIRA PUTRI ANINDITHA (silvira.putri85@smp.belajar.id) | Team: SILVIRA PUTRI ANINDITHA | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input daftar pesanan"},{"shape":"process","text":"hitung total"},{"shape":"decision","text":"saldo cukup"},{"shape":"process","text":"ya,potong saldo &enqueue ke antrean dapur"},{"shape":"process","text":"tidak:tampilkan\"saldo tidak cukup\""},{"shape":"io","text":"tampilkan nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA
+SELESAI
+
+======================================================
+ID: 48 | User: Siti Mariyah (sitimariyah1709@gmail.com) | Team: Siti Mariyah | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input daftar pesanan"},{"shape":"process","text":"hitung total harga pesanan"},{"shape":"decision","text":"Saldo cukup?"},{"shape":"process","text":"YA: potong saldo & masukkan ke antrean dapur"},{"shape":"process","text":"TIDAK: \"tampilkan saldo tidak cukup\""},{"shape":"io","text":"tampilkan nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+  INPUT kode_pesanan
+  IF stok_tersedia == TRUE
+THEN
+  DISPLAY 'Stok ada, lanjutkan pembayaran' 
+  HITUNG total_tagihan 
+ ELSE
+  DISPLAY 'Maaf, stok menu 
+habis'
+  ENDIF
+END
+
+======================================================
+ID: 49 | User: Altarisha Rizkia (altarisharizkia@gmail.com) | Team: Altarisha Rizkia  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input daftar pesanan"},{"shape":"process","text":"Hitung total harga"},{"shape":"decision","text":"Saldo cukup?"},{"shape":"process","text":"Ya: potong saldo & Enqueue ke antrean dapur"},{"shape":"process","text":"Tidak tampilkan \"saldo tidak cukup\""},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+  INPUT kode_pesanan
+  IF stok_tersedia == TRUE
+THEN
+    DISPLAY 'Stok ada, 
+lanjutkan pembayaran'
+    HITUNG total_tagihan 
+  ELSE
+    DISPLAY 'Maaf, stok menu
+habis'
+   ENDIF
+END
+
+
+======================================================
+ID: 50 | User: saidah saskia aprilia (kyyimuppp46@gmail.com) | Team: saidah saskia aprilia | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input daftar pesanan"},{"shape":"process","text":"hitung total harga"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya: potong saldo & enqueue ke antrean dapur"},{"shape":"process","text":"tidak: tampilkan \" saldo tidak cukup\""},{"shape":"io","text":"tampilkan nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: STAR
+  INFUT kode_pesanan
+  IF stok_tersedia == TRUE
+THEN
+      DISPLAY 'stok ada,
+lanjutkan pembayaran'
+   HITUNG total _tagihan
+ELSE
+    DISPLAY "Maaf, stok menu 
+habis'
+  ENDIF
+END
+
+======================================================
+ID: 51 | User: M Wildan Maulana Nugraha (itswill170@gmail.com) | Team: Wildan | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"kode antrian"},{"shape":"process","text":"menunggu pesanan yang sedang dimasak"},{"shape":"decision","text":"Apakah menu yang dipesan masih ada?"},{"shape":"process","text":"bayar dan mengambil pesanan"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+INPUT=kode_pesanan
+IF=makanan_tersedia==TRUE
+ELSE
+DISPLAY='Available, lanjut memesan makanan'
+THEN
+IF=makanan_habis_terjual
+ELSE
+DISPLAY='Unavailable,ganti pesanan'
+OUTPUT=bayar_dan_mengambil_pesanan
+END).
+
+======================================================
+ID: 52 | User: Raflibaihaqi (muhamadraflibaihaqi2@gmail.com) | Team: Muhamad Rafli Baihaqi | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input Daftar pesanan"},{"shape":"process","text":"Hitung Total Harga"},{"shape":"decision","text":"Apakah Saldo cukup"},{"shape":"process","text":"Ya:Potong saldo & Masukan ke Antrian dapur"},{"shape":"process","text":"Tidak: Tampilan \"Saldo tidak cukup\""},{"shape":"io","text":"Tampilkan nomor antrian kalau sudah di bayar"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Proses_Checkout_E-Kantin_marketplace
+DEKLARASI:
+daftar_pesanan:ARRAY OF Item
+total_harga,saldo_siswa:INTEGER
+antrean_dapur:QUEUE OF pesanan
+
+ALUR PROSES:
+INPUT daftar_pesanan
+total_harga = 0
+
+  //Iteration:hitung total harga dari semua item pesanan
+  UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+          total_harga = total_harga + item.harga * item.jumlah
+      AKHIR UNTUK pembayaran 
+
+     //Selection:validasi saldo sebelum lanjut transaksi 
+JIKA saldo_siswa> = saldo_siswa - total_harga ENQUEUE(antrean_dapur,daftar_pesanan)
+TAMPILANKAN"pembayaran Berhasil.Nomor Antrean:",
+PANJANG(antrean_dapur)
+LAINNYA
+TAMPILKAN"Saldo tidak cukup,harap isi ulang"
+SELESAI 
+
+
+======================================================
+ID: 53 | User: Muhammad Rendra (muhammadrendra2512@gmail.com) | Team: Devils | Case: ekantin
+Flowchart JSON: [{"shape":"io","text":"Input/Output"},{"shape":"process","text":"Proses"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"Proses"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+  INPUT id_menu
+  INPUT jumlah_pesanan
+  
+  IF stok_tersedia >= jumlah_pesanan THEN
+    DISPLAY 'Stok mencukupi, memproses pesanan...'
+    HITUNG total_tagihan = harga_menu * jumlah_pesanan
+    DISPLAY 'Total yang harus dibayar: ', total_tagihan
+    
+    // Mengurangi stok kantin setelah dipesan
+    HITUNG sisa_stok = stok_tersedia - jumlah_pesanan
+  ELSE
+    DISPLAY 'Maaf, stok menu tidak mencukupi atau sudah habis'
+  ENDIF
+END
+
+
+======================================================
+ID: 54 | User: RAISYA ANJANI (raisyaanjani8110@gmail.com) | Team: Raisya Anjani | Case: kiosk
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input : menu pesanan, jumlah pesanan / output : tampilkan tulisan \"maaf, stok habis\" jika stok kosong, tampilkan struk pembayaran, tampilkan harga pesanan"},{"shape":"process","text":"menghitung total belanjaan"},{"shape":"decision","text":"apakah stok masih tersedia?"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+IF stok_tersedia == TRUE THEN
+DISPLAY 'stok tersedia, lanjutkan pembayaran'
+HITUNG total_belanjaan
+ELSE
+DISPLAY 'Maaf, stok menu sudah habis'
+ENDIF
+END
+
+======================================================
+ID: 55 | User: Aang abdul karim (engdederafa@gmail.com) | Team: Individu  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input data pasien & pilih poli"},{"shape":"decision","text":"apakah dokumen pasien lengkap"},{"shape":"process","text":"sistem mengenerasi  nomor antrean"},{"shape":"io","text":"cetak / tampilkan tiket antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+      INPUT  nama_pasien,  naik, poli_tujuan, status_dokumen
+
+IF  status_dokumen == ' lengkap ' THEN
+nomor_antrean = generasi_nomor_antrean(poli_tujuan) 
+DISPLAY  ' Pendaftaran_Berhasil '
+DISPLAY  'Nomor antrean anda : '  +  nomor_antrean
+ELSE
+     DISPLAY  ' dokumen tidak lengakap. Silahkan lengkapi berkas anda. '
+ENDIF
+END
+
+======================================================
+ID: 56 | User: N. Isma Nurhidayah (nurhidayahnengisma@gmail.com) | Team: N. Isma Nurhidayah | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input/Output"},{"shape":"process","text":"Proses"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START / ENDPenanda awal dan akhir.
+INPUT kode_pesanan.
+IF stok_tersedia == TRUE THEN
+DISPLAY 'Stok ada, 
+Pesan muncul di layar.HITUNG total_tagihanProses kalkulasi otomatis.
+Menghitung jumlah yang harus dibayar.
+ELSEKondisi alternatif.
+DISPLAY 'Maaf, stok habis,
+Pemberitahuan kegagalan transaksi.
+
+======================================================
+ID: 57 | User: ALIKA PUTRI NURAINI (aialikaputri@gmail.com) | Team: alika putri nuraini  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input daftar pesanan"},{"shape":"process","text":"hitung total harga"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya:potong dan saldo enqueue ke antrean dapur"},{"shape":"process","text":"Tidak: tampilkan \"saldo tidak cukup\""},{"shape":"io","text":"Tampilkan nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    nama_pembeli:Nabila dan zahira
+    nama_menu:mie ayam,bakso,seblak dan minuman
+   Input jumlah pesanan  bakso  dan mie ayam
+    stok_tersedia 
+     HITUNG total_bayar = bakso Rp 10.000 dan mie ayam 8.000  jumlah_pesanan nya jadi 18.000
+     DISPLAY "Terima kasih, " Zahira dan Nabila sudah mampir ke kantin kami 
+     DISPLAY jumlah pesanan 2  + mie ayam + bakso  
+     DISPLAY Total tagihan: Rp10.000 + 8.000 semua total bayar nya jadi rp 18.000
+     DISPLAY "Pesanan berhasil dicatat, silakan bayar"
+   ELSE
+     DISPLAY silahkan menu nya sudah siap untuk di ambil
+  
+
+======================================================
+ID: 58 | User: Neng Rahma Azahra Aureli (nengrahmanengrahma98@gmail.com) | Team: Neng rahma | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"siswa memilih menu makanan/minuman"},{"shape":"process","text":"rp.10.000"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya:sistem memotong saldo dan meneruskan pesanan ke penjual"},{"shape":"io","text":"siswa menerima nomer antrean dan konfirmasi pesanan"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA:
+    ULANGI
+        // 1. Menampilkan Menu
+        OUTPUT "=== MENU KANTIN ==="
+        OUTPUT "1. Nasi Goreng  - Rp 12.000"
+        OUTPUT "2. Mie Ayam     - Rp 10.000"
+        OUTPUT "3. Bakso        - Rp 13.000"
+        OUTPUT "4. Es Teh Manis - Rp  3.000"
+        OUTPUT "==================="
+        
+        // 2. Memilih Menu
+        OUTPUT "Masukkan pilihan menu (1-4): "
+        INPUT pilihan_menu
+        
+        OUTPUT "Masukkan jumlah porsi: "
+        INPUT jumlah
+        
+        // 3. Memproses Pilihan
+        PERIKSA pilihan_menu
+            KASUS 1:
+                nama_makanan <- "Nasi Goreng"
+                harga <- 12000
+            KASUS 2:
+                nama_makanan <- "Mie Ayam"
+                harga <- 10000
+            KASUS 3:
+                nama_makanan <- "Bakso"
+                harga <- 13000
+            KASUS 4:
+                nama_makanan <- "Es Teh Manis"
+                harga <- 3000
+            KASUS LAINNYA:
+                OUTPUT "Menu tidak tersedia!"
+                harga <- 0
+        AKHIR_PERIKSA
+        
+        // 4. Hitung Total Harga
+        JIKA harga > 0 MAKA
+            total_bayar <- harga * jumlah
+            OUTPUT "Total yang harus dibayar: Rp ", total_bayar
+            
+            // 5. Proses Pembayaran
+            ULANGI
+                OUTPUT "Masukkan uang pembayaran: Rp "
+                INPUT uang_bayar
+                
+                JIKA uang_bayar < total_bayar MAKA
+                    OUTPUT "Uang Anda kurang!"
+                AKHIR_JIKA
+            SAMPAI uang_bayar >= total_bayar
+            
+            // 6. Hitung Kembalian
+            uang_kembali <- uang_bayar - total_bayar
+            OUTPUT "Kembalian Anda: Rp ", uang_kembali
+            OUTPUT "Terima kasih telah membeli ", nama_makanan
+        AKHIR_JIKA
+        
+        // 7. Konfirmasi Melanjutkan
+        OUTPUT "Apakah ingin memesan lagi? (y/n): "
+        INPUT ulang
+        
+    SAMPAI ulang == 'n' ATAU ulang == 'N'
+    
+    OUTPUT "Sampai jumpa kembali!"
+END_PROGRAM
+
+======================================================
+ID: 59 | User: Sahlan (sahlan667@gmail.com) | Team: Haise | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"dapat kartu antrean"},{"shape":"process","text":"menunggu nomor antrean di panggil"},{"shape":"decision","text":"apakah dokumen data yang dibutuhkan sudah lengkap atau kurang"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+INPUT:nama pasien
+INPUT:identitas pasien
+INPUT:keluhan 
+JIKA data_pasien lengkap MAKA
+
+TAMPILKAN "pendaftaran berhasil"
+TAMPILKAN "Nama pasien: ", nama_pasien
+TAMPILKAN " Nomor Antrean: ", nomor_antrean
+JIKA TIDAK
+TAMPILKAN " Data pasien belum lengkap" AKHIR
+ENDIF
+END
+
+
+======================================================
+ID: 60 | User: TIARA MEILANII PUTRI (tiarameilaniputri1993@gmail.com) | Team: Tiara Meilani putri | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pasien memasukan nomor rekam medis (RM) atau data diri pda aplikasi /kios digital"},{"shape":"process","text":"sistem memvalidasi data pasien dn mengecek jadwal serta kuota dokter"},{"shape":"decision","text":"apakah kuota dokter hri ini msih tersedia?         jika tida (kuota habis) : lnjut ke proses pemberitahuan kuota penuh ----> slesai.        jika ya (tersedia): lnjut ke proses pembuatan no antrean"},{"shape":"process","text":"sistem mengenerate nomor antrean digital beserta estimasi waktu pelayanan"},{"shape":"io","text":"input: pasien menerima no antrean digital (brupa QR code atau notifikasi di smartphone)"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+
+    // DEKLARASI VARIABEL
+    DECLARE KoutaHarian, AntrianSekarang, NomorBerikutnya, PilihanLayanan AS INTEGER
+    DECLARE PasienID, NamaPasien AS STRING
+    DECLARE IsValid, IsKlinikBuka AS BOOLEAN
+
+    // INISIALISASI AWAL
+    KuotaHarian = 100
+    NomorBerikutnya = 1
+    AntrianSekarang = 0
+    IsKlinikBuka = TRUE
+
+    // PROSES UTAMA SISTEM (LOOPING SELAMA KLINIK BUKA)
+    WHILE IsKlinikBuka == TRUE DO
+        
+        DISPLAY "=== SISTEM ANTRIAN SMART KLINIK ==="
+        DISPLAY "1. Ambil Nomor Antrian"
+        DISPLAY "2. Panggil Antrian Selanjutnya (Petugas)"
+        DISPLAY "3. Cek Status Antrian Saat Ini"
+        DISPLAY "4. Tutup Pendaftaran Klinik"
+        DISPLAY "Masukkan Pilihan Anda (1-4): "
+        INPUT PilihanLayanan
+
+        // PERCABANGAN BERDASARKAN PILIHAN LAYANAN
+        IF PilihanLayanan == 1 THEN
+            
+            // PROSES PENDAFTARAN PASIEN
+            IF NomorBerikutnya <= KuotaHarian THEN
+                DISPLAY "Masukkan ID Pasien: "
+                INPUT PasienID
+                DISPLAY "Masukkan Nama Pasien: "
+                INPUT NamaPasien
+                
+                // Cetak tiket antrian digital
+                DISPLAY "=== TIKET ANTRIAN DIGITAL ==="
+                DISPLAY "Nama Pasien: ", NamaPasien
+                DISPLAY "Nomor Antrian Anda: ", NomorBerikutnya
+                DISPLAY "Silakan tunggu di ruang tunggu atau cek aplikasi."
+                
+                // Update nomor antrian untuk pasien berikutnya
+                NomorBerikutnya = NomorBerikutnya + 1
+            ELSE
+                DISPLAY "Maaf, kuota antrian hari ini sudah penuh."
+            ENDIF
+
+        ELSE IF PilihanLayanan == 2 THEN
+            
+            // PROSES PEMANGGILAN ANTRIAN OLEH PETUGAS
+            IF AntrianSekarang < (NomorBerikutnya - 1) THEN
+                AntrianSekarang = AntrianSekarang + 1
+                DISPLAY "=== PANGGILAN ANTRIAN ==="
+                DISPLAY "Nomor Antrian: ", AntrianSekarang
+                DISPLAY "Silakan menuju ke Ruang Periksa Dokter."
+            ELSE
+                DISPLAY "Belum ada antrian baru atau semua pasien sudah dilayani."
+            ENDIF
+
+        ELSE IF PilihanLayanan == 3 THEN
+            
+            // PROSES CEK STATUS ANTRIAN
+            DISPLAY "=== STATUS ANTRIAN SAAT INI ==="
+            DISPLAY "Nomor yang sedang dilayani: ", AntrianSekarang
+            DISPLAY "Total antrian terdaftar: ", (NomorBerikutnya - 1)
+            DISPLAY "Sisa antrian belum dilayani: ", ((NomorBerikutnya - 1) - AntrianSekarang)
+
+        ELSE IF PilihanLayanan == 4 THEN
+            
+            // MENUTUP OPERASIONAL KLINIK
+            IsKlinikBuka = FALSE
+            DISPLAY "Sistem pendaftaran ditutup. Menyelesaikan sisa antrian."
+
+        ELSE
+            DISPLAY "Pilihan tidak valid. Silakan pilih menu 1-4."
+        ENDIF
+
+    ENDWHILE
+
+    DISPLAY "=== KLINIK SELESAI BEROPERASI ==="
+    OUTPUT "Total pasien terlayani hari ini: ", AntrianSekarang
+
+END
+
+======================================================
+ID: 61 | User: Siti fatmawati (nengfatma2330@gmail.com) | Team: Siti fatmawati | Case: kiosk
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Tampilkan daftar menu"},{"shape":"process","text":"Pilih makanan dan minuman"},{"shape":"process","text":"Tampilkan ringkasan pesanan"},{"shape":"decision","text":"Apakah pesanan sudah sesuai?"},{"shape":"process","text":"Pilih metode dan lakukan pembayaran"},{"shape":"io","text":"Cetak struk dan nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START 
+INPUT daftar_menu
+DISPLAY ringkasan_pesanan
+INPUT konfirmasi_pesanan 
+IF konfirmasi_pesanan == “Ya” THEN 
+      INPUT metode_bayar
+      DISPLAY  struk_dan_nomor_antrean
+ELSE
+      DISPLAY “Pesanan diterima” 
+ENDIF 
+END
+
+======================================================
+ID: 62 | User: M. NABRIL HAFIZ (mnabrilhafiz31@gmail.com) | Team: hecker | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"kode antrian"},{"shape":"process","text":"menunggu pesanan"},{"shape":"decision","text":"apakah makanan tersedia?"},{"shape":"process","text":"bayar dan ambil makanan"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+  INPUT kode_antrian
+  IF stok_tersedia == TRUE THEN
+    DISPLAY 'Stok ada, lanjutkan pembayaran'
+    HITUNG total_tagihan
+  ELSE
+    DISPLAY 'Maaf, stok menu habis'
+  ENDIF
+END
+
+
+======================================================
+ID: 63 | User: m Fadil Pratama (af6339322@gmail.com) | Team: Fadil Pratama  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input data pesanan"},{"shape":"process","text":"Hitung total"},{"shape":"decision","text":"Saldo cukup"},{"shape":"process","text":"Ya, potong saldo & enqueue ke antrian dapur"},{"shape":"process","text":"Tidak:tampilkan \"saldo tidak cukup\""},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA
+SELESAI
+
+======================================================
+ID: 64 | User: Eneng Nia (nwida9524@gmail.com) | Team: Eneng Nia | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input data pesanan"},{"shape":"process","text":"Hitung total"},{"shape":"decision","text":"Saldo cukup"},{"shape":"process","text":"Ya, potong saldo & enqueue ke antrean dapur"},{"shape":"process","text":"Tidak:tampilkan \"saldo tidak cukup\""},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA
+SELESAI
+
+======================================================
+ID: 65 | User: laila adha fauziyah (lailaadha631@gmail.com) | Team: Laila Adha | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"username dan pasword"},{"shape":"process","text":"database"},{"shape":"decision","text":"ya alur berlanjut ke langkah berikutnyq"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: text 
+STAR
+INPUT usia , jumlah_tiket
+harga_per_tiket = 50000
+IF usia >= 12 THEN
+DISPLAY Kategori Dewasa:Akses diberikan
+total_tagihan = jumlah_tiket*harga_per_tiket
+DISPLAY total tagihan
+ELSE
+DISPLAY ' MAAF , usia anda belum mencukupi untuk ENDIF
+END
+
+
+
+======================================================
+ID: 66 | User: Dea Ananda (dea69990@gmail.com) | Team: Dea Ananda | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input data pesanan"},{"shape":"process","text":"hitung total"},{"shape":"decision","text":"saldo cukup"},{"shape":"process","text":"ya,potong saldo dan enqueue ke antrean dapur"},{"shape":"process","text":"tidak: tampilkan \"saldo tidak cukup\""},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA
+ Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA SELESAI
+
+======================================================
+ID: 67 | User: Nur Aeni (nuraeniputri2025@gmail.com) | Team: NUR AENI  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"Sebutkan Menu"},{"shape":"io","text":"Masukkan Menu"},{"shape":"process","text":"Proses Menu"},{"shape":"decision","text":"sajikan menu"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA
+START
+
+INPUT 
+Proses_pemesanan_Kantin
+
+PROSES
+Masukkan_semua pesanan < Total pesanan < antrean dapur_QueQue_pesanan < INPUT daftar pesanan < hitung total pesanan = total_harga pesanan =  item_harga_pesanan + item_jumlah_pesanan
+
+OUTPUT
+Saldo_tranksaksi_pembeli < saldo_pembeli = saldo_pembeli - total_pesanan
+  TAMPILKAN " pembayaran_BERHASIL . Nomor_Antrean : " <
+lainnya
+TAMPILKAN " SALDO TIDAK CUKUP , SILAHKAN ISI ULANG "
+AKHIR JIKA
+
+SELESAI
+
+======================================================
+ID: 68 | User: Zahra nurazizah (icka2589@gmail.com) | Team: ZAHRA NURAZIZAH  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"masukkan pesanan"},{"shape":"process","text":"memproses menu"},{"shape":"decision","text":"menyajikan menu"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA 
+
+START
+
+INPUT
+Proses_pemesanan_E-kantin
+
+PROSES
+Masukkan_semua pesanan ,Total pesanan ,antrean dapur_QueQue_pesanan ,INPUT daftar pesanan ,hitung total pesanan = total_harga pesanan = item_harga_pesanan + item_jumlah_pesanan
+
+OUTPUT 
+Saldo_transaksi_pembeli , saldo_pembeli = Saldo_pembeli - total_pesanan 
+TAMPILKAN
+" pembayaran_BERHASIL . Nomor_ Antrean : " ,
+lainnya 
+TAMPILKAN " SALDO TIDAK CUKUP , SILAHKAN ISI ULANG "
+AKHIR JIKA
+
+SELESAI. 
+
+======================================================
+ID: 69 | User: M.Rifqi Abdurrozaq (muhammadrifki.06081999@gmail.com) | Team: Muhammad Rifqi Abdurrozaq  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Input Daftar Pesanan"},{"shape":"process","text":"Hitung Total Harga"},{"shape":"decision","text":"Saldo Cukup?"},{"shape":"process","text":"Ya:Potong Saldo & Masuk Ke Antrean Dapur"},{"shape":"process","text":"Tidak:Tampilan \"Saldo Tidak Cukup\""},{"shape":"io","text":"Tampilkan nomor antrean kalau sudah di bayar"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Proses_Checkout_Kantin
+DEKLARASI 
+daftar_pesanan:ARRAY OF Item
+total_harga,saldo_siswa:INTEGER
+antrean_dapur:QUEUE OF Pesanan 
+
+ALUR PROSES:
+INPUT daftar_pesanan 
+total_harga=0
+
+// Iteration:hitung total harga dari semua item pesanan UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN 
+  total_harga=total_harga+item.harga* item.jumlah AKHIR UNTUK 
+
+// Selection:validasi saldo sebelum lanjut transaksi JIKA saldo_siswa >=total_harga MAKA 
+  saldo_siswa=saldo_siswa - total _harga 
+  ENQUEUE (antrean _dapur, daftar_pesanan)
+  TAMPILKAN "pembayaran berhasil. Nomor Antrean:",
+PANJANG(antrean_dapur)
+LAINNYA 
+  TAMPILKAN "saldo tidak cukup,silahkan isi ulang"
+AKHIR JIKA 
+SELESAI
+
+======================================================
+ID: 70 | User: Cinta aulia (liaf81766@gmail.com) | Team: Cinta Aulia  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"INFUT data"},{"shape":"process","text":"mencatat data"},{"shape":"decision","text":"apakah data sudah ada??"},{"shape":"process","text":"simpan"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    INFUT kode_pesanan
+    IF stok_tersedia == TRUE THEN
+     DISPLAY'Stok ada lanjutkan pembayaran'
+    HITUNG total_tagihan
+ELSE
+     DISPLAY 'Maaf,stok menu habis'
+    ENDIF
+END
+
+======================================================
+ID: 71 | User: aidinirahmawati (aidinirahma005@gmail.com) | Team: aidinirahmawati | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input data pesanan"},{"shape":"process","text":"hitung total"},{"shape":"decision","text":"saldo cukup"},{"shape":"process","text":"ya, potong saldo enqueue ke antrean dapur"},{"shape":"process","text":"tidak:tampilkan \"saldo tidak cukup\""},{"shape":"io","text":"tampilan nomer antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text:  ALGORITMA Proses_Checkout_Kantin
+DEKLARASI:
+    daftar_pesanan : ARRAY OF Item
+    total_harga, saldo_siswa : INTEGER
+    antrean_dapur : QUEUE OF Pesanan
+
+ALUR PROSES:
+    INPUT daftar_pesanan
+    total_harga = 0
+
+    // Iteration: hitung total harga dari semua item pesanan
+    UNTUK SETIAP item DALAM daftar_pesanan LAKUKAN
+        total_harga = total_harga + item.harga * item.jumlah
+    AKHIR UNTUK
+
+    // Selection: validasi saldo sebelum lanjut transaksi
+    JIKA saldo_siswa >= total_harga MAKA
+        saldo_siswa = saldo_siswa - total_harga
+        ENQUEUE(antrean_dapur, daftar_pesanan)
+        TAMPILKAN "Pembayaran Berhasil. Nomor Antrean:", PANJANG(antrean_dapur)
+    LAINNYA
+        TAMPILKAN "Saldo Tidak Cukup, Silakan Isi Ulang"
+    AKHIR JIKA
+SELESAI
+
+======================================================
+ID: 72 | User: M Riza Nurbarri (yossha611@gmail.com) | Team: M Riza nurbarri | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input daftar pesanan"},{"shape":"process","text":"hotung total harga pesanan"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya:potong saldo&enqueue ke antrean dapur"},{"shape":"process","text":"tidak:tampilkan saldo tidak cukup"},{"shape":"io","text":"output tampilkan daftar antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+  INPUT kode_pesanan
+  IF stok_tersedia == TRUE
+THEN
+  DISPLAY'stok ada,
+lanjutkan pembayaran
+   HITUNG total _tagihan
+  ELSE
+   DISPLAY 'maaf stok menu habis'
+   ENDIF
+ END
+
+======================================================
+ID: 73 | User: Neng Eka Sari (29engka@gmail.com) | Team: Neng eka sari | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input:menu pesanan,jumlah pesanan output:total belanja"},{"shape":"process","text":"menunggu pesanan dibuat"},{"shape":"decision","text":"pembeli membayar cash"},{"shape":"terminal","text":"Shodaqollahuladzim"}]
+Pseudocode Text: START
+  INPUT kode_pesanan
+  IF stok_tersedia == TRUE THEN
+    DISPLAY 'Stok ada, lanjutkan pembayaran'
+    HITUNG total_tagihan
+  ELSE
+    DISPLAY 'Maaf, stok menu habis'
+  ENDIF
+END
+
+
+======================================================
+ID: 74 | User: SITI ZAHIRA RAHMAWATI (noufalsopandi@gmail.com) | Team: siti zahira rahmawati | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"input daftar pesanan"},{"shape":"process","text":"hitung total harga"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya:potong dan enqueue ke antrean dapur"},{"shape":"process","text":"tidak:tampilkan\"saldo tidak cukup\""},{"shape":"io","text":"tampilkan nomer antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: STAR
+   nama_pembeli:tiara dan alika
+  nama_menu:bakso,seblak,minuman
+     input jumlah pesanan seblak,baso
+       stok_tersedia
+     HITUNG total_bayar =seblak 20.00 dan baso 10.00 jumlah_pesanan nya jadi 30.00
+      DISPLAY"terima kasih"tiara dan alika sudah datang
+      DISLPAY jumlah pesanan 2+seblak +bakso
+      DISLPAY total tagihan 20.000 + 10.000 semua total bayarnya jadi 30.000
+    DISLPAY"pesanan berhasil dicatat,silahkan bayar"
+     ELSE
+     DISPLAY silahkan menu nya sudah siap untuk diambil
+
+======================================================
+ID: 75 | User: Reza saputra (zaaputraa7@gmail.com) | Team: Reza saputra | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"daftar pesanan"},{"shape":"process","text":"memilih pesanan yang kita mau terus tunggu pesanan datang"},{"shape":"decision","text":"menunggu pesanan tiba"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+INPUT data_pesanan
+IF STOK_MENU TRUE THEN DISPLAY "Menu tersedia"
+Hitung total harga
+INPUT Pembayaran 
+DISPLAY "Pesanan berhasil" 
+ELSE
+DISPLAY "Menu tidak tersedia" 
+ENDIF
+END
+
+======================================================
+ID: 76 | User: Rizkiya Sabila (rizzqia23@gmail.com) | Team: rizkia sabila | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"data pemesan dan pesanan"},{"shape":"terminal","text":"MULAI"},{"shape":"process","text":"mencatat pesanan pesanan"},{"shape":"decision","text":"Kondisi Valid?"}]
+Pseudocode Text: START
+INPUT data_pemesan_dan_pesanan
+IF stok_tersedia== TRUE THEN
+DISPLAY "lanjutkan_pemesanan"
+HITUNG  "jumlah_pemesanan"
+ELSE "stok_habis"
+
+END
+
+======================================================
+ID: 77 | User: selly sutiana (sellysutiana@gmail.com) | Team: Selly Sutiana | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"ID siswa dan pin"},{"shape":"decision","text":"apakah pin benar?"},{"shape":"process","text":"hitung total harga"},{"shape":"decision","text":"apakah saldo cukup?"},{"shape":"process","text":"kurangin saldo dan cetak struk kalau saldo cukup"},{"shape":"io","text":"Display \"saldo tidak cukup\" kalau saldo kurang"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+    INPUT id_siswa, pin
+    IF pin == benar THEN
+        DISPLAY "Login Berhasil"
+        INPUT kode_menu, jumlah
+        HITUNG total_harga = harga_menu * jumlah
+        DISPLAY "Total Bayar: ", total_harga
+        IF saldo >= total_harga THEN
+            HITUNG saldo_baru = saldo - total_harga
+            DISPLAY "Pembayaran Berhasil"
+            DISPLAY "Sisa Saldo: ", saldo_baru
+            OUTPUT "Cetak Struk"
+        ELSE
+            DISPLAY "Saldo Tidak Cukup"
+        END IF
+    ELSE
+        DISPLAY "PIN Salah"
+    END IF
+END
+
+======================================================
+ID: 78 | User: Ai pitri (aipitri@gmail.com) | Team: Ai PITRI  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pasien login dan memasukan data"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"sistem mengambil nomor antrean"},{"shape":"io","text":"sistem menampilkan nomor antrean"},{"shape":"decision","text":"waktunya di periksa"},{"shape":"process","text":"pasien di panggil untuk di periksa"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA SMART_KLINIK
+
+DEKLARASI
+    dataPasien
+    kondisiValid
+    nomorAntrean
+    waktuPemeriksaan
+
+DESKRIPSI
+
+MULAI
+
+    INPUT dataPasien
+    // Pasien login dan memasukkan data
+
+    kondisiValid ← validasi(dataPasien)
+
+    IF kondisiValid = TRUE THEN
+
+        nomorAntrean ← ambilNomorAntrean(dataPasien)
+
+        OUTPUT nomorAntrean
+        // Sistem menampilkan nomor antrean
+
+        waktuPemeriksaan ← cekWaktuPemeriksaan(nomorAntrean)
+
+        IF waktuPemeriksaan = TRUE THEN
+            OUTPUT "Pasien dipanggil untuk pemeriksaan"
+        ELSE
+            OUTPUT "Pasien menunggu antrean"
+        ENDIF
+
+    ELSE
+
+    
+
+SELESAI
+
+======================================================
+ID: 79 | User: Hasbi arif (hasbiarif297@gmail.com) | Team: Hasbi Arif hidayatulah  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pasien login dan memasukan data"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"sistem mengambil nomer antrian"},{"shape":"io","text":"sistem menampilkan nomer antrian"},{"shape":"decision","text":"waktunya pasien di periksa"},{"shape":"process","text":"pasien di panggil dan akan di periksa"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA SMART_KLINIK
+
+DEKLARASI
+    dataPasien
+    kondisiValid
+    nomorAntrean
+    waktuPemeriksaan
+
+DESKRIPSI
+
+MULAI
+
+    INPUT dataPasien
+    // Pasien login dan memasukkan data
+
+    kondisiValid ← validasi(dataPasien)
+
+    IF kondisiValid = TRUE THEN
+
+        nomorAntrean ← ambilNomorAntrean(dataPasien)
+
+        OUTPUT nomorAntrean
+        // Sistem menampilkan nomor antrean
+
+        waktuPemeriksaan ← cekWaktuPemeriksaan(nomorAntrean)
+
+        IF waktuPemeriksaan = TRUE THEN
+            OUTPUT "Pasien dipanggil untuk pemeriksaan"
+        ELSE
+            OUTPUT "Pasien menunggu antrean"
+        ENDIF
+
+    ELSE
+
+    
+
+SELESAI
+
+======================================================
+ID: 80 | User: AKMAL MUROL MUTAKIN (akmalmurol0@gmail.com) | Team: AKMAL MUROL MUTAKIN  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"data siswa nama makanan pemesanan yang dipilih jadwal buka kantin"},{"shape":"process","text":"tahapan perancanaan pengawasan mutu pangan pelayanan harian"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: PROGRAM Kantin_Sekolah
+
+VAR
+    nama_makanan : STRING
+    harga_satuan, jumlah_beli, total_harga : INTEGER
+    total_bayar, uang_bayar, uang_kembalian : INTEGER
+    pilihan_menu : CHAR
+    lagi : CHAR
+
+// Prosedur untuk menampilkan menu makanan dan harga
+PROCEDURE Tampilkan_Menu()
+BEGIN
+    OUTPUT("=== MENU KANTIN SEKOLAH ===")
+    OUTPUT("A. Nasi Goreng  : Rp 10.000")
+    OUTPUT("B. Mie Ayam     : Rp  8.000")
+    OUTPUT("C. Bakso        : Rp 12.000")
+    OUTPUT("D. Es Teh       : Rp  3.000")
+    OUTPUT("===========================")
+ENDPROCEDURE
+
+// Program Utama
+BEGIN
+    total_bayar <- 0
+    lagi <- 'Y'
+
+    WHILE (lagi = 'Y' OR lagi = 'y') DO
+        CALL Tampilkan_Menu()
+        
+        OUTPUT("Pilih menu (A/B/C/D): ")
+        INPUT(pilihan_menu)
+        OUTPUT("Masukkan jumlah beli: ")
+        INPUT(jumlah_beli)
+
+        // Percabangan untuk menentukan menu dan harga
+        DEPEND ON pilihan_menu DO
+            'A', 'a' : 
+                nama_makanan <- "Nasi Goreng"
+                harga_satuan <- 10000
+            'B', 'b' : 
+                nama_makanan <- "Mie Ayam"
+                harga_satuan <- 8000
+            'C', 'c' : 
+                nama_makanan <- "Bakso"
+                harga_satuan <- 12000
+            'D', 'd' : 
+                nama_makanan <- "Es Teh"
+                harga_satuan <- 3000
+            NOTHING / OTHERS :
+                OUTPUT("Menu tidak valid!")
+                harga_satuan <- 0
+                jumlah_beli <- 0
+        ENDDEPEND
+
+        // Hitung subtotal untuk item ini
+        total_harga <- harga_satuan * jumlah_beli
+        
+        // Akumulasi total belanjaan
+        total_bayar <- total_bayar + total_harga
+
+        OUTPUT("Apakah ada pesanan lain? (Y/T): ")
+        INPUT(lagi)
+    ENDWHILE
+
+    // Proses Pembayaran
+    OUTPUT("Total yang harus dibayar: Rp ", total_bayar)
+    
+    REPEAT
+        OUTPUT("Masukkan uang pembayaran: Rp ")
+        INPUT(uang_bayar)
+        
+        IF (uang_bayar < total_bayar) THEN
+            OUTPUT("Uang Anda kurang! Silakan masukkan jumlah yang benar.")
+        ENDIF
+    UNTIL (uang_bayar >= total_bayar)
+
+    // Hitung Kembalian
+    uang_kembalian <- uang_bayar - total_bayar
+    OUTPUT("Uang kembalian Anda: Rp ", uang_kembalian)
+    OUTPUT("Terima kasih telah berbelanja di Kantin Sekolah!")
+
+END
+
+======================================================
+ID: 81 | User: m.alfaiz mulyana (muhamadfaiz4228@gmail.com) | Team: m.alfaiz mulyana  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"masukan data pasien"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"tunggu nomor antrian muncul"},{"shape":"io","text":"sistem menampilkan nomor dan data antrian"},{"shape":"decision","text":"sudah waktunya pasien di periksa"},{"shape":"process","text":"pasien di panggil untuk menemui dokter"},{"shape":"io","text":"SELESAI"}]
+Pseudocode Text: MULAI
+
+    INPUT dataPasien
+    // Pasien login dan memasukkan data
+
+    kondisiValid ← validasi(dataPasien)
+
+    IF kondisiValid = TRUE THEN
+
+        nomorAntrean ← ambilNomorAntrean(dataPasien)
+
+        OUTPUT nomorAntrean
+        // Sistem menampilkan nomor antrean
+
+        waktuPemeriksaan ← cekWaktuPemeriksaan(nomorAntrean)
+
+        IF waktuPemeriksaan = TRUE THEN
+            OUTPUT "Pasien dipanggil untuk pemeriksaan"
+        ELSE
+            OUTPUT "Pasien menunggu antrean"
+        ENDIF
+
+    ELSE
+
+        
+
+SELESAI
+
+======================================================
+ID: 82 | User: Rani Rahmawati (hot10play1990@gmail.com) | Team: Rani Rahmawati  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"daftar pesanan"},{"shape":"process","text":"pembayaran"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya, potong saldo & enqueue ke antrean dapur"},{"shape":"process","text":"tidak, tampilkan saldo tidak cukup"},{"shape":"io","text":"tampilkan nomer antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+
+INPUT daftar_pesanan
+INPUT pembayaran
+
+IF saldo_cukup == TRUE THEN
+    potong saldo
+    enqueue ke anteran dapur
+    tampilkan nomor antrian
+ELSE
+    tampilkan "saldo tidak cukup"
+END IF
+
+END
+
+
+======================================================
+ID: 83 | User: Asri Rahmi (asrisquad64@gmail.com) | Team: Asri  | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"data pengguna,data produk,data pesanan,data transaksi"},{"shape":"process","text":"registrasi dan login, pengelolaan produk, pencarian dan pemesanan, pembayaran, konfirmasi dan transaksi,laporan transaksi"},{"shape":"io","text":"notifikasi,struk pembayaran"},{"shape":"decision","text":"Kondisi Valid?"}]
+Pseudocode Text: START
+ INPUT data_pengguna,data_produk,data_pesanan,data_transaksi
+
+ DISPLAY "Sistem Marketplace E-kantin Berjalan"
+
+ PROSES:login,kelola produk,pesan,bayar,buat laporan
+
+IF Kondisi_valid = TRUE THEN
+   DISPLAY "Notifikasi berhasil"
+   DISPLAY "Struk pembayaran"
+ELSE
+   DISPLAY "Pesanan gagal/tidak sah"
+   ENDIF
+End
+
+======================================================
+ID: 84 | User: siti rahmi juliyanty (sitirahmijulianti@gmail.com) | Team: Siti Rahmi Julianti | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pasien login dan memasukan data"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"io","text":"sistem menampilkan nomor antrean"},{"shape":"decision","text":"sudah waktunya di periksa"},{"shape":"process","text":"pasien di panggil untuk periksa"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text:  ALGORITMA SMART_KLINIK
+
+DEKLARASI
+    dataPasien
+    kondisiValid
+    nomorAntrean
+    waktuPemeriksaan
+
+DESKRIPSI
+
+MULAI
+
+    INPUT dataPasien
+    // Pasien login dan memasukkan data
+
+    kondisiValid ← validasi(dataPasien)
+
+    IF kondisiValid = TRUE THEN
+
+        nomorAntrean ← ambilNomorAntrean(dataPasien)
+
+        OUTPUT nomorAntrean
+        // Sistem menampilkan nomor antrean
+
+        waktuPemeriksaan ← cekWaktuPemeriksaan(nomorAntrean)
+
+        IF waktuPemeriksaan = TRUE THEN
+            OUTPUT "Pasien dipanggil untuk pemeriksaan"
+        ELSE
+            OUTPUT "Pasien menunggu antrean"
+        ENDIF
+
+    ELSE
+
+    
+
+SELESAI
+
+======================================================
+ID: 85 | User: Zahra Azkia Salsabila (azkiazahrasalsabila167@gmail.com) | Team: Zahra Azkia Salsabila | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"login akun & pilih menu Kantin"},{"shape":"process","text":"masukan menu ke keranjang & pilih metode pembayaran"},{"shape":"decision","text":"apakah stok ada & saldo anda cukup?"},{"shape":"process","text":"TIDAK : tampilkan pesanan gagal"},{"shape":"process","text":"IYA: validasi pembayaran & kirimkan pesanan"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: PROGRAM EKantinSingkat
+
+DEKLARASI 
+    menu, jumlah, stok, saldo, total : INTEGER
+    bayar_sukses, siap : BOOLEAN
+
+ALGORITMA:
+    INPUT menu, jumlah
+    
+    // DECISION 1: Cek Stok
+    IF stok >= jumlah THEN
+        total <- harga * jumlah
+        
+        // DECISION 2: Cek Saldo
+        IF saldo >= total THEN
+            saldo <- saldo - total
+            bayar_sukses <- TRUE
+        ELSE
+            OUTPUT "Saldo tidak cukup"
+            bayar_sukses <- FALSE
+        ENDIF
+        
+        // PROSES & OUTPUT
+        IF bayar_sukses == TRUE THEN
+            OUTPUT "Pesanan dikirim ke tenant (Sedang Dimasak)"
+            
+            // DECISION 3: Status Masak
+            IF siap == TRUE THEN
+                OUTPUT "OUTPUT: Makanan siap diambil & tunjukkan QR Code"
+            ENDIF
+        ENDIF
+        
+    ELSE
+        OUTPUT "OUTPUT: Stok habis"
+    ENDIF
+    
+ENDPROGRAM
+
+```
+
+======================================================
+ID: 86 | User: NAGITA AGUSTIN (mel433048@gmail.com) | Team: NAGITA AGUSTIN | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"daftar pesanan"},{"shape":"process","text":"pembayaran"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya,potong saldo & enqueue ke antrian dapur"},{"shape":"process","text":"tidak, tampilkan saldo tidak cukup"},{"shape":"io","text":"tampilkan nomer antrian"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+
+INPUT daftar_pesanan
+INPUT pembayaran
+
+IF saldo_cukup == TRUE THEN
+    potong saldo
+    enqueue ke anteran dapur
+    tampilkan nomor antrian
+ELSE
+    tampilkan "saldo tidak cukup"
+END IF
+
+END
+
+======================================================
+ID: 87 | User: mawarr (mawarcantika437@gmail.com) | Team: mawar cantika | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"daftar pesanan"},{"shape":"process","text":"hitung total"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya,bayar potong saldo"},{"shape":"process","text":"tidak,tampilkan saldo tidak cukup"},{"shape":"io","text":"tampilkan nomor antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+INPUT makanan, jumlah
+Hitung total
+IF saldo cukup THEN
+  Bayar dan proses pesanan
+ELSE
+  OUTPUT "Saldo tidak cukup"
+END IF
+END
+
+
+======================================================
+ID: 88 | User: Desi kurnia (desikurniadesikurnia2@gmail.com) | Team: desi kurnia X RPL 2  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pasien login dan memasukan data"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"process","text":"sistem mengambil nomer antrean"},{"shape":"io","text":"sistem menampilkan nomer antrean"},{"shape":"decision","text":"sudah waktunya di priksa"},{"shape":"process","text":"pasien di panggil untuk di periksa"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA SMART_KLINIK
+DEKLARASI
+dataPasien
+kondisiValid
+nomorAntrean
+waktuPemeriksaan
+DESKRIPSI
+MULAI
+INPUT dataPasien
+// Pasien login dan memasukkan data
+kondisiValid ← validasi(dataPasien)
+IF kondisiValid = TRUE THEN
+  nomorAntrean ← ambilNomorAntrean(dataPasien)
+  OUTPUT nomorAntrean
+  // Sistem menampilkan nomor antrean
+  waktuPemeriksaan ← cekWaktuPemeriksaan(nomorAntrean)
+  IF waktuPemeriksaan = TRUE THEN
+    OUTPUT "Pasien dipanggil untuk pemeriksaan"
+  ELSE
+    OUTPUT "Pasien menunggu antrean"
+  ENDIF
+ELSE
+SELESAI
+
+======================================================
+ID: 89 | User: Ai nurazifa (zifaazifa903@gmail.com) | Team: Ai nurazifa  | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pilih poli/dokter"},{"shape":"io","text":"input data pasien"},{"shape":"process","text":"dapat nomor antrian"},{"shape":"process","text":"pasien menunggu dan di panggil"},{"shape":"decision","text":"Apakah pasien sudah dipanggil?\nYA → Pemeriksaan\nTIDAK → Tetap menunggu"},{"shape":"process","text":"hitung biaya pemeriksaan"},{"shape":"io","text":"input pembayaran"},{"shape":"decision","text":"Apakah pembayaran berhasil?\nYA → Tampilkan pembayaran berhasil\nTIDAK → Ulangi pembayaran"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+
+INPUT data_pasien
+INPUT pilih_poli
+
+DAPATKAN nomor_antrian
+MASUKKAN pasien ke QUEUE
+
+WHILE pasien_belum_dipanggil
+    TUNGGU
+END WHILE
+
+IF pasien_sudah_dipanggil = TRUE THEN
+    PROSES pemeriksaan
+    HITUNG total_biaya
+
+    INPUT pembayaran
+
+    IF pembayaran = TRUE THEN
+        DISPLAY "Pembayaran berhasil"
+    ELSE
+        DISPLAY "Pembayaran gagal, ulangi pembayaran"
+    END IF
+END IF
+
+DISPLAY "Pelayanan selesai"
+
+END
+
+======================================================
+ID: 90 | User: ismi nurjanah (isminurjanah024@gmail.com) | Team: ismi Nurjanah | Case: klinik
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pasien login dan masukkan data"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"io","text":"sistem menampilkan nomer antrean"},{"shape":"decision","text":"sudah waktunya di periksa"},{"shape":"process","text":"pasien di panggil untuk priksa"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA SMART_KLINIK
+
+DEKLARASI
+    dataPasien
+    kondisiValid
+    nomorAntrean
+    waktuPemeriksaan
+
+DESKRIPSI
+
+MULAI
+
+    INPUT dataPasien
+    // Pasien login dan memasukkan data
+
+    kondisiValid ← validasi(dataPasien)
+
+    IF kondisiValid = TRUE THEN
+
+        nomorAntrean ← ambilNomorAntrean(dataPasien)
+
+        OUTPUT nomorAntrean
+        // Sistem menampilkan nomor antrean
+
+        waktuPemeriksaan ← cekWaktuPemeriksaan(nomorAntrean)
+
+        IF waktuPemeriksaan = TRUE THEN
+            OUTPUT "Pasien dipanggil untuk pemeriksaan"
+        ELSE
+            OUTPUT "Pasien menunggu antrean"
+        ENDIF
+
+    ELSE
+
+    
+
+SELESAI
+
+======================================================
+ID: 91 | User: Tika sri rahayu (tkaajahh@gmail.com) | Team: tika sri r | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"pilih menu makanan"},{"shape":"process","text":"hitung total terima"},{"shape":"decision","text":"cek saldo cukup atau tidak"},{"shape":"io","text":"selesai"}]
+Pseudocode Text: ALGORITMA Kantin_Sekolah
+START
+  INPUT menu_pesanan
+  total = HITUNG_HARGA(menu_pesanan)
+  IF saldo >= total THEN
+    TERIMA_PEMBAYARAN(total)
+    CETAK_STRUK()
+    MASAK_PESAN(nomor_antrean)
+    OUTPUT ambil_pesanan
+  ELSE
+    OUTPUT "Saldo tidak cukup"
+    GOTO INPUT menu_pesanan
+  END IF
+END
+
+======================================================
+ID: 92 | User: nazma azahra nurhafifah (nazmaazahranurhafifah@gmail.com) | Team: nazmaazahra nurhafifah | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"daftar pesanan"},{"shape":"process","text":"hitung total harga"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya, potong saldo dan Enqueue ke antrean dapur"},{"shape":"process","text":"tidak, tampilan \"saldo tidak cukup\""},{"shape":"io","text":"tampilan no antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Pemrosesan_Pesanan
+
+DEKLARASI
+    daftar_pesanan : String/List
+    total_harga    : Real
+    saldo          : Real
+    no_antrean     : Integer
+
+ALGORITMA
+    START
+
+    INPUT daftar_pesanan
+    
+    total_harga = HitungTotal(daftar_pesanan)
+
+    IF saldo >= total_harga THEN
+        saldo = saldo - total_harga
+        Enqueue(antrean_dapur, daftar_pesanan)
+        tampilkan no_antrean
+    ELSE
+        PRINT "saldo tidak cukup"
+    ENDIF
+
+    END
+
+======================================================
+ID: 93 | User: Nadila Ramadani (nr311241@gmail.com) | Team: Nadila Ramadani | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"daftar pesanan"},{"shape":"process","text":"hitung total harga"},{"shape":"decision","text":"saldo cukup?"},{"shape":"process","text":"ya, potong saldo&enquque ke antrean dapur"},{"shape":"process","text":"tidak, tampilan \"saldo tidak cukup\""},{"shape":"io","text":"tampilkan no antrean"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA Pemrosesan_Pesanan
+
+DEKLARASI
+    daftar_pesanan : String/List
+    total_harga    : Real
+    saldo          : Real
+    no_antrean     : Integer
+
+ALGORITMA
+    START
+
+    INPUT daftar_pesanan
+    
+    total_harga = HitungTotal(daftar_pesanan)
+
+    IF saldo >= total_harga THEN
+        saldo = saldo - total_harga
+        Enqueue(antrean_dapur, daftar_pesanan)
+        tampilkan no_antrean
+    ELSE
+        PRINT "saldo tidak cukup"
+    ENDIF
+
+    END
+
+======================================================
+ID: 94 | User: M FASYA SYAHREZA (syafinatunajah90@gmail.com) | Team: M Fasya Syahreza | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"Data siswa,nama makanan,pemesanan yang dipilih dan jadwal buka kantin"},{"shape":"process","text":"Tahapan pereencanaan dan mutu pangan pelayanan harian"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: START
+INPUT menu_makanan, jumlah_pesanan
+HITUNG total_harga = harga * jumlah_pesanan
+
+IF saldo_siswa >= total_harga THEN
+    HITUNG saldo_siswa = saldo_siswa - total_harga
+    ENQUEUE(antrean_dapur, menu_makanan)
+    DISPLAY 'Pesanan Berhasil, Silakan Antre'
+ELSE
+    DISPLAY 'Maaf, Saldo Kurang'
+ENDIF
+
+END
+
+
+======================================================
+ID: 95 | User: muchamad alfiansyah r (alfalfin53@gmail.com) | Team: Muchamad Alfiansyah Ramadan | Case: ekantin
+Flowchart JSON: [{"shape":"terminal","text":"MULAI"},{"shape":"io","text":"nama barang/jenis barang apa yang di jual,harga satuan barang,total harga barang"},{"shape":"process","text":"hitung total harga awal -hitung jumlah diskon (bila ada) -hitung total bayar setelah diskon -hitung uang kembalian -tambah stok barang (jika restok) -kurangi stok barang setelah jualan -hitung keutungan-hitung pengeluaran barang-cek kondisi barang-cek jumlah barang"},{"shape":"decision","text":"Kondisi Valid?"},{"shape":"terminal","text":"SELESAI"}]
+Pseudocode Text: ALGORITMA EKantin_RPL
+DEKLARASI:
+    nis, password       : String
+    saldo_ewallet       : Number
+    stand_id, menu_id   : String
+    jam_istirahat       : String ("Istirahat 1" / "Istirahat 2")
+    total_bayar         : Number
+    kode_qr             : String
+    status_pengambilan  : String ("Diproses", "Siap", "Selesai")
+
+MULAI
+    // 1. Autentikasi & Cek Saldo
+    INPUT nis, password
+    JIKA VALIDASI_AKUN(nis, password) == TRUE MAKA
+        saldo_ewallet = GET_SALDO(nis)
+    LAINNYA
+        TAMPILKAN "Login Gagal"
+        STOP
+    ENDJIKA
+
+    // 2. Transaksi & Pre-Order
+    TAMPILKAN Stand_Kantin_Aktif
+    INPUT stand_id
+    TAMPILKAN Menu_By_Stand(stand_id)
+    
+    INPUT menu_id, jumlah, jam_istirahat
+    total_bayar = HITUNG_TOTAL(menu_id, jumlah)
+    
+    JIKA saldo_ewallet < total_bayar MAKA
+        TAMPILKAN "Saldo tidak cukup. Silakan Top-Up."
+        ARAHKAN_KE_MENU_TOPUP()
+        STOP
+    LAINNYA
+        // Potong Saldo & Buat Pesanan
+        POTONG_SALDO(nis, total_bayar)
+        kode_qr = GENERATE_QR_CODE(nis, stand_id, menu_id)
+        status_pengambilan = "Diproses"
+        
+        KIRIM_NOTIFIKASI_PENJUAL(stand_id, menu_id, jumlah, jam_istirahat)
+        UPDATE_STOK_STAND(stand_id, menu_id, jumlah)
+    ENDJIKA
+
+    // 3. Alur Verifikasi Ambil (Sisi Penjual & Siswa)
+    SAAT SISWA_SCAN_QR(kode_qr, stand_id) DO
+        JIKA VALIDASI_QR(kode_qr) == TRUE DAN status_pengambilan == "Siap" MAKA
+            SERAHKAN_MAKANAN()
+            status_pengambilan = "Selesai"
+            TRANSFER_SALDO_KE_PENJUAL(stand_id, total_bayar)
+            UPDATE_REKAP_TRANSAKSI(stand_id, total_bayar)
+            TAMPILKAN "Transaksi Selesai"
+        LAINNYA
+            TAMPILKAN "QR Tidak Valid atau Makanan Belum Siap"
+        ENDJIKA
+    ENDSAAT
+SELESAI
+

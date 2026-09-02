@@ -1,0 +1,1826 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { query } from '../../../lib/db';
+import { sqlTryoutQuestions } from '../../../data/sqlTryoutQuestions';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+let pastAttempts: any[] = [];
+if (user) {
+  try {
+    const res = await query(
+      `SELECT id, token_used, total_questions, correct_answers, score, duration_seconds, created_at 
+       FROM sql_tryout_submissions 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 10`,
+      [user.id]
+    );
+    pastAttempts = res.rows || [];
+  } catch (e) {
+    console.warn('Could not fetch past attempts:', e);
+  }
+}
+
+// Prepare questions for frontend (without answers in token gate)
+const initialQuestions = sqlTryoutQuestions.map((q) => ({
+  id: q.id,
+  category: q.category,
+  question: q.question,
+  codeSnippet: q.codeSnippet || null,
+  options: q.options
+}));
+---
+
+<MainLayout
+  title="Try Out Ujian SQL & Basis Data Relasional (CBT 5 Opsi) | SMK RPL"
+  description="Simulasi Try Out Ujian SQL dan Basis Data Relasional berbasis CBT dengan 25 soal pilihan ganda 5 opsi (A-E), validasi token ujian, timer countdown, penilaian instan, dan pembahasan lengkap."
+>
+  <div class="tryout-container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb-nav">
+      <a href="/">Beranda</a>
+      <span class="separator">/</span>
+      <a href="/belajar/sql">Belajar SQL</a>
+      <span class="separator">/</span>
+      <span class="current">Try Out Ujian CBT</span>
+    </nav>
+
+    {/* =========================================================
+        SCREEN 1: TOKEN GATE & BRIEFING (Layar Konfirmasi Peserta)
+        ========================================================= */}
+    <div id="screen-gate" class="tryout-screen active">
+      <div class="gate-hero-card glass-card">
+        <div class="gate-badge-wrap">
+          <span class="badge badge-purple">SIMULASI MANDIRI CBT</span>
+          <span class="badge badge-cyan">STANDAR SMK RPL</span>
+        </div>
+
+        <h1 class="gate-title">Try Out Ujian SQL &amp; Basis Data Relasional</h1>
+        <p class="gate-subtitle">
+          Uji pemahaman dan kesiapan Anda sebelum menghadapi ujian resmi dengan simulasi CBT pilihan ganda 5 opsi jawaban (A, B, C, D, E), dilengkapi penilaian otomatis dan pembahasan mendalam.
+        </p>
+
+        <!-- Info Specs Cards -->
+        <div class="specs-grid">
+          <div class="spec-card">
+            <span class="spec-icon">📝</span>
+            <div class="spec-info">
+              <span class="spec-label">Jumlah Soal</span>
+              <strong class="spec-val">25 Pilihan Ganda</strong>
+              <span class="spec-sub">5 Opsi (A, B, C, D, E)</span>
+            </div>
+          </div>
+
+          <div class="spec-card">
+            <span class="spec-icon">⏱️</span>
+            <div class="spec-info">
+              <span class="spec-label">Durasi Waktu</span>
+              <strong class="spec-val">45 Menit</strong>
+              <span class="spec-sub">Timer Countdown Otomatis</span>
+            </div>
+          </div>
+
+          <div class="spec-card">
+            <span class="spec-icon">🎯</span>
+            <div class="spec-info">
+              <span class="spec-label">Standar KKM</span>
+              <strong class="spec-val">Nilai 75 / 100</strong>
+              <span class="spec-sub">Minimal 19 Jawaban Benar</span>
+            </div>
+          </div>
+
+          <div class="spec-card">
+            <span class="spec-icon">💡</span>
+            <div class="spec-info">
+              <span class="spec-label">Umpan Balik</span>
+              <strong class="spec-val">Nilai &amp; Pembahasan</strong>
+              <span class="spec-sub">Langsung Tampil di Akhir</span>
+            </div>
+          </div>
+        </div>
+
+        {/* User Auth Gate Check */}
+        {!user ? (
+          <div class="auth-warning-box margin-top-md">
+            <span class="warn-icon">🔒</span>
+            <div class="warn-body">
+              <h4>Akun Siswa Diperlukan untuk Mengerjakan Try Out</h4>
+              <p>
+                Silakan masuk menggunakan akun siswa Anda agar hasil dan riwayat nilai Try Out tersimpan secara permanen ke dashboard pembelajaran.
+              </p>
+              <div class="auth-btns margin-top-sm">
+                <a href="/login?redirect=/belajar/sql/tryout" class="btn btn-primary btn-md">
+                  Masuk / Login Akun &rarr;
+                </a>
+                <a href="/register?redirect=/belajar/sql/tryout" class="btn btn-outline btn-md">
+                  Daftar Akun Siswa Baru
+                </a>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div class="participant-panel margin-top-md">
+            <div class="participant-info-card">
+              <div class="user-avatar-badge">👤</div>
+              <div class="user-text">
+                <span class="user-role-tag">PESERTA UJIAN TERVERIFIKASI</span>
+                <h3 class="user-display-name">{user.name}</h3>
+                <span class="user-email font-mono">{user.email}</span>
+              </div>
+            </div>
+
+            <!-- Token Input Form -->
+            <form id="token-form" class="token-form-wrap margin-top-md">
+              <div class="token-input-group">
+                <label for="input-token" class="token-label">
+                  <strong>Masukkan Token Ujian:</strong>
+                </label>
+                <div class="token-field-row">
+                  <input
+                    type="text"
+                    id="input-token"
+                    name="token"
+                    placeholder="Contoh: TRYOUTSQL2026"
+                    class="token-input font-mono"
+                    maxlength="30"
+                    required
+                    autocomplete="off"
+                  />
+                  <button type="submit" id="btn-start-exam" class="btn btn-primary btn-lg">
+                    Mulai Mengerjakan Ujian &rarr;
+                  </button>
+                </div>
+                <div id="token-error" class="token-alert error-msg" style="display: none;"></div>
+                <div class="token-hint-box">
+                  <span class="hint-icon">🔑</span>
+                  <span>
+                    Token simulasi Try Out mandiri: <strong class="font-mono text-cyan">TRYOUTSQL2026</strong> atau <strong class="font-mono text-cyan">SQL2026</strong> (atau tanyakan token aktif pada Guru Pengampu).
+                  </span>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <!-- Riwayat Pengerjaan Try Out Sebelumnya -->
+        {user && pastAttempts.length > 0 && (
+          <div class="history-section margin-top-lg">
+            <div class="history-header">
+              <span class="history-icon">📊</span>
+              <h4>Riwayat Hasil Try Out Anda Sebelumnya</h4>
+            </div>
+            <div class="table-responsive margin-top-xs">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Waktu Ujian</th>
+                    <th>Token</th>
+                    <th>Jawaban Benar</th>
+                    <th>Durasi</th>
+                    <th>Skor Akhir</th>
+                    <th>Status KKM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pastAttempts.map((att) => {
+                    const isPassed = att.score >= 75;
+                    const mins = Math.floor((att.duration_seconds || 0) / 60);
+                    const secs = (att.duration_seconds || 0) % 60;
+                    return (
+                      <tr>
+                        <td>{new Date(att.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                        <td><code class="font-mono">{att.token_used}</code></td>
+                        <td>{att.correct_answers} / {att.total_questions} Soal</td>
+                        <td>{mins}m {secs}s</td>
+                        <td><strong class={isPassed ? 'text-green' : 'text-red'}>{att.score} / 100</strong></td>
+                        <td>
+                          {isPassed ? (
+                            <span class="badge badge-emerald">TUNTAS</span>
+                          ) : (
+                            <span class="badge badge-red">BELUM TUNTAS</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* =========================================================
+        SCREEN 2: CBT EXAMINATION WORKSPACE (Layar Pengerjaan CBT)
+        ========================================================= */}
+    <div id="screen-cbt" class="tryout-screen" style="display: none;">
+      <!-- Sticky Top Bar CBT Header -->
+      <div class="cbt-topbar glass-card">
+        <div class="cbt-student-info">
+          <span class="cbt-tag">CBT EXAM</span>
+          <span class="cbt-name" id="cbt-user-name">{user?.name || 'Peserta Siswa'}</span>
+        </div>
+
+        <div class="cbt-timer-wrap">
+          <span class="timer-icon">⏱️</span>
+          <div class="timer-display font-mono" id="cbt-timer">45:00</div>
+        </div>
+
+        <div class="cbt-actions">
+          <button type="button" id="btn-submit-exam" class="btn btn-emerald btn-md">
+            Selesai &amp; Kumpulkan &check;
+          </button>
+        </div>
+      </div>
+
+      <!-- Main CBT Grid Layout -->
+      <div class="cbt-layout margin-top-md">
+        <!-- Area Soal Aktif (Kiri) -->
+        <main class="cbt-question-area glass-card">
+          <div class="question-header">
+            <div class="question-badge-group">
+              <span class="badge badge-purple" id="question-num-badge">SOAL NO. 1</span>
+              <span class="badge badge-cyan" id="question-category-badge">KATEGORI: DASAR DML</span>
+            </div>
+            <button type="button" id="btn-toggle-doubt" class="btn btn-outline-warning btn-sm">
+              <span class="doubt-icon">⚠️</span> <span id="doubt-btn-text">Tandai Ragu-Ragu</span>
+            </button>
+          </div>
+
+          <!-- Question Body -->
+          <div class="question-content margin-top-md">
+            <h3 class="question-title" id="question-text">Memuat pertanyaan...</h3>
+            
+            <div id="question-code-wrap" class="code-example-block margin-top-sm" style="display: none;">
+              <div class="code-example-header">
+                <span class="code-badge badge-purple">KODE SQL / SKENARIO:</span>
+              </div>
+              <pre class="code-snippet font-mono"><code id="question-code"></code></pre>
+            </div>
+
+            <!-- 5 Options Form -->
+            <div class="options-container margin-top-md" id="options-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Bottom Navigation Controls -->
+          <div class="question-nav-footer margin-top-lg">
+            <button type="button" id="btn-prev-q" class="btn btn-outline btn-md">
+              &larr; Soal Sebelumnya
+            </button>
+            <span class="nav-indicator" id="nav-indicator-text">1 dari 25 Soal</span>
+            <button type="button" id="btn-next-q" class="btn btn-primary btn-md">
+              Soal Berikutnya &rarr;
+            </button>
+          </div>
+        </main>
+
+        <!-- Sidebar Navigation Palette (Kanan) -->
+        <aside class="cbt-palette-sidebar glass-card">
+          <div class="palette-header">
+            <h4>Navigasi Nomor Soal</h4>
+            <span class="palette-subtitle">Klik nomor untuk melompat langsung</span>
+          </div>
+
+          <!-- Status Legend -->
+          <div class="palette-legend">
+            <div class="legend-item"><span class="legend-dot dot-answered"></span> Terjawab</div>
+            <div class="legend-item"><span class="legend-dot dot-doubt"></span> Ragu-ragu</div>
+            <div class="legend-item"><span class="legend-dot dot-unanswered"></span> Belum diisi</div>
+          </div>
+
+          <!-- Question Numbers Grid (1-25) -->
+          <div class="palette-grid margin-top-sm" id="palette-grid">
+            <!-- Rendered via JS: buttons 1..25 -->
+          </div>
+
+          <div class="palette-summary margin-top-md" id="palette-summary">
+            <span>0 Terjawab</span> &bull; <span>0 Ragu</span> &bull; <span>25 Belum</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    {/* =========================================================
+        SCREEN 3: RESULT & COMPREHENSIVE REVIEW (Layar Hasil)
+        ========================================================= */}
+    <div id="screen-result" class="tryout-screen" style="display: none;">
+      <div class="result-hero-card glass-card">
+        <div class="result-badge-wrap">
+          <span class="badge badge-purple">HASIL SIMULASI TRY OUT</span>
+          <span class="badge badge-cyan">EVALUASI CBT</span>
+        </div>
+
+        <div class="result-score-banner margin-top-md">
+          <div class="score-circle-wrap">
+            <div class="score-big font-mono" id="result-score">0</div>
+            <span class="score-max">/ 100</span>
+          </div>
+
+          <div class="result-feedback-wrap">
+            <div id="result-status-badge" class="badge badge-emerald badge-lg">TUNTAS</div>
+            <h2 class="result-heading" id="result-heading">Hasil Evaluasi Try Out</h2>
+            <p class="result-desc" id="result-desc">
+              Memuat ulasan performa dan rekomendasi pembelajaran...
+            </p>
+
+            <div class="result-stats-row margin-top-sm">
+              <div class="stat-pill">
+                <span class="stat-icon">✅</span>
+                <span>Benar: <strong id="result-correct-count">0</strong></span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-icon">❌</span>
+                <span>Salah: <strong id="result-wrong-count">0</strong></span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-icon">⏱️</span>
+                <span>Waktu: <strong id="result-duration">0m 0s</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action CTAs -->
+        <div class="result-actions margin-top-md">
+          <button type="button" id="btn-retake-tryout" class="btn btn-primary btn-md">
+            🔄 Ulangi Try Out (Simulasi Baru)
+          </button>
+          <a href="/belajar/sql" class="btn btn-outline btn-md">
+            📚 Kembali ke Katalog Modul SQL
+          </a>
+          <a href="/dashboard" class="btn btn-outline btn-md">
+            👤 Buka Dashboard Siswa
+          </a>
+        </div>
+
+        <!-- Comprehensive Question-by-Question Review -->
+        <div class="review-section margin-top-xl">
+          <div class="review-header-row">
+            <div>
+              <h3>Analisis &amp; Pembahasan Lengkap Seluruh Soal</h3>
+              <p class="text-secondary">Pelajari pembahasan konseptual dari setiap butir soal untuk memperkuat pemahaman Anda.</p>
+            </div>
+            
+            <div class="review-filter-tabs">
+              <button type="button" class="filter-tab active" data-filter="all">Semua Soal (<span id="tab-count-all">25</span>)</button>
+              <button type="button" class="filter-tab" data-filter="correct">Benar (<span id="tab-count-correct">0</span>)</button>
+              <button type="button" class="filter-tab" data-filter="wrong">Salah (<span id="tab-count-wrong">0</span>)</button>
+            </div>
+          </div>
+
+          <div class="review-list margin-top-md" id="review-list-container">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Submit Ujian -->
+  <div id="confirm-modal" class="cbt-modal-backdrop" style="display: none;">
+    <div class="cbt-modal glass-card">
+      <div class="modal-icon">📋</div>
+      <h3>Konfirmasi Pengumpulan Jawaban</h3>
+      <p id="modal-summary-text" class="margin-top-xs">
+        Anda telah menjawab <strong>25 dari 25 soal</strong>. Apakah Anda yakin ingin menyelesaikan dan mengumpulkan try out ini sekarang?
+      </p>
+      <div id="modal-unanswered-warning" class="modal-warn-alert" style="display: none;">
+        ⚠️ Perhatian: Masih ada soal yang belum Anda jawab atau masih ditandai ragu-ragu!
+      </div>
+      <div class="modal-actions margin-top-md">
+        <button type="button" id="btn-modal-cancel" class="btn btn-outline btn-md">
+          Periksa Kembali
+        </button>
+        <button type="button" id="btn-modal-confirm" class="btn btn-emerald btn-md">
+          Ya, Kumpulkan Sekarang &check;
+        </button>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<!-- Client JavaScript for CBT Interactive System -->
+<script define:vars={{ initialQuestions, user }}>
+  const QUESTIONS = initialQuestions;
+  const TOTAL_Q = QUESTIONS.length;
+  const TOTAL_DURATION_SECS = 45 * 60; // 45 minutes
+
+  // State
+  let activeToken = '';
+  let currentQIndex = 0;
+  let userAnswers = {}; // { questionId: 'A' | 'B' | 'C' | 'D' | 'E' }
+  let userDoubt = {}; // { questionId: boolean }
+  let timerInterval = null;
+  let secondsRemaining = TOTAL_DURATION_SECS;
+  let examStartTime = null;
+  let activeFilter = 'all';
+  let reviewData = null;
+
+  // DOM Elements
+  const screenGate = document.getElementById('screen-gate');
+  const screenCbt = document.getElementById('screen-cbt');
+  const screenResult = document.getElementById('screen-result');
+
+  // Token Form
+  const tokenForm = document.getElementById('token-form');
+  const inputToken = document.getElementById('input-token');
+  const btnStartExam = document.getElementById('btn-start-exam');
+  const tokenError = document.getElementById('token-error');
+
+  // CBT Interface
+  const cbtTimer = document.getElementById('cbt-timer');
+  const btnSubmitExam = document.getElementById('btn-submit-exam');
+  const qNumBadge = document.getElementById('question-num-badge');
+  const qCatBadge = document.getElementById('question-category-badge');
+  const btnToggleDoubt = document.getElementById('btn-toggle-doubt');
+  const doubtBtnText = document.getElementById('doubt-btn-text');
+  const qText = document.getElementById('question-text');
+  const qCodeWrap = document.getElementById('question-code-wrap');
+  const qCode = document.getElementById('question-code');
+  const optionsContainer = document.getElementById('options-container');
+  const btnPrevQ = document.getElementById('btn-prev-q');
+  const btnNextQ = document.getElementById('btn-next-q');
+  const navIndicatorText = document.getElementById('nav-indicator-text');
+  const paletteGrid = document.getElementById('palette-grid');
+  const paletteSummary = document.getElementById('palette-summary');
+
+  // Modal
+  const confirmModal = document.getElementById('confirm-modal');
+  const btnModalCancel = document.getElementById('btn-modal-cancel');
+  const btnModalConfirm = document.getElementById('btn-modal-confirm');
+  const modalSummaryText = document.getElementById('modal-summary-text');
+  const modalUnansweredWarn = document.getElementById('modal-unanswered-warning');
+
+  // Result Elements
+  const resultScore = document.getElementById('result-score');
+  const resultStatusBadge = document.getElementById('result-status-badge');
+  const resultHeading = document.getElementById('result-heading');
+  const resultDesc = document.getElementById('result-desc');
+  const resultCorrectCount = document.getElementById('result-correct-count');
+  const resultWrongCount = document.getElementById('result-wrong-count');
+  const resultDuration = document.getElementById('result-duration');
+  const btnRetakeTryout = document.getElementById('btn-retake-tryout');
+  const reviewListContainer = document.getElementById('review-list-container');
+  const tabCountAll = document.getElementById('tab-count-all');
+  const tabCountCorrect = document.getElementById('tab-count-correct');
+  const tabCountWrong = document.getElementById('tab-count-wrong');
+
+  // Initialize
+  const init = () => {
+    tokenForm?.addEventListener('submit', handleTokenSubmit);
+    btnPrevQ?.addEventListener('click', () => navigateQuestion(currentQIndex - 1));
+    btnNextQ?.addEventListener('click', () => navigateQuestion(currentQIndex + 1));
+    btnToggleDoubt?.addEventListener('click', toggleDoubt);
+    btnSubmitExam?.addEventListener('click', openConfirmModal);
+    btnModalCancel?.addEventListener('click', closeConfirmModal);
+    btnModalConfirm?.addEventListener('click', submitExamAnswers);
+    btnRetakeTryout?.addEventListener('click', resetToGate);
+
+    // Setup review filter tabs
+    document.querySelectorAll('.filter-tab').forEach((tab) => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-tab').forEach((t) => t.classList.remove('active'));
+        const target = e.currentTarget;
+        target.classList.add('active');
+        activeFilter = target.getAttribute('data-filter') || 'all';
+        renderReviewList();
+      });
+    });
+  };
+
+  // 1. Verify Token and Start CBT
+  const handleTokenSubmit = async (e) => {
+    e.preventDefault();
+    if (!inputToken) return;
+
+    const token = inputToken.value.trim().toUpperCase();
+    if (!token) return;
+
+    if (btnStartExam) {
+      btnStartExam.disabled = true;
+      btnStartExam.textContent = 'Memverifikasi Token...';
+    }
+    if (tokenError) tokenError.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/sql/tryout/verify-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        if (tokenError) {
+          tokenError.textContent = data.error || 'Token tidak valid. Silakan coba lagi.';
+          tokenError.style.display = 'block';
+        }
+        if (btnStartExam) {
+          btnStartExam.disabled = false;
+          btnStartExam.textContent = 'Mulai Mengerjakan Ujian →';
+        }
+        return;
+      }
+
+      activeToken = token;
+      startCbtExam();
+    } catch (err) {
+      if (tokenError) {
+        tokenError.textContent = 'Terjadi gangguan jaringan saat memvalidasi token.';
+        tokenError.style.display = 'block';
+      }
+      if (btnStartExam) {
+        btnStartExam.disabled = false;
+        btnStartExam.textContent = 'Mulai Mengerjakan Ujian →';
+      }
+    }
+  };
+
+  // 2. Start CBT Exam Session
+  const startCbtExam = () => {
+    userAnswers = {};
+    userDoubt = {};
+    currentQIndex = 0;
+    secondsRemaining = TOTAL_DURATION_SECS;
+    examStartTime = Date.now();
+
+    // Switch Screens
+    screenGate.style.display = 'none';
+    screenResult.style.display = 'none';
+    screenCbt.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    buildPaletteGrid();
+    renderActiveQuestion();
+    startTimer();
+  };
+
+  // 3. Timer Countdown
+  const startTimer = () => {
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+      secondsRemaining--;
+      updateTimerDisplay();
+
+      if (secondsRemaining <= 0) {
+        clearInterval(timerInterval);
+        alert('⏰ Waktu ujian telah habis! Jawaban Anda akan otomatis dikumpulkan.');
+        submitExamAnswers();
+      }
+    }, 1000);
+  };
+
+  const updateTimerDisplay = () => {
+    if (!cbtTimer) return;
+    const mins = Math.floor(secondsRemaining / 60);
+    const secs = secondsRemaining % 60;
+    cbtTimer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+    if (secondsRemaining <= 300) {
+      cbtTimer.classList.add('timer-warning');
+    } else {
+      cbtTimer.classList.remove('timer-warning');
+    }
+  };
+
+  // 4. Build Navigation Palette
+  const buildPaletteGrid = () => {
+    if (!paletteGrid) return;
+    paletteGrid.innerHTML = '';
+
+    QUESTIONS.forEach((q, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'palette-btn';
+      btn.id = `palette-btn-${q.id}`;
+      btn.textContent = String(q.id);
+      btn.addEventListener('click', () => navigateQuestion(idx));
+      paletteGrid.appendChild(btn);
+    });
+
+    updatePaletteStatus();
+  };
+
+  const updatePaletteStatus = () => {
+    let answeredCount = 0;
+    let doubtCount = 0;
+
+    QUESTIONS.forEach((q, idx) => {
+      const btn = document.getElementById(`palette-btn-${q.id}`);
+      if (!btn) return;
+
+      btn.className = 'palette-btn';
+
+      if (idx === currentQIndex) {
+        btn.classList.add('active');
+      }
+
+      if (userDoubt[q.id]) {
+        btn.classList.add('doubtful');
+        doubtCount++;
+      } else if (userAnswers[q.id]) {
+        btn.classList.add('answered');
+        answeredCount++;
+      }
+    });
+
+    if (paletteSummary) {
+      const unanswered = TOTAL_Q - (answeredCount + doubtCount);
+      paletteSummary.innerHTML = `<span><strong>${answeredCount}</strong> Terjawab</span> &bull; <span><strong>${doubtCount}</strong> Ragu</span> &bull; <span><strong>${unanswered}</strong> Belum</span>`;
+    }
+  };
+
+  // 5. Render Active Question
+  const renderActiveQuestion = () => {
+    const q = QUESTIONS[currentQIndex];
+    if (!q) return;
+
+    if (qNumBadge) qNumBadge.textContent = `SOAL NO. ${q.id} DARI ${TOTAL_Q}`;
+    if (qCatBadge) qCatBadge.textContent = `KATEGORI: ${q.category.toUpperCase()}`;
+    if (qText) qText.textContent = q.question;
+
+    if (qCodeWrap && qCode) {
+      if (q.codeSnippet) {
+        qCode.textContent = q.codeSnippet;
+        qCodeWrap.style.display = 'block';
+      } else {
+        qCodeWrap.style.display = 'none';
+      }
+    }
+
+    // Toggle Doubt button state
+    if (btnToggleDoubt && doubtBtnText) {
+      if (userDoubt[q.id]) {
+        btnToggleDoubt.classList.add('is-doubt');
+        doubtBtnText.textContent = 'Batalkan Ragu-Ragu';
+      } else {
+        btnToggleDoubt.classList.remove('is-doubt');
+        doubtBtnText.textContent = 'Tandai Ragu-Ragu';
+      }
+    }
+
+    // Render Options
+    if (optionsContainer) {
+      optionsContainer.innerHTML = '';
+
+      q.options.forEach((opt) => {
+        const isChecked = userAnswers[q.id] === opt.key;
+        const optCard = document.createElement('label');
+        optCard.className = `option-card ${isChecked ? 'selected' : ''}`;
+
+        optCard.innerHTML = `
+          <input type="radio" name="option_q_${q.id}" value="${opt.key}" ${isChecked ? 'checked' : ''} class="option-radio" />
+          <div class="option-key-circle">${opt.key}</div>
+          <div class="option-text">${opt.text}</div>
+        `;
+
+        optCard.querySelector('input')?.addEventListener('change', () => {
+          userAnswers[q.id] = opt.key;
+          renderActiveQuestion();
+          updatePaletteStatus();
+        });
+
+        optionsContainer.appendChild(optCard);
+      });
+    }
+
+    // Nav Footer Controls
+    if (btnPrevQ) btnPrevQ.disabled = currentQIndex === 0;
+    if (btnNextQ) {
+      if (currentQIndex === TOTAL_Q - 1) {
+        btnNextQ.textContent = 'Selesai & Kumpulkan';
+        btnNextQ.className = 'btn btn-emerald btn-md';
+      } else {
+        btnNextQ.textContent = 'Soal Berikutnya →';
+        btnNextQ.className = 'btn btn-primary btn-md';
+      }
+    }
+    if (navIndicatorText) {
+      navIndicatorText.textContent = `${currentQIndex + 1} dari ${TOTAL_Q} Soal`;
+    }
+
+    updatePaletteStatus();
+  };
+
+  const navigateQuestion = (targetIndex) => {
+    if (targetIndex < 0) return;
+    if (targetIndex >= TOTAL_Q) {
+      openConfirmModal();
+      return;
+    }
+    currentQIndex = targetIndex;
+    renderActiveQuestion();
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  };
+
+  const toggleDoubt = () => {
+    const q = QUESTIONS[currentQIndex];
+    if (!q) return;
+
+    userDoubt[q.id] = !userDoubt[q.id];
+    renderActiveQuestion();
+  };
+
+  // 6. Confirm Modal
+  const openConfirmModal = () => {
+    const answeredCount = Object.keys(userAnswers).length;
+    const unanswered = TOTAL_Q - answeredCount;
+    const doubtCount = Object.values(userDoubt).filter(Boolean).length;
+
+    if (modalSummaryText) {
+      modalSummaryText.innerHTML = `Anda telah menjawab <strong>${answeredCount} dari ${TOTAL_Q} soal</strong>. (Ragu-ragu: <strong>${doubtCount}</strong>, Belum diisi: <strong>${unanswered}</strong>).`;
+    }
+
+    if (modalUnansweredWarn) {
+      if (unanswered > 0 || doubtCount > 0) {
+        modalUnansweredWarn.style.display = 'block';
+      } else {
+        modalUnansweredWarn.style.display = 'none';
+      }
+    }
+
+    if (confirmModal) confirmModal.style.display = 'flex';
+  };
+
+  const closeConfirmModal = () => {
+    if (confirmModal) confirmModal.style.display = 'none';
+  };
+
+  // 7. Submit Answers to Backend API
+  const submitExamAnswers = async () => {
+    closeConfirmModal();
+    clearInterval(timerInterval);
+
+    const durationSpent = Math.max(1, Math.round((Date.now() - examStartTime) / 1000));
+
+    if (btnSubmitExam) {
+      btnSubmitExam.disabled = true;
+      btnSubmitExam.textContent = 'Menghitung Skor...';
+    }
+
+    try {
+      const res = await fetch('/api/sql/tryout/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: activeToken,
+          answers: userAnswers,
+          durationSeconds: durationSpent
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Gagal mengirim jawaban try out.');
+        if (btnSubmitExam) {
+          btnSubmitExam.disabled = false;
+          btnSubmitExam.textContent = 'Selesai & Kumpulkan ✓';
+        }
+        return;
+      }
+
+      reviewData = data;
+      displayResults(data);
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan jaringan saat mengirimkan jawaban ujian.');
+      if (btnSubmitExam) {
+        btnSubmitExam.disabled = false;
+        btnSubmitExam.textContent = 'Selesai & Kumpulkan ✓';
+      }
+    }
+  };
+
+  // 8. Display Results & Detailed Review
+  const displayResults = (data) => {
+    screenCbt.style.display = 'none';
+    screenGate.style.display = 'none';
+    screenResult.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (resultScore) resultScore.textContent = String(data.score);
+    if (resultCorrectCount) resultCorrectCount.textContent = String(data.correctCount);
+    if (resultWrongCount) resultWrongCount.textContent = String(data.wrongCount);
+
+    const mins = Math.floor(data.durationSeconds / 60);
+    const secs = data.durationSeconds % 60;
+    if (resultDuration) resultDuration.textContent = `${mins}m ${secs}s`;
+
+    if (resultStatusBadge && resultHeading && resultDesc) {
+      if (data.isPassed) {
+        resultStatusBadge.className = 'badge badge-emerald badge-lg';
+        resultStatusBadge.textContent = '🎉 TUNTAS (MEMENUHI KKM 75)';
+        resultHeading.textContent = 'Luar Biasa! Pemahaman SQL Anda Sangat Baik';
+        resultDesc.textContent = `Selamat ${data.userName}! Anda berhasil melampaui standar KKM dengan skor ${data.score}/100. Anda sudah sangat siap menghadapi ujian sesungguhnya.`;
+      } else {
+        resultStatusBadge.className = 'badge badge-red badge-lg';
+        resultStatusBadge.textContent = '📖 BELUM TUNTAS (PERLU PENGAYAAN)';
+        resultHeading.textContent = 'Perlu Belajar Lebih Lanjut & Coba Lagi';
+        resultDesc.textContent = `Skor Anda saat ini adalah ${data.score}/100 (KKM 75). Jangan berkecil hati, pelajari rincian pembahasan materi di bawah ini lalu ulangi Try Out!`;
+      }
+    }
+
+    if (tabCountAll) tabCountAll.textContent = String(data.totalQuestions);
+    if (tabCountCorrect) tabCountCorrect.textContent = String(data.correctCount);
+    if (tabCountWrong) tabCountWrong.textContent = String(data.wrongCount);
+
+    renderReviewList();
+  };
+
+  // 9. Render Review Items
+  const renderReviewList = () => {
+    if (!reviewListContainer || !reviewData || !reviewData.review) return;
+
+    reviewListContainer.innerHTML = '';
+
+    const filtered = reviewData.review.filter((item) => {
+      if (activeFilter === 'correct') return item.isCorrect;
+      if (activeFilter === 'wrong') return !item.isCorrect;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      reviewListContainer.innerHTML = '<div class="empty-filter-msg">Tidak ada butir soal pada filter ini.</div>';
+      return;
+    }
+
+    filtered.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = `review-item-card ${item.isCorrect ? 'item-correct' : 'item-wrong'}`;
+
+      const codeHtml = item.codeSnippet
+        ? `<div class="code-example-block margin-top-xs">
+            <pre class="code-snippet font-mono"><code>${escapeHtml(item.codeSnippet)}</code></pre>
+           </div>`
+        : '';
+
+      const optionsHtml = item.options
+        .map((opt) => {
+          const isUserChoice = item.selectedAnswer === opt.key;
+          const isKeyAnswer = item.correctAnswer === opt.key;
+          let optClass = 'review-opt';
+
+          if (isKeyAnswer) optClass += ' opt-is-correct-key';
+          if (isUserChoice && !isKeyAnswer) optClass += ' opt-is-user-wrong';
+
+          return `
+            <div class="${optClass}">
+              <span class="opt-badge">${opt.key}</span>
+              <span class="opt-txt">${escapeHtml(opt.text)}</span>
+              ${isKeyAnswer ? '<span class="opt-tag tag-green">KUNCI JAWABAN</span>' : ''}
+              ${isUserChoice && !isKeyAnswer ? '<span class="opt-tag tag-red">JAWABAN ANDA</span>' : ''}
+              ${isUserChoice && isKeyAnswer ? '<span class="opt-tag tag-green">JAWABAN ANDA ✓</span>' : ''}
+            </div>
+          `;
+        })
+        .join('');
+
+      card.innerHTML = `
+        <div class="review-item-header">
+          <div class="review-meta">
+            <span class="badge ${item.isCorrect ? 'badge-emerald' : 'badge-red'}">SOAL NO. ${item.id}</span>
+            <span class="badge badge-purple">${item.category.toUpperCase()}</span>
+          </div>
+          <span class="review-status-pill ${item.isCorrect ? 'pill-green' : 'pill-red'}">
+            ${item.isCorrect ? '✅ JAWABAN TEPAT' : '❌ KURANG TEPAT'}
+          </span>
+        </div>
+
+        <h4 class="review-question-title margin-top-xs">${escapeHtml(item.question)}</h4>
+        ${codeHtml}
+
+        <div class="review-options-list margin-top-sm">
+          ${optionsHtml}
+        </div>
+
+        <div class="review-explanation-box margin-top-sm">
+          <div class="exp-title">💡 Pembahasan Konsep &amp; Analisis Guru:</div>
+          <p class="exp-text">${escapeHtml(item.explanation)}</p>
+        </div>
+      `;
+
+      reviewListContainer.appendChild(card);
+    });
+  };
+
+  const escapeHtml = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  const resetToGate = () => {
+    clearInterval(timerInterval);
+    screenResult.style.display = 'none';
+    screenCbt.style.display = 'none';
+    screenGate.style.display = 'block';
+    if (btnStartExam) {
+      btnStartExam.disabled = false;
+      btnStartExam.textContent = 'Mulai Mengerjakan Ujian →';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>
+
+<style>
+  .tryout-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .breadcrumb-nav a {
+    color: var(--accent-cyan);
+    text-decoration: none;
+  }
+
+  .breadcrumb-nav a:hover {
+    text-decoration: underline;
+  }
+
+  .separator {
+    color: var(--border-color);
+  }
+
+  .glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  /* SCREEN 1: GATE HERO */
+  .gate-hero-card {
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .gate-badge-wrap {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .gate-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 40%, var(--accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gate-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 850px;
+  }
+
+  .specs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 800px) {
+    .specs-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 500px) {
+    .specs-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .spec-card {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1rem;
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .spec-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .spec-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .spec-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .spec-val {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .spec-sub {
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+  }
+
+  .auth-warning-box {
+    display: flex;
+    gap: 1.25rem;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .warn-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .warn-body h4 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #f87171;
+    margin-bottom: 0.35rem;
+  }
+
+  .warn-body p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .participant-panel {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+  }
+
+  .participant-info-card {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .user-avatar-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--accent-primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .user-role-tag {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    letter-spacing: 0.05em;
+  }
+
+  .user-display-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .user-email {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+  }
+
+  .token-form-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .token-label {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
+
+  .token-field-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 600px) {
+    .token-field-row {
+      flex-direction: column;
+    }
+  }
+
+  .token-input {
+    flex: 1;
+    background: #090d16;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.25rem;
+    color: #fff;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .token-input:focus {
+    border-color: var(--accent-cyan);
+    outline: none;
+  }
+
+  .token-hint-box {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px dashed rgba(14, 165, 233, 0.3);
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-top: 0.5rem;
+  }
+
+  .token-alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .error-msg {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+  }
+
+  /* SCREEN 2: CBT WORKSPACE */
+  .cbt-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.5rem;
+    position: sticky;
+    top: 1rem;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .cbt-student-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .cbt-tag {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--accent-primary);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .cbt-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  .cbt-timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #090d16;
+    border: 1px solid var(--border-color);
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+  }
+
+  .timer-display {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    letter-spacing: 0.05em;
+  }
+
+  .timer-warning {
+    color: #ef4444 !important;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0.5; }
+  }
+
+  .cbt-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  @media (max-width: 850px) {
+    .cbt-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cbt-question-area {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .question-badge-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .question-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+
+  /* 5 Options Styling */
+  .options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .option-card:hover {
+    border-color: rgba(14, 165, 233, 0.4);
+    background: rgba(14, 165, 233, 0.04);
+  }
+
+  .option-card.selected {
+    border-color: var(--accent-cyan);
+    background: rgba(14, 165, 233, 0.1);
+    box-shadow: 0 0 0 1px var(--accent-cyan);
+  }
+
+  .option-radio {
+    margin-top: 0.25rem;
+    cursor: pointer;
+  }
+
+  .option-key-circle {
+    width: 28px;
+    height: 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+
+  .option-card.selected .option-key-circle {
+    background: var(--accent-cyan);
+    color: #000;
+    border-color: var(--accent-cyan);
+  }
+
+  .option-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .option-card.selected .option-text {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .question-nav-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .nav-indicator {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .is-doubt {
+    background: #f59e0b !important;
+    color: #000 !important;
+    border-color: #f59e0b !important;
+  }
+
+  /* CBT Sidebar Palette */
+  .cbt-palette-sidebar {
+    padding: 1.5rem;
+  }
+
+  .palette-header h4 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .palette-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .palette-legend {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-answered { background: #10b981; }
+  .dot-doubt { background: #f59e0b; }
+  .dot-unanswered { background: rgba(255, 255, 255, 0.2); }
+
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+  }
+
+  .palette-btn {
+    height: 38px;
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .palette-btn:hover {
+    border-color: var(--accent-cyan);
+    color: #fff;
+  }
+
+  .palette-btn.active {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 1px;
+  }
+
+  .palette-btn.answered {
+    background: #10b981;
+    color: #fff;
+    border-color: #10b981;
+  }
+
+  .palette-btn.doubtful {
+    background: #f59e0b;
+    color: #000;
+    border-color: #f59e0b;
+  }
+
+  .palette-summary {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* SCREEN 3: RESULT HERO & REVIEW */
+  .result-hero-card {
+    padding: 2.5rem 2rem;
+  }
+
+  .result-score-banner {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+  }
+
+  @media (max-width: 700px) {
+    .result-score-banner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  .score-circle-wrap {
+    width: 140px;
+    height: 140px;
+    background: #090d16;
+    border: 4px solid var(--accent-cyan);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 24px rgba(14, 165, 233, 0.3);
+  }
+
+  .score-big {
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #fff;
+  }
+
+  .score-max {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .result-heading {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-top: 0.35rem;
+  }
+
+  .result-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .result-stats-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 700px) {
+    .result-stats-row {
+      justify-content: center;
+    }
+  }
+
+  .stat-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* Review List */
+  .review-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .review-filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .filter-tab {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-tab.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+  }
+
+  .review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .review-item-card {
+    background: var(--bg-surface, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .item-correct {
+    border-left: 4px solid #10b981;
+  }
+
+  .item-wrong {
+    border-left: 4px solid #ef4444;
+  }
+
+  .review-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .review-meta {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .review-status-pill {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .pill-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+  .pill-red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+  .review-question-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  .review-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .review-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .opt-badge {
+    font-weight: 800;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .opt-txt {
+    flex: 1;
+  }
+
+  .opt-tag {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+  }
+
+  .tag-green { background: #10b981; color: #000; }
+  .tag-red { background: #ef4444; color: #fff; }
+
+  .opt-is-correct-key {
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.08);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .opt-is-user-wrong {
+    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  .review-explanation-box {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+  }
+
+  .exp-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    margin-bottom: 0.35rem;
+  }
+
+  .exp-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* Modal Backdrop */
+  .cbt-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+  }
+
+  .cbt-modal {
+    max-width: 480px;
+    width: 100%;
+    padding: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .modal-icon {
+    font-size: 2.5rem;
+  }
+
+  .modal-warn-alert {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Utility badges */
+  .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .badge-cyan { background: rgba(14, 165, 233, 0.15); color: var(--accent-cyan); border: 1px solid rgba(14, 165, 233, 0.3); }
+  .badge-purple { background: rgba(99, 102, 241, 0.15); color: var(--accent-primary); border: 1px solid rgba(99, 102, 241, 0.3); }
+  .badge-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .badge-lg { font-size: 0.9rem; padding: 0.35rem 0.85rem; }
+
+  .text-cyan { color: var(--accent-cyan); }
+  .text-green { color: #10b981; }
+  .text-red { color: #ef4444; }
+
+  .btn-emerald {
+    background: #10b981;
+    color: #fff;
+    border: none;
+  }
+  .btn-emerald:hover {
+    background: #059669;
+  }
+
+  .btn-outline-warning {
+    background: transparent;
+    border: 1px solid #f59e0b;
+    color: #f59e0b;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .btn-outline-warning:hover {
+    background: rgba(245, 158, 11, 0.1);
+  }
+
+  .margin-top-xs { margin-top: 0.35rem; }
+  .margin-top-sm { margin-top: 0.75rem; }
+  .margin-top-md { margin-top: 1.25rem; }
+  .margin-top-lg { margin-top: 1.75rem; }
+  .margin-top-xl { margin-top: 2.5rem; }
+</style>

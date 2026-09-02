@@ -117,12 +117,30 @@ try {
   console.warn('Could not fetch TIK submission:', err);
 }
 
+// Fetch SQL Try Out Submissions
+let sqlTryoutSubmission: any = null;
+try {
+  const tryoutRes = await query(
+    `SELECT score, correct_answers, total_questions, duration_seconds, created_at 
+     FROM sql_tryout_submissions 
+     WHERE user_id = $1 
+     ORDER BY created_at DESC 
+     LIMIT 1`,
+    [user.id]
+  );
+  if (tryoutRes.rows && tryoutRes.rows.length > 0) {
+    sqlTryoutSubmission = tryoutRes.rows[0];
+  }
+} catch (err) {
+  console.warn('Could not fetch SQL tryout submission:', err);
+}
+
 // Auto-sync existing student progress to course_enrollments
 try {
   if (bkSubmission || flowchartSubmission || tikSubmission) {
     await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'informatika') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
-  if (completedModules.length > 0) {
+  if (completedModules.length > 0 || sqlTryoutSubmission) {
     await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'rpl_web_sql') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
 } catch (err) {
@@ -473,9 +491,24 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
               </div>
 
               <div class="lkpd-item-box">
-                <div class="lkpd-item-title">Predikat & Kualifikasi Kompetensi</div>
+                <div class="lkpd-item-title">Predikat &amp; Kualifikasi Kompetensi</div>
                 <div class="lkpd-item-score" style="color: #a855f7;">{rankInfo.title}</div>
                 <p class="lkpd-item-feedback">Peringkat #{userRankPosition} dari {totalStudentsCount} Siswa Terdaftar</p>
+              </div>
+
+              <div class="lkpd-item-box">
+                <div class="lkpd-item-title">Try Out Ujian CBT SQL (25 Soal)</div>
+                <div class="lkpd-item-score" style={sqlTryoutSubmission ? (sqlTryoutSubmission.score >= 75 ? 'color: #10b981;' : 'color: #f59e0b;') : 'color: var(--text-muted);'}>
+                  {sqlTryoutSubmission ? `${sqlTryoutSubmission.score} / 100` : 'Belum Dikerjakan'}
+                </div>
+                <p class="lkpd-item-feedback">
+                  {sqlTryoutSubmission 
+                    ? `Benar ${sqlTryoutSubmission.correct_answers}/${sqlTryoutSubmission.total_questions} soal (${sqlTryoutSubmission.score >= 75 ? 'Tuntas KKM' : 'Perlu Remedial'})` 
+                    : 'Simulasi Try Out CBT mandiri dengan token ujian.'}
+                </p>
+                <a href="/belajar/sql/tryout" class="lkpd-link-btn margin-top-xs">
+                  {sqlTryoutSubmission ? 'Ulangi / Buka Try Out &rarr;' : 'Mulai Try Out Ujian &rarr;'}
+                </a>
               </div>
             </div>
           </div>

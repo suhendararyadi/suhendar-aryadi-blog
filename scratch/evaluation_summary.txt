@@ -1,0 +1,173 @@
+=== LKPD 1 EVALUATION PREVIEW (22 Submissions) ===
+[LKPD 1] ID: 68 | Ulpi paujiah | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Ulpi paujiah! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 81 | Deviana Aprilia | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Deviana Aprilia! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 82 | Ai ghina anggraeni | Score: 89 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 14 }
+  Feedback: Kerja yang sangat bagus Ai ghina anggraeni! Konsep 4 pilar telah dipahami dengan baik. Dekomposisi dan abstraksi data tersusun runtut. Tingkatkan kedalaman logika pada perancangan algoritma dan pseudocode untuk hasil yang semakin sempurna.
+[LKPD 1] ID: 83 | Nadila Damayanti | Score: 89 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 14 }
+  Feedback: Kerja yang sangat bagus Nadila Damayanti! Konsep 4 pilar telah dipahami dengan baik. Dekomposisi dan abstraksi data tersusun runtut. Tingkatkan kedalaman logika pada perancangan algoritma dan pseudocode untuk hasil yang semakin sempurna.
+[LKPD 1] ID: 84 | Muhamad Jibril abdillah | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Muhamad Jibril abdillah! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 85 | Silvi nurpaujiah | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Silvi nurpaujiah! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 86 | yusril abdullah | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa yusril abdullah! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 87 | Cinta aulia | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Cinta aulia! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 88 | M. NABRIL HAFIZ | Score: 97 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 22 }
+  Feedback: Luar biasa M. NABRIL HAFIZ! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 89 | m Fadil Pratama | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa m Fadil Pratama! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 90 | Neng Eka Sari | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Neng Eka Sari! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 91 | AI DALFA HODIJAH MUKAROMAH | Score: 92 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 17 }
+  Feedback: Kerja yang sangat bagus AI DALFA HODIJAH MUKAROMAH! Konsep 4 pilar telah dipahami dengan baik. Dekomposisi dan abstraksi data tersusun runtut. Tingkatkan kedalaman logika pada perancangan algoritma dan pseudocode untuk hasil yang semakin sempurna.
+[LKPD 1] ID: 92 | Salsa Nabila Putri | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Salsa Nabila Putri! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 93 | M FASYA SYAHREZA | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa M FASYA SYAHREZA! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 94 | NAGITA AGUSTIN | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa NAGITA AGUSTIN! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 95 | Desi kurnia | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Desi kurnia! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 96 | Ai nurazifa | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Ai nurazifa! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 97 | Nadila Ramadani | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Nadila Ramadani! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 98 | ismi nurjanah | Score: 97 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 22 }
+  Feedback: Luar biasa ismi nurjanah! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 99 | Tika sri rahayu | Score: 97 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 22 }
+  Feedback: Luar biasa Tika sri rahayu! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 100 | nazma azahra nurhafifah | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa nazma azahra nurhafifah! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+[LKPD 1] ID: 101 | Nadila Ramadani | Score: 100 | Breakdown: { scoreDeco: 25, scorePattern: 25, scoreAbst: 25, scoreAlgo: 25 }
+  Feedback: Luar biasa Nadila Ramadani! Analisis 4 Pilar Berpikir Komputasional sangat lengkap, mendalam, dan terstruktur rapi. Pemisahan modul, penentuan data esensial, dan rancangan algoritma dieksekusi dengan standar tinggi. Pertahankan prestasi gemilang ini!
+
+=== LKPD 2 EVALUATION PREVIEW (63 Submissions) ===
+[LKPD 2] ID: 14 | Salsa Nabila Putri | Score: 89 | Breakdown: { scoreFlow: 45, scorePseudo: 44 }
+  Feedback: Bagus sekali Salsa Nabila Putri! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 34 | Rido Purnama | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Rido Purnama! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 35 | Kirani Setiawati | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Kirani Setiawati! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 36 | Muhamad lutpi | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Muhamad lutpi! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 37 | anggun aulia | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan anggun aulia! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 38 | salsa bilaa | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan salsa bilaa! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 39 | Ai ghina anggraeni | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Ai ghina anggraeni! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 40 | Deviana Aprilia | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Deviana Aprilia! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 41 | Nadila Damayanti | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Nadila Damayanti! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 42 | Silvi nurpaujiah | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Silvi nurpaujiah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 43 | Alika | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Alika! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 44 | Muhamad Jibril abdillah | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Muhamad Jibril abdillah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 45 | Abdul Aziz | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Abdul Aziz! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 46 | Fitri puspita | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali Fitri puspita! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 47 | SILVIRA PUTRI ANINDITHA | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali SILVIRA PUTRI ANINDITHA! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 48 | Siti Mariyah | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Siti Mariyah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 49 | Altarisha Rizkia | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Altarisha Rizkia! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 50 | saidah saskia aprilia | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali saidah saskia aprilia! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 51 | M Wildan Maulana Nugraha | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan M Wildan Maulana Nugraha! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 52 | Raflibaihaqi | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali Raflibaihaqi! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 53 | Muhammad Rendra | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Muhammad Rendra! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 54 | RAISYA ANJANI | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan RAISYA ANJANI! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 55 | Aang abdul karim | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Aang abdul karim! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 56 | N. Isma Nurhidayah | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan N. Isma Nurhidayah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 57 | ALIKA PUTRI NURAINI | Score: 86 | Breakdown: { scoreFlow: 50, scorePseudo: 36 }
+  Feedback: Bagus sekali ALIKA PUTRI NURAINI! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 58 | Neng Rahma Azahra Aureli | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali Neng Rahma Azahra Aureli! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 59 | Sahlan | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Sahlan! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 60 | TIARA MEILANII PUTRI | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan TIARA MEILANII PUTRI! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 61 | Siti fatmawati | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Siti fatmawati! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 62 | M. NABRIL HAFIZ | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan M. NABRIL HAFIZ! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 63 | m Fadil Pratama | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali m Fadil Pratama! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 64 | Eneng Nia | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali Eneng Nia! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 65 | laila adha fauziyah | Score: 89 | Breakdown: { scoreFlow: 45, scorePseudo: 44 }
+  Feedback: Bagus sekali laila adha fauziyah! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 66 | Dea Ananda | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali Dea Ananda! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 67 | Nur Aeni | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Nur Aeni! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 68 | Zahra nurazizah | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Zahra nurazizah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 69 | M.Rifqi Abdurrozaq | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali M.Rifqi Abdurrozaq! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 70 | Cinta aulia | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Cinta aulia! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 71 | aidinirahmawati | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali aidinirahmawati! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 72 | M Riza Nurbarri | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan M Riza Nurbarri! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 73 | Neng Eka Sari | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Neng Eka Sari! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 74 | SITI ZAHIRA RAHMAWATI | Score: 86 | Breakdown: { scoreFlow: 50, scorePseudo: 36 }
+  Feedback: Bagus sekali SITI ZAHIRA RAHMAWATI! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 75 | Reza saputra | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Reza saputra! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 76 | Rizkiya Sabila | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Rizkiya Sabila! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 77 | selly sutiana | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan selly sutiana! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 78 | Ai pitri | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Ai pitri! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 79 | Hasbi arif | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Hasbi arif! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 80 | AKMAL MUROL MUTAKIN | Score: 89 | Breakdown: { scoreFlow: 45, scorePseudo: 44 }
+  Feedback: Bagus sekali AKMAL MUROL MUTAKIN! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 81 | m.alfaiz mulyana | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan m.alfaiz mulyana! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 82 | Rani Rahmawati | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Rani Rahmawati! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 83 | Asri Rahmi | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Asri Rahmi! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 84 | siti rahmi juliyanty | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan siti rahmi juliyanty! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 85 | Zahra Azkia Salsabila | Score: 94 | Breakdown: { scoreFlow: 50, scorePseudo: 44 }
+  Feedback: Bagus sekali Zahra Azkia Salsabila! Alur logika program sudah runtut dan jelas. Flowchart dan pseudocode saling selaras. Pertahankan pemahaman logika algoritma yang solid ini!
+[LKPD 2] ID: 86 | NAGITA AGUSTIN | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan NAGITA AGUSTIN! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 87 | mawarr | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan mawarr! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 88 | Desi kurnia | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Desi kurnia! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 89 | Ai nurazifa | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Ai nurazifa! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 90 | ismi nurjanah | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan ismi nurjanah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 91 | Tika sri rahayu | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Tika sri rahayu! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 92 | nazma azahra nurhafifah | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan nazma azahra nurhafifah! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 93 | Nadila Ramadani | Score: 100 | Breakdown: { scoreFlow: 50, scorePseudo: 50 }
+  Feedback: Sangat memuaskan Nadila Ramadani! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 94 | M FASYA SYAHREZA | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan M FASYA SYAHREZA! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
+[LKPD 2] ID: 95 | muchamad alfiansyah r | Score: 95 | Breakdown: { scoreFlow: 45, scorePseudo: 50 }
+  Feedback: Sangat memuaskan muchamad alfiansyah r! Diagram alir (flowchart) tersusun sangat sistematis dengan simbol ANSI yang tepat, serta pseudocode ditulis dengan struktur logika percabangan yang rapi dan mudah diimplementasikan. Kerja hebat!
