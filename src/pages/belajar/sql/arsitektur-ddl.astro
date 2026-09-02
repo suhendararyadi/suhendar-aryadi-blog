@@ -4,81 +4,6 @@ import { getSessionUser } from '../../../lib/auth';
 
 const sessionId = Astro.cookies.get('session_id')?.value;
 const user = await getSessionUser(sessionId);
-
-const diagramArchitecture = `flowchart TD
-    UI["📱 Aplikasi Kasir POS"]
-    Engine["⚙️ Database Engine (PostgreSQL / MySQL)"]
-    Parser["1. SQL Parser & Query Optimizer"]
-    Exec["2. Transaction & Execution Engine (ACID)"]
-    Buffer["3. Memory Buffer & Cache"]
-    Disk[("💾 Storage Disk")]
-
-    UI -->|Kirim Perintah SQL| Engine
-    Engine --> Parser
-    Parser --> Exec
-    Exec --> Buffer
-    Buffer -->|Write to Disk| Disk
-    Disk -->|Read to Buffer| Buffer`;
-
-const diagramErd = `erDiagram
-    KATEGORI ||--o{ PRODUK : memiliki
-    KASIR ||--o{ TRANSAKSI : melayani
-    PELANGGAN ||--o{ TRANSAKSI : melakukan
-    TRANSAKSI ||--|{ DETAIL_TRANSAKSI : memuat
-    PRODUK ||--o{ DETAIL_TRANSAKSI : dicatat_di
-
-    KATEGORI {
-        int id_kategori PK
-        string nama_kategori
-        string deskripsi
-    }
-    PRODUK {
-        int id_produk PK
-        string kode_barcode
-        string nama_produk
-        int id_kategori FK
-        decimal harga_beli
-        decimal harga_jual
-        int stok
-        string satuan
-    }
-    KASIR {
-        int id_kasir PK
-        string nama_kasir
-        string username
-        string nomor_hp
-        string shift
-    }
-    PELANGGAN {
-        int id_pelanggan PK
-        string nama_pelanggan
-        string nomor_telepon
-        int poin_member
-        date tanggal_bergabung
-    }
-    TRANSAKSI {
-        int id_transaksi PK
-        string kode_invoice
-        timestamp tanggal_transaksi
-        int id_kasir FK
-        int id_pelanggan FK
-        decimal total_belanja
-        string metode_pembayaran
-    }
-    DETAIL_TRANSAKSI {
-        int id_detail PK
-        int id_transaksi FK
-        int id_produk FK
-        int jumlah_beli
-        decimal harga_satuan
-        decimal subtotal
-    }`;
-
-const diagramOnDelete = `flowchart TD
-    A["Baris Induk Dihapus"]
-    A -->|Opsi 1| C["ON DELETE CASCADE (Baris anak otomatis ikut terhapus)"]
-    A -->|Opsi 2| R["ON DELETE RESTRICT (Penghapusan ditolak jika ada data anak)"]
-    A -->|Opsi 3| S["ON DELETE SET NULL (Kolom FK anak otomatis diubah jadi NULL)"]`;
 ---
 
 <MainLayout
@@ -184,9 +109,107 @@ const diagramOnDelete = `flowchart TD
           <span class="visual-badge">DIAGRAM ARSITEKTUR</span>
           <h4>Alur Pemrosesan Query pada RDBMS</h4>
         </div>
-        <div class="mermaid-diagram-wrap">
-          <pre class="mermaid">{diagramArchitecture}</pre>
+        
+        <div class="arch-flow-wrapper">
+          <!-- 1. Client Layer -->
+          <div class="arch-flow-card card-client">
+            <div class="flow-card-badge">
+              <span class="badge badge-cyan">LAYER 1: CLIENT APPLICATION</span>
+            </div>
+            <div class="flow-card-main">
+              <div class="flow-card-icon">📱</div>
+              <div class="flow-card-text">
+                <h5 class="flow-card-title">Aplikasi Kasir POS (Frontend / Client)</h5>
+                <p class="flow-card-desc">
+                  Kasir memindai barcode &rarr; Aplikasi membuat perintah SQL (misal: <code>INSERT INTO transaksi ...</code>) dan mengirimkannya melalui koneksi TCP/IP.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flow Arrow 1 -->
+          <div class="flow-connector">
+            <div class="flow-line"></div>
+            <span class="flow-pill-label">Kirim Perintah SQL (Query Stream)</span>
+            <div class="flow-arrow-head">&darr;</div>
+          </div>
+
+          <!-- 2. Database Server Engine -->
+          <div class="arch-flow-engine glass-card">
+            <div class="engine-header">
+              <div class="engine-title-flex">
+                <span class="engine-icon">⚙️</span>
+                <div>
+                  <h5 class="engine-title">DATABASE ENGINE (RDBMS Core: PostgreSQL / MySQL)</h5>
+                  <span class="engine-sub">Manajer Transaksi, Keamanan, &amp; Eksekusi Kueri ACID</span>
+                </div>
+              </div>
+              <span class="badge badge-purple">SERVER SIDE</span>
+            </div>
+
+            <div class="engine-steps-grid">
+              <!-- Step 1: Parser & Optimizer -->
+              <div class="engine-step-card">
+                <div class="step-badge-num">1</div>
+                <div class="step-card-content">
+                  <h6 class="step-title">SQL Parser &amp; Query Optimizer</h6>
+                  <p class="step-desc">
+                    Validasi sintaks SQL &amp; hak akses. Memilih rencana eksekusi (<em>Execution Plan</em>) dengan estimasi biaya algoritma I/O paling efisien.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Step 2: Transaction & Execution Engine -->
+              <div class="engine-step-card">
+                <div class="step-badge-num">2</div>
+                <div class="step-card-content">
+                  <h6 class="step-title">Transaction &amp; Execution Engine (ACID)</h6>
+                  <p class="step-desc">
+                    Eksekusi kueri, penguncian data (<em>Row Lock</em>) untuk multi-kasir, validasi <em>Constraints</em> (PK/FK/CHECK), serta pengelolaan <code>COMMIT/ROLLBACK</code>.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Step 3: Shared Memory Buffer & Cache -->
+              <div class="engine-step-card">
+                <div class="step-badge-num">3</div>
+                <div class="step-card-content">
+                  <h6 class="step-title">Shared Memory Buffer &amp; Cache (RAM)</h6>
+                  <p class="step-desc">
+                    Menyimpan blok data di RAM. Jika data ada di cache (<em>Buffer Cache Hit</em>), hasil kueri dikembalikan instan tanpa membaca disk fisik.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flow Arrow 2 (Bidirectional) -->
+          <div class="flow-connector flow-connector-bi">
+            <div class="flow-line"></div>
+            <span class="flow-pill-label">
+              <span>&darr; <strong>Write:</strong> Write-Ahead Log (WAL) &amp; Dirty Buffer Flush</span>
+              <span>&uarr; <strong>Read:</strong> Pembacaan Blok Data &amp; B-Tree Index ke RAM</span>
+            </span>
+            <div class="flow-arrow-head-bi">&#8645;</div>
+          </div>
+
+          <!-- 3. Storage Disk -->
+          <div class="arch-flow-card card-storage">
+            <div class="flow-card-badge">
+              <span class="badge badge-amber">LAYER 3: PERSISTENT STORAGE</span>
+            </div>
+            <div class="flow-card-main">
+              <div class="flow-card-icon">💾</div>
+              <div class="flow-card-text">
+                <h5 class="flow-card-title">Storage Disk Permanen (NVMe SSD / HDD)</h5>
+                <p class="flow-card-desc">
+                  Media penyimpanan fisik yang menyimpan berkas data tabel (<code>data files</code>), indeks B-Tree, dan berkas transaksi (WAL) agar data transaksi tidak pernah hilang (<em>Durability</em>).
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+
         <p class="visual-caption">
           <strong>Gambar 1.1:</strong> Alur transaksi dari antarmuka kasir ke parser SQL, eksekusi ACID, buffer memori, hingga penyimpanan permanen di disk.
         </p>
@@ -265,17 +288,292 @@ const diagramOnDelete = `flowchart TD
         <strong>Entity Relationship Diagram (ERD)</strong> adalah diagram visual yang menggambarkan seluruh entitas tabel basis data beserta atribut (kolom) dan garis relasi antar-entitas.
       </p>
 
-      <!-- Diagram 2: Mermaid ERD SmartMart POS -->
+      <!-- Diagram 2: Static ERD Schema Diagram SmartMart POS -->
       <div class="visual-box">
         <div class="visual-header">
-          <span class="visual-badge badge-cyan">DIAGRAM ERD RESMI</span>
-          <h4>Diagram Relasi 6 Entitas SmartMart POS (Mermaid.js)</h4>
+          <span class="visual-badge badge-cyan">DIAGRAM ERD RELASI TABEL</span>
+          <h4>Diagram Relasi 6 Entitas Skema SmartMart POS</h4>
         </div>
-        <div class="mermaid-diagram-wrap">
-          <pre class="mermaid">{diagramErd}</pre>
+
+        <div class="erd-visual-canvas">
+          <!-- Summary of Relations -->
+          <div class="erd-relationships-banner">
+            <div class="rel-badge-item">
+              <span class="rel-line-icon">1 ───&lt; N</span>
+              <span><strong>KASIR</strong> &rarr; TRANSAKSI (melayani)</span>
+            </div>
+            <div class="rel-badge-item">
+              <span class="rel-line-icon">1 ───&lt; N</span>
+              <span><strong>PELANGGAN</strong> &rarr; TRANSAKSI (melakukan)</span>
+            </div>
+            <div class="rel-badge-item">
+              <span class="rel-line-icon">1 ───&lt; N</span>
+              <span><strong>KATEGORI</strong> &rarr; PRODUK (memiliki)</span>
+            </div>
+            <div class="rel-badge-item">
+              <span class="rel-line-icon">1 ───&lt; N</span>
+              <span><strong>PRODUK</strong> &rarr; DETAIL_TRANSAKSI</span>
+            </div>
+            <div class="rel-badge-item">
+              <span class="rel-line-icon">1 ───&lt; N</span>
+              <span><strong>TRANSAKSI</strong> &rarr; DETAIL_TRANSAKSI</span>
+            </div>
+          </div>
+
+          <!-- 6 Tables Schema Grid -->
+          <div class="erd-tables-grid">
+            <!-- 1. KASIR -->
+            <div class="erd-table-card">
+              <div class="erd-table-header header-blue">
+                <div class="erd-header-title">
+                  <span class="erd-table-icon">👤</span>
+                  <strong>KASIR</strong>
+                </div>
+                <span class="erd-table-type">Master Table</span>
+              </div>
+              <div class="erd-table-body">
+                <div class="erd-column-row pk-row">
+                  <span class="col-key badge-pk">PK</span>
+                  <span class="col-name font-mono">id_kasir</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">nama_kasir</span>
+                  <span class="col-type">VARCHAR(100)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">username</span>
+                  <span class="col-type">VARCHAR(50)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">nomor_hp</span>
+                  <span class="col-type">VARCHAR(20)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">shift</span>
+                  <span class="col-type">VARCHAR(20)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. PELANGGAN -->
+            <div class="erd-table-card">
+              <div class="erd-table-header header-emerald">
+                <div class="erd-header-title">
+                  <span class="erd-table-icon">👥</span>
+                  <strong>PELANGGAN</strong>
+                </div>
+                <span class="erd-table-type">Master Table</span>
+              </div>
+              <div class="erd-table-body">
+                <div class="erd-column-row pk-row">
+                  <span class="col-key badge-pk">PK</span>
+                  <span class="col-name font-mono">id_pelanggan</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">nama_pelanggan</span>
+                  <span class="col-type">VARCHAR(100)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">nomor_telepon</span>
+                  <span class="col-type">VARCHAR(20)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">poin_member</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">tanggal_bergabung</span>
+                  <span class="col-type">DATE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. KATEGORI -->
+            <div class="erd-table-card">
+              <div class="erd-table-header header-purple">
+                <div class="erd-header-title">
+                  <span class="erd-table-icon">🏷️</span>
+                  <strong>KATEGORI</strong>
+                </div>
+                <span class="erd-table-type">Master Table</span>
+              </div>
+              <div class="erd-table-body">
+                <div class="erd-column-row pk-row">
+                  <span class="col-key badge-pk">PK</span>
+                  <span class="col-name font-mono">id_kategori</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">nama_kategori</span>
+                  <span class="col-type">VARCHAR(50)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">deskripsi</span>
+                  <span class="col-type">TEXT</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. TRANSAKSI (Header) -->
+            <div class="erd-table-card highlight-card">
+              <div class="erd-table-header header-cyan">
+                <div class="erd-header-title">
+                  <span class="erd-table-icon">🧾</span>
+                  <strong>TRANSAKSI</strong>
+                </div>
+                <span class="erd-table-type">Header Transaksi</span>
+              </div>
+              <div class="erd-table-body">
+                <div class="erd-column-row pk-row">
+                  <span class="col-key badge-pk">PK</span>
+                  <span class="col-name font-mono">id_transaksi</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">kode_invoice</span>
+                  <span class="col-type">VARCHAR(50) UNIQUE</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">tanggal_transaksi</span>
+                  <span class="col-type">TIMESTAMP</span>
+                </div>
+                <div class="erd-column-row fk-row">
+                  <span class="col-key badge-fk">FK</span>
+                  <span class="col-name font-mono">id_kasir</span>
+                  <span class="col-type">INT &rarr; KASIR</span>
+                </div>
+                <div class="erd-column-row fk-row">
+                  <span class="col-key badge-fk">FK</span>
+                  <span class="col-name font-mono">id_pelanggan</span>
+                  <span class="col-type">INT &rarr; PELANGGAN</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">total_belanja</span>
+                  <span class="col-type">DECIMAL(12,2)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">metode_pembayaran</span>
+                  <span class="col-type">VARCHAR(30)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. DETAIL_TRANSAKSI (Junction M:N) -->
+            <div class="erd-table-card highlight-card-gold">
+              <div class="erd-table-header header-gold">
+                <div class="erd-header-title">
+                  <span class="erd-table-icon">📦</span>
+                  <strong>DETAIL_TRANSAKSI</strong>
+                </div>
+                <span class="erd-table-type">Junction (M:N)</span>
+              </div>
+              <div class="erd-table-body">
+                <div class="erd-column-row pk-row">
+                  <span class="col-key badge-pk">PK</span>
+                  <span class="col-name font-mono">id_detail</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row fk-row">
+                  <span class="col-key badge-fk">FK</span>
+                  <span class="col-name font-mono">id_transaksi</span>
+                  <span class="col-type">INT &rarr; TRANSAKSI</span>
+                </div>
+                <div class="erd-column-row fk-row">
+                  <span class="col-key badge-fk">FK</span>
+                  <span class="col-name font-mono">id_produk</span>
+                  <span class="col-type">INT &rarr; PRODUK</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">jumlah_beli</span>
+                  <span class="col-type">INT (CHECK &gt; 0)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">harga_satuan</span>
+                  <span class="col-type">DECIMAL(10,2)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">subtotal</span>
+                  <span class="col-type">DECIMAL(12,2)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. PRODUK -->
+            <div class="erd-table-card">
+              <div class="erd-table-header header-teal">
+                <div class="erd-header-title">
+                  <span class="erd-table-icon">🛒</span>
+                  <strong>PRODUK</strong>
+                </div>
+                <span class="erd-table-type">Master Table</span>
+              </div>
+              <div class="erd-table-body">
+                <div class="erd-column-row pk-row">
+                  <span class="col-key badge-pk">PK</span>
+                  <span class="col-name font-mono">id_produk</span>
+                  <span class="col-type">INT</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">kode_barcode</span>
+                  <span class="col-type">VARCHAR(50) UNIQUE</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">nama_produk</span>
+                  <span class="col-type">VARCHAR(150)</span>
+                </div>
+                <div class="erd-column-row fk-row">
+                  <span class="col-key badge-fk">FK</span>
+                  <span class="col-name font-mono">id_kategori</span>
+                  <span class="col-type">INT &rarr; KATEGORI</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">harga_beli</span>
+                  <span class="col-type">DECIMAL(10,2)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">harga_jual</span>
+                  <span class="col-type">DECIMAL(10,2)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">stok</span>
+                  <span class="col-type">INT (CHECK &gt;= 0)</span>
+                </div>
+                <div class="erd-column-row">
+                  <span class="col-key"></span>
+                  <span class="col-name font-mono">satuan</span>
+                  <span class="col-type">VARCHAR(20)</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
         <p class="visual-caption">
-          <strong>Gambar 2.1:</strong> Diagram ERD SmartMart POS dengan relasi Crow's Foot. Perhatikan bagaimana tabel <code>DETAIL_TRANSAKSI</code> bertindak sebagai jembatan (junction table) antara <code>TRANSAKSI</code> dan <code>PRODUK</code>.
+          <strong>Gambar 2.1:</strong> Diagram ERD SmartMart POS. Perhatikan bagaimana tabel <code>DETAIL_TRANSAKSI</code> bertindak sebagai jembatan (<em>junction table</em>) antara <code>TRANSAKSI</code> dan <code>PRODUK</code> untuk menangani relasi banyak-ke-banyak (M:N).
         </p>
       </div>
 
@@ -703,9 +1001,58 @@ DROP TABLE IF EXISTS tabel_sementara;</code></pre>
           <span class="visual-badge">PANDUAN REFERENSIAL</span>
           <h4>3 Pilihan Aksi Penghapusan Foreign Key (ON DELETE)</h4>
         </div>
-        <div class="mermaid-diagram-wrap">
-          <pre class="mermaid">{diagramOnDelete}</pre>
+
+        <div class="ondelete-flow-canvas">
+          <!-- Trigger Box -->
+          <div class="ondelete-root-card">
+            <div class="ondelete-root-badge">SKENARIO PEMICU</div>
+            <h5 class="ondelete-root-title">🗑️ Baris Data pada Tabel Induk (Parent) Dihapus</h5>
+            <p class="ondelete-root-desc">Misalnya: Admin menghapus sebuah baris pada tabel <code>transaksi</code> atau tabel <code>kategori</code>.</p>
+          </div>
+
+          <!-- 3 Branches Grid -->
+          <div class="ondelete-branches-grid">
+            <!-- Branch 1: CASCADE -->
+            <div class="ondelete-branch-card card-cascade">
+              <div class="branch-badge badge-emerald">OPSI 1</div>
+              <h5 class="branch-title">ON DELETE CASCADE</h5>
+              <div class="branch-action-pill pill-emerald">Hapus Otomatis (Mengalir)</div>
+              <p class="branch-desc">
+                Seluruh baris pada tabel anak (<em>child</em>) yang mereferensikan baris induk ini <strong>otomatis ikut terhapus permanen</strong> oleh sistem database.
+              </p>
+              <div class="branch-example">
+                <strong>Contoh SmartMart:</strong> Hapus nota <code>transaksi</code> &rarr; semua baris <code>detail_transaksi</code> nota tersebut otomatis ikut terhapus bersih.
+              </div>
+            </div>
+
+            <!-- Branch 2: RESTRICT -->
+            <div class="ondelete-branch-card card-restrict">
+              <div class="branch-badge badge-red">OPSI 2 (DEFAULT)</div>
+              <h5 class="branch-title">ON DELETE RESTRICT</h5>
+              <div class="branch-action-pill pill-red">Tolak Penghapusan (Blokir)</div>
+              <p class="branch-desc">
+                Database <strong>menolak dan membatalkan penghapusan</strong> jika masih ada data anak yang mereferensikan baris induk (Muncul <em>FK Constraint Violation</em>).
+              </p>
+              <div class="branch-example">
+                <strong>Contoh SmartMart:</strong> Hapus <code>kategori</code> "Minuman" &rarr; Ditolak jika masih ada <code>produk</code> seperti "Teh Botol" yang terdaftar.
+              </div>
+            </div>
+
+            <!-- Branch 3: SET NULL -->
+            <div class="ondelete-branch-card card-setnull">
+              <div class="branch-badge badge-amber">OPSI 3</div>
+              <h5 class="branch-title">ON DELETE SET NULL</h5>
+              <div class="branch-action-pill pill-amber">Ubah Nilai Menjadi NULL</div>
+              <p class="branch-desc">
+                Baris anak tetap dipertahankan, namun nilai pada kolom Foreign Key (FK) anak <strong>otomatis diubah menjadi <code>NULL</code></strong>.
+              </p>
+              <div class="branch-example">
+                <strong>Contoh SmartMart:</strong> Hapus data <code>kasir</code> yang resign &rarr; riwayat <code>transaksi</code> masa lalu tetap utuh dengan <code>id_kasir = NULL</code>.
+              </div>
+            </div>
+          </div>
         </div>
+
         <p class="visual-caption">
           <strong>Gambar 5.1:</strong> Contoh kasus SmartMart: Jika nota <code>transaksi</code> dihapus, maka <code>detail_transaksi</code> menggunakan <code>ON DELETE CASCADE</code>. Namun jika <code>kategori</code> dihapus, gunakan <code>ON DELETE RESTRICT</code> agar produk tidak terhapus tanpa sengaja.
         </p>
@@ -908,36 +1255,8 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   </div>
 </MainLayout>
 
-<!-- Mermaid.js for Rendering Diagrams Client-side -->
 <script>
-  import mermaid from 'mermaid';
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: 'dark',
-    themeVariables: {
-      primaryColor: '#6366f1',
-      primaryTextColor: '#f8fafc',
-      primaryBorderColor: '#818cf8',
-      lineColor: '#38bdf8',
-      secondaryColor: '#1e293b',
-      tertiaryColor: '#0f172a'
-    }
-  });
-
-  const renderMermaid = async () => {
-    try {
-      const nodes = document.querySelectorAll<HTMLElement>('.mermaid');
-      if (nodes.length > 0) {
-        await mermaid.run({ nodes });
-      }
-    } catch (err) {
-      console.warn('Mermaid render error:', err);
-    }
-  };
-
   const setupPage = () => {
-    renderMermaid();
-
     // Copy DDL Code Button
     const copyBtn = document.getElementById('copy-ddl-btn');
     const ddlCode = document.getElementById('ddl-full-code');
@@ -1204,13 +1523,448 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     color: var(--text-primary);
   }
 
-  .mermaid-diagram-wrap {
+  /* Architecture Flow Diagram (Bab 1) */
+  .arch-flow-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem 1rem;
+    background: #090d16;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+  }
+
+  .arch-flow-card {
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .card-client {
+    background: rgba(14, 165, 233, 0.08);
+    border-color: rgba(14, 165, 233, 0.35);
+  }
+
+  .card-storage {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+
+  .flow-card-badge {
+    margin-bottom: 0.5rem;
+  }
+
+  .flow-card-main {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  .flow-card-icon {
+    font-size: 2.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .flow-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+  }
+
+  .flow-card-desc {
+    font-size: 0.885rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .flow-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0;
+  }
+
+  .flow-line {
+    width: 2px;
+    height: 12px;
+    background: var(--accent-cyan);
+  }
+
+  .flow-pill-label {
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  .flow-arrow-head {
+    font-size: 1.25rem;
+    color: var(--accent-cyan);
+    line-height: 1;
+  }
+
+  .flow-connector-bi .flow-pill-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .flow-connector-bi .flow-line {
+    background: #f59e0b;
+  }
+
+  .flow-arrow-head-bi {
+    font-size: 1.35rem;
+    color: #f59e0b;
+    line-height: 1;
+  }
+
+  .arch-flow-engine {
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  .engine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .engine-title-flex {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .engine-icon {
+    font-size: 1.75rem;
+  }
+
+  .engine-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .engine-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .engine-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 800px) {
+    .engine-steps-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .engine-step-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .step-badge-num {
+    background: var(--accent-primary);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    font-size: 0.885rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .step-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* ERD Schema Visualizer (Bab 2) */
+  .erd-visual-canvas {
     background: #090d16;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-md);
     padding: 1.5rem 1rem;
-    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .erd-relationships-banner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .rel-badge-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .rel-line-icon {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 700;
+  }
+
+  .erd-tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .erd-table-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .highlight-card {
+    border-color: rgba(14, 165, 233, 0.5);
+  }
+
+  .highlight-card-gold {
+    border-color: rgba(245, 158, 11, 0.5);
+  }
+
+  .erd-table-header {
+    padding: 0.65rem 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 0.85rem;
+  }
+
+  .header-blue { background: #1e3a8a; }
+  .header-emerald { background: #064e3b; }
+  .header-purple { background: #4c1d95; }
+  .header-cyan { background: #0e7490; }
+  .header-gold { background: #78350f; }
+  .header-teal { background: #115e59; }
+
+  .erd-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .erd-table-type {
+    font-size: 0.675rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .erd-table-body {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
+  }
+
+  .erd-column-row {
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.775rem;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .pk-row {
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  .fk-row {
+    background: rgba(99, 102, 241, 0.08);
+  }
+
+  .col-key {
+    width: 26px;
+    flex-shrink: 0;
+  }
+
+  .badge-pk {
+    background: #f59e0b;
+    color: #000;
+    font-size: 0.625rem;
+    font-weight: 800;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+  }
+
+  .badge-fk {
+    background: #6366f1;
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 800;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+  }
+
+  .col-name {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .col-type {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  /* ON DELETE Flow Canvas (Bab 5) */
+  .ondelete-flow-canvas {
+    background: #090d16;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .ondelete-root-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
     text-align: center;
+  }
+
+  .ondelete-root-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--accent-amber);
+    margin-bottom: 0.25rem;
+  }
+
+  .ondelete-root-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .ondelete-root-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .ondelete-branches-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 800px) {
+    .ondelete-branches-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .ondelete-branch-card {
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .card-cascade {
+    background: rgba(16, 185, 129, 0.06);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+
+  .card-restrict {
+    background: rgba(239, 68, 68, 0.06);
+    border-color: rgba(239, 68, 68, 0.35);
+  }
+
+  .card-setnull {
+    background: rgba(245, 158, 11, 0.06);
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+
+  .branch-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .branch-action-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  .pill-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+  .pill-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+  .pill-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+  .branch-desc {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  .branch-example {
+    margin-top: auto;
+    font-size: 0.785rem;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
   }
 
   .visual-caption {
