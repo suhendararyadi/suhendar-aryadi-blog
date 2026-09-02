@@ -231,8 +231,11 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
         </div>
 
         <div class="cbt-actions">
+          <button type="button" id="btn-mobile-palette-toggle" class="btn btn-outline-cyan btn-sm mobile-only-btn" title="Buka Daftar Soal">
+            📋 <span id="mobile-palette-badge">1/25</span>
+          </button>
           <button type="button" id="btn-submit-exam" class="btn btn-emerald btn-md">
-            Selesai &amp; Kumpulkan &check;
+            <span class="submit-btn-text">Selesai &amp; Kumpulkan</span> &check;
           </button>
         </div>
       </div>
@@ -382,6 +385,35 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     </div>
   </div>
 
+  <!-- Mobile Palette Bottom Sheet Drawer -->
+  <div id="mobile-palette-modal" class="cbt-modal-backdrop mobile-palette-backdrop" style="display: none;">
+    <div class="mobile-palette-sheet glass-card">
+      <div class="sheet-header">
+        <div class="sheet-title-wrap">
+          <h4>Daftar Nomor Soal (1–25)</h4>
+          <span class="sheet-sub">Pilih nomor untuk melompat langsung ke soal</span>
+        </div>
+        <button type="button" id="btn-close-mobile-palette" class="btn-sheet-close" aria-label="Tutup">
+          &times;
+        </button>
+      </div>
+
+      <div class="palette-legend margin-top-xs">
+        <div class="legend-item"><span class="legend-dot dot-answered"></span> Terjawab</div>
+        <div class="legend-item"><span class="legend-dot dot-doubt"></span> Ragu-ragu</div>
+        <div class="legend-item"><span class="legend-dot dot-unanswered"></span> Belum diisi</div>
+      </div>
+
+      <div class="palette-grid margin-top-sm" id="mobile-palette-grid">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div class="palette-summary margin-top-sm" id="mobile-palette-summary">
+        <span>0 Terjawab</span> &bull; <span>0 Ragu</span> &bull; <span>25 Belum</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Konfirmasi Submit Ujian -->
   <div id="confirm-modal" class="cbt-modal-backdrop" style="display: none;">
     <div class="cbt-modal glass-card">
@@ -471,6 +503,14 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
   const tabCountCorrect = document.getElementById('tab-count-correct');
   const tabCountWrong = document.getElementById('tab-count-wrong');
 
+  // Mobile Palette Drawer
+  const btnMobilePaletteToggle = document.getElementById('btn-mobile-palette-toggle');
+  const mobilePaletteModal = document.getElementById('mobile-palette-modal');
+  const btnCloseMobilePalette = document.getElementById('btn-close-mobile-palette');
+  const mobilePaletteGrid = document.getElementById('mobile-palette-grid');
+  const mobilePaletteSummary = document.getElementById('mobile-palette-summary');
+  const mobilePaletteBadge = document.getElementById('mobile-palette-badge');
+
   // Initialize
   const init = () => {
     tokenForm?.addEventListener('submit', handleTokenSubmit);
@@ -481,6 +521,19 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     btnModalCancel?.addEventListener('click', closeConfirmModal);
     btnModalConfirm?.addEventListener('click', submitExamAnswers);
     btnRetakeTryout?.addEventListener('click', resetToGate);
+
+    // Mobile Palette Drawer toggles
+    btnMobilePaletteToggle?.addEventListener('click', () => {
+      if (mobilePaletteModal) mobilePaletteModal.style.display = 'flex';
+    });
+    btnCloseMobilePalette?.addEventListener('click', () => {
+      if (mobilePaletteModal) mobilePaletteModal.style.display = 'none';
+    });
+    mobilePaletteModal?.addEventListener('click', (e) => {
+      if (e.target === mobilePaletteModal) {
+        mobilePaletteModal.style.display = 'none';
+      }
+    });
 
     // Setup review filter tabs
     document.querySelectorAll('.filter-tab').forEach((tab) => {
@@ -592,21 +645,27 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     }
   };
 
-  // 4. Build Navigation Palette
+  // 4. Build Navigation Palette (Desktop + Mobile Sheet)
   const buildPaletteGrid = () => {
-    if (!paletteGrid) return;
-    paletteGrid.innerHTML = '';
+    const buildInto = (container) => {
+      if (!container) return;
+      container.innerHTML = '';
+      QUESTIONS.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'palette-btn';
+        btn.setAttribute('data-qid', String(q.id));
+        btn.textContent = String(q.id);
+        btn.addEventListener('click', () => {
+          navigateQuestion(idx);
+          if (mobilePaletteModal) mobilePaletteModal.style.display = 'none';
+        });
+        container.appendChild(btn);
+      });
+    };
 
-    QUESTIONS.forEach((q, idx) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'palette-btn';
-      btn.id = `palette-btn-${q.id}`;
-      btn.textContent = String(q.id);
-      btn.addEventListener('click', () => navigateQuestion(idx));
-      paletteGrid.appendChild(btn);
-    });
-
+    buildInto(paletteGrid);
+    buildInto(mobilePaletteGrid);
     updatePaletteStatus();
   };
 
@@ -614,29 +673,41 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     let answeredCount = 0;
     let doubtCount = 0;
 
-    QUESTIONS.forEach((q, idx) => {
-      const btn = document.getElementById(`palette-btn-${q.id}`);
-      if (!btn) return;
+    const syncButtons = (container) => {
+      if (!container) return;
+      QUESTIONS.forEach((q, idx) => {
+        const btn = container.querySelector(`[data-qid="${q.id}"]`);
+        if (!btn) return;
 
-      btn.className = 'palette-btn';
+        btn.className = 'palette-btn';
 
-      if (idx === currentQIndex) {
-        btn.classList.add('active');
-      }
+        if (idx === currentQIndex) {
+          btn.classList.add('active');
+        }
 
+        if (userDoubt[q.id]) {
+          btn.classList.add('doubtful');
+        } else if (userAnswers[q.id]) {
+          btn.classList.add('answered');
+        }
+      });
+    };
+
+    QUESTIONS.forEach((q) => {
       if (userDoubt[q.id]) {
-        btn.classList.add('doubtful');
         doubtCount++;
       } else if (userAnswers[q.id]) {
-        btn.classList.add('answered');
         answeredCount++;
       }
     });
 
-    if (paletteSummary) {
-      const unanswered = TOTAL_Q - (answeredCount + doubtCount);
-      paletteSummary.innerHTML = `<span><strong>${answeredCount}</strong> Terjawab</span> &bull; <span><strong>${doubtCount}</strong> Ragu</span> &bull; <span><strong>${unanswered}</strong> Belum</span>`;
-    }
+    syncButtons(paletteGrid);
+    syncButtons(mobilePaletteGrid);
+
+    const summaryHtml = `<span><strong>${answeredCount}</strong> Terjawab</span> &bull; <span><strong>${doubtCount}</strong> Ragu</span> &bull; <span><strong>${TOTAL_Q - (answeredCount + doubtCount)}</strong> Belum</span>`;
+    if (paletteSummary) paletteSummary.innerHTML = summaryHtml;
+    if (mobilePaletteSummary) mobilePaletteSummary.innerHTML = summaryHtml;
+    if (mobilePaletteBadge) mobilePaletteBadge.textContent = `${currentQIndex + 1}/${TOTAL_Q}`;
   };
 
   // 5. Render Active Question
@@ -1818,9 +1889,242 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     background: rgba(245, 158, 11, 0.1);
   }
 
-  .margin-top-xs { margin-top: 0.35rem; }
-  .margin-top-sm { margin-top: 0.75rem; }
-  .margin-top-md { margin-top: 1.25rem; }
-  .margin-top-lg { margin-top: 1.75rem; }
-  .margin-top-xl { margin-top: 2.5rem; }
+  /* Mobile Palette Sheet Drawer */
+  .mobile-only-btn {
+    display: none;
+  }
+
+  .btn-outline-cyan {
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    font-weight: 700;
+  }
+
+  .btn-outline-cyan:hover {
+    background: rgba(14, 165, 233, 0.2);
+  }
+
+  .mobile-palette-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .mobile-palette-sheet {
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem;
+    margin: 0 auto;
+    animation: slideUp 0.25s ease-out;
+    background: #0d1322;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+  }
+
+  .sheet-title-wrap h4 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .sheet-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .btn-sheet-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* Comprehensive Mobile Responsive Media Queries */
+  @media (max-width: 850px) {
+    .mobile-only-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .cbt-palette-sidebar {
+      display: none; /* Hide bottom static sidebar on mobile since mobile drawer is active */
+    }
+
+    .cbt-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .cbt-topbar {
+      padding: 0.65rem 0.85rem;
+      top: 0.5rem;
+    }
+
+    .cbt-student-info {
+      max-width: 140px;
+    }
+
+    .cbt-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.85rem;
+    }
+
+    .cbt-timer-wrap {
+      padding: 0.3rem 0.75rem;
+    }
+
+    .timer-display {
+      font-size: 1.05rem;
+    }
+
+    .cbt-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .cbt-question-area {
+      padding: 1.25rem 1rem;
+    }
+
+    .question-title {
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    .option-card {
+      padding: 0.85rem 1rem;
+      min-height: 52px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .option-card:active {
+      transform: scale(0.99);
+    }
+
+    .option-key-circle {
+      width: 26px;
+      height: 26px;
+      font-size: 0.8rem;
+    }
+
+    .option-text {
+      font-size: 0.9rem;
+    }
+
+    .question-nav-footer {
+      padding-top: 1rem;
+      gap: 0.5rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .tryout-container {
+      padding: 1rem 0.5rem 3rem;
+    }
+
+    .gate-hero-card {
+      padding: 1.5rem 1rem;
+      border-radius: var(--radius-md);
+    }
+
+    .gate-title {
+      font-size: 1.45rem;
+    }
+
+    .gate-subtitle {
+      font-size: 0.9rem;
+    }
+
+    .token-input {
+      font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
+    }
+
+    .cbt-topbar {
+      border-radius: var(--radius-md);
+    }
+
+    .submit-btn-text {
+      display: none;
+    }
+
+    .cbt-tag {
+      display: none;
+    }
+
+    .result-hero-card {
+      padding: 1.5rem 1rem;
+    }
+
+    .result-score-banner {
+      padding: 1.25rem 1rem;
+      gap: 1.25rem;
+    }
+
+    .score-circle-wrap {
+      width: 110px;
+      height: 110px;
+    }
+
+    .score-big {
+      font-size: 2.25rem;
+    }
+
+    .result-heading {
+      font-size: 1.15rem;
+    }
+
+    .result-actions {
+      flex-direction: column;
+    }
+
+    .result-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .review-filter-tabs {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 0.35rem;
+    }
+
+    .filter-tab {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .review-item-card {
+      padding: 1rem 0.85rem;
+    }
+
+    .review-opt {
+      font-size: 0.825rem;
+      padding: 0.5rem 0.65rem;
+      flex-wrap: wrap;
+    }
+  }
 </style>
