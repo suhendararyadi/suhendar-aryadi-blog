@@ -166,13 +166,13 @@ const completedCount = completedModules.length;
 const completionPercentage = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
 
 // 4-Tier Rank System
-let rankInfo = { title: 'SQL Novice', badgeClass: 'badge-novice' };
+let rankInfo = { title: 'SQL Novice', badgeClass: 'm3-chip-tonal-secondary' };
 if (completedCount >= 40) {
-  rankInfo = { title: 'Master SQL Engineer', badgeClass: 'badge-master' };
+  rankInfo = { title: 'Master SQL Engineer', badgeClass: 'm3-chip-tonal-success' };
 } else if (completedCount >= 25) {
-  rankInfo = { title: 'SQL Advanced', badgeClass: 'badge-advanced' };
+  rankInfo = { title: 'SQL Advanced', badgeClass: 'm3-chip-tonal-primary' };
 } else if (completedCount >= 11) {
-  rankInfo = { title: 'SQL Intermediate', badgeClass: 'badge-intermediate' };
+  rankInfo = { title: 'SQL Intermediate', badgeClass: 'm3-chip-tonal-tertiary' };
 }
 
 // Calculate Scores & Average Grade for Informatika
@@ -189,51 +189,37 @@ if (activeScores.length > 0) {
 }
 
 const avgScoreText = avgScore !== null ? `${avgScore} / 100` : 'Belum Ada Nilai';
-const avgScoreColor = avgScore !== null ? (avgScore >= 75 ? '#10b981' : '#f59e0b') : 'var(--text-muted)';
+const avgScoreColor = avgScore !== null ? (avgScore >= 75 ? 'var(--m3-success)' : 'var(--m3-warning)') : 'var(--m3-outline)';
 
 const bkScoreText = bkSubmission
-  ? (bkScore !== null ? `${bkScore} / 100` : 'Belum Dinilai')
+  ? (bkScore !== null ? `${bkScore} / 100` : 'Menunggu Dinilai')
   : (isInformatikaEnrolled ? 'Belum Mengerjakan' : 'Terkunci');
 const bkScoreColor = bkSubmission && bkScore !== null
-  ? (bkScore >= 75 ? '#10b981' : '#f59e0b')
-  : (bkSubmission ? '#0ea5e9' : 'var(--text-muted)');
+  ? (bkScore >= 75 ? 'var(--m3-success)' : 'var(--m3-warning)')
+  : (bkSubmission ? 'var(--m3-primary)' : 'var(--m3-outline)');
 const bkFeedbackText = bkSubmission
   ? (bkSubmission.teacher_feedback ? `Catatan Guru: "${bkSubmission.teacher_feedback}"` : (bkScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD telah dikirim, menunggu penilaian Guru.'))
-  : (isInformatikaEnrolled ? 'Kerjakan LKPD 1 (4 Pilar BK) untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD 1 (4 Pilar BK) untuk mendapatkan nilai.' : 'Masukkan kode akses dari Guru untuk membuka modul.');
 
 const flowScoreText = flowchartSubmission
-  ? (flowScore !== null ? `${flowScore} / 100` : 'Belum Dinilai')
+  ? (flowScore !== null ? `${flowScore} / 100` : 'Menunggu Dinilai')
   : (isInformatikaEnrolled ? 'Belum Mengerjakan' : 'Terkunci');
 const flowScoreColor = flowchartSubmission && flowScore !== null
-  ? (flowScore >= 75 ? '#10b981' : '#f59e0b')
-  : (flowchartSubmission ? '#0ea5e9' : 'var(--text-muted)');
+  ? (flowScore >= 75 ? 'var(--m3-success)' : 'var(--m3-warning)')
+  : (flowchartSubmission ? 'var(--m3-primary)' : 'var(--m3-outline)');
 const flowFeedbackText = flowchartSubmission
   ? (flowchartSubmission.teacher_feedback ? `Catatan Guru: "${flowchartSubmission.teacher_feedback}"` : (flowScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD 2 telah dikirim, menunggu penilaian Guru.'))
-  : (isInformatikaEnrolled ? 'Kerjakan LKPD 2 (Algoritma & Flowchart) untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD 2 (Algoritma & Flowchart) untuk mendapatkan nilai.' : 'Masukkan kode akses dari Guru untuk membuka modul.');
 
 const tikScoreText = tikSubmission
-  ? (tikScore !== null ? `${tikScore} / 100` : 'Belum Dinilai')
+  ? (tikScore !== null ? `${tikScore} / 100` : 'Menunggu Dinilai')
   : (isInformatikaEnrolled ? 'Belum Mengerjakan' : 'Terkunci');
 const tikScoreColor = tikSubmission && tikScore !== null
-  ? (tikScore >= 75 ? '#10b981' : '#f59e0b')
-  : (tikSubmission ? '#0ea5e9' : 'var(--text-muted)');
+  ? (tikScore >= 75 ? 'var(--m3-success)' : 'var(--m3-warning)')
+  : (tikSubmission ? 'var(--m3-primary)' : 'var(--m3-outline)');
 const tikFeedbackText = tikSubmission
   ? (tikSubmission.teacher_feedback ? `Catatan Guru: "${tikSubmission.teacher_feedback}"` : (tikScore !== null ? 'Sudah dinilai oleh Pak Suhendar.' : 'LKPD TIK telah dikirim, menunggu penilaian Guru.'))
-  : (isInformatikaEnrolled ? 'Kerjakan LKPD TIK Mail Merge & Search Engine untuk mendapatkan nilai.' : 'Masukan kode akses dari Guru untuk membuka modul.');
-
-let trophyEmoji = '🏆';
-let rankMotivationalMsg = '🚀 Pertahankan semangat! Selesaikan modul berikutnya untuk naik ke 10 Besar.';
-
-if (userRankPosition === 1) {
-  trophyEmoji = '🥇';
-  rankMotivationalMsg = '🥇 Luar biasa! Anda saat ini memimpin di Peringkat #1 Teratas seluruh platform.';
-} else if (userRankPosition <= 3) {
-  trophyEmoji = '🥈';
-  rankMotivationalMsg = '🥈 Selamat! Anda berada di posisi 3 Besar Peringkat Teratas.';
-} else if (userRankPosition <= 10) {
-  trophyEmoji = '🥉';
-  rankMotivationalMsg = '🔥 Hebat! Anda berhasil menembus 10 Besar Peringkat Teratas.';
-}
+  : (isInformatikaEnrolled ? 'Kerjakan LKPD TIK Mail Merge & Search Engine untuk mendapatkan nilai.' : 'Masukkan kode akses dari Guru untuk membuka modul.');
 
 interface PathDefinition {
   id: 'basics' | 'aggregates' | 'joins' | 'grouping' | 'ddl_security';
@@ -269,345 +255,316 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
 
 <MainLayout 
   title={`Dashboard — ${user.name} | Suhendar Aryadi`}
-  description="Dashboard progres belajar siswa. Lihat statistik dan progres 5 Learning Path SQL."
+  description="Dashboard progres belajar siswa. Lihat statistik hasil belajar, nilai LKPD, dan Try Out CBT."
 >
-  <div class="dash-wrapper">
+  <div class="m3-dash-container">
 
-    <!-- Profile header -->
-    <div class="profile-card glass-card">
-      <div class="profile-inner">
-        <div class="avatar-wrap">
-          <div class="avatar-circle">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
+    <!-- 1. Profile Header Card -->
+    <div class="m3-card m3-card-elevated dash-profile-card">
+      <div class="dash-profile-main">
+        <div class="m3-avatar">
+          {user.name.charAt(0).toUpperCase()}
         </div>
-        <div class="profile-info">
-          <div class="profile-badges">
-            <span class="badge badge-role">{user.role.toUpperCase()}</span>
-            {user.class_name ? (
-              <span class="badge badge-cyan">{user.class_name}</span>
-            ) : (
-              <span class="badge badge-muted">Kelas Belum Diisi</span>
-            )}
-            <span class="badge badge-gold">Peringkat #{userRankPosition}</span>
-            <span class={`badge ${rankInfo.badgeClass}`}>{rankInfo.title}</span>
+        <div class="dash-profile-text">
+          <div class="m3-chip-row">
+            <span class="m3-chip m3-chip-tonal-primary">
+              <span class="material-symbols-rounded icon-sm">person</span>
+              {user.role.toUpperCase()}
+            </span>
+            <span class="m3-chip m3-chip-tonal-secondary">
+              <span class="material-symbols-rounded icon-sm">badge</span>
+              {user.class_name || 'Kelas Belum Diisi'}
+            </span>
+            <span class="m3-chip m3-chip-tonal-tertiary">
+              <span class="material-symbols-rounded icon-sm">emoji_events</span>
+              Peringkat #{userRankPosition}
+            </span>
+            <span class={`m3-chip ${rankInfo.badgeClass}`}>
+              <span class="material-symbols-rounded icon-sm">military_tech</span>
+              {rankInfo.title}
+            </span>
           </div>
-          <h1 class="profile-name">{user.name}</h1>
-          <p class="profile-email">{user.email}</p>
+          <h1 class="dash-student-name m3-headline-large margin-top-xs">{user.name}</h1>
+          <p class="dash-student-email m3-body-small text-m3-muted">{user.email}</p>
         </div>
-        <div class="profile-actions">
-          {isTeacherOrAdmin && (
-            <a href="/admin/dashboard" class="btn btn-primary btn-sm btn-teacher-portal">
-              <span>Portal Guru</span>
-            </a>
-          )}
-          <button id="open-edit-profile-btn" class="btn btn-secondary btn-sm" type="button">
-            <span>Edit Profil</span>
-          </button>
-          <a href="/belajar/leaderboard" class="btn btn-outline btn-sm">
-            <span>Papan Peringkat</span>
+      </div>
+      <div class="dash-profile-actions">
+        {isTeacherOrAdmin && (
+          <a href="/admin/dashboard" class="m3-btn m3-btn-filled btn-sm">
+            <span class="material-symbols-rounded icon-sm">admin_panel_settings</span>
+            Portal Guru
           </a>
-          {(completedCount >= totalLessonsCount || isTeacherOrAdmin) && (
-            <a href="/sertifikat/sql" class="btn btn-outline btn-sm">
-              <span>Sertifikat Kelulusan</span>
+        )}
+        <button id="open-edit-profile-btn" class="m3-btn m3-btn-tonal btn-sm" type="button">
+          <span class="material-symbols-rounded icon-sm">edit</span>
+          Edit Profil
+        </button>
+        <a href="/belajar/leaderboard" class="m3-btn m3-btn-outlined btn-sm">
+          <span class="material-symbols-rounded icon-sm">leaderboard</span>
+          Leaderboard
+        </a>
+        {(completedCount >= totalLessonsCount || isTeacherOrAdmin) && (
+          <a href="/sertifikat/sql" class="m3-btn m3-btn-outlined btn-sm">
+            <span class="material-symbols-rounded icon-sm">workspace_premium</span>
+            Sertifikat
+          </a>
+        )}
+        <button id="logout-btn" class="m3-btn m3-btn-text btn-sm" type="button">
+          <span class="material-symbols-rounded icon-sm">logout</span>
+          Keluar
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. KPI Overview (3 Columns) -->
+    <div class="dash-kpi-grid margin-top-md">
+      <!-- KPI 1: Informatika LKPD Average -->
+      <div class="m3-card m3-card-elevated kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label m3-label-medium">Rata-Rata Nilai Informatika</span>
+          <span class="material-symbols-rounded icon-md text-m3-primary">psychology</span>
+        </div>
+        <div class="kpi-value m3-headline-large" style={`color: ${avgScoreColor};`}>
+          {avgScoreText}
+        </div>
+        <p class="kpi-caption m3-body-small text-m3-muted">
+          {activeScores.length} dari 3 LKPD dinilai Guru
+        </p>
+      </div>
+
+      <!-- KPI 2: SQL Modules Progress -->
+      <div class="m3-card m3-card-elevated kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label m3-label-medium">Progres SQL Masterclass</span>
+          <span class="material-symbols-rounded icon-md text-m3-primary">database</span>
+        </div>
+        <div class="kpi-value m3-headline-large text-m3-primary">
+          {completedCount} <span class="kpi-unit m3-title-medium text-m3-muted">/ {totalLessonsCount} Modul</span>
+        </div>
+        <div class="m3-linear-progress margin-top-xs">
+          <div class="m3-progress-fill" style={`width: ${completionPercentage}%;`}></div>
+        </div>
+        <p class="kpi-caption m3-body-small text-m3-muted margin-top-xs">
+          {completionPercentage}% Kurikulum SQL Selesai
+        </p>
+      </div>
+
+      <!-- KPI 3: Try Out CBT Score -->
+      <div class="m3-card m3-card-elevated kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label m3-label-medium">Hasil Try Out CBT SQL</span>
+          <span class="material-symbols-rounded icon-md text-m3-primary">quiz</span>
+        </div>
+        <div class="kpi-value m3-headline-large" style={sqlTryoutSubmission ? (sqlTryoutSubmission.score >= 75 ? 'color: var(--m3-success);' : 'color: var(--m3-warning);') : 'color: var(--m3-outline);'}>
+          {sqlTryoutSubmission ? `${sqlTryoutSubmission.score} / 100` : 'Belum Ujian'}
+        </div>
+        <p class="kpi-caption m3-body-small text-m3-muted">
+          {sqlTryoutSubmission ? `Benar ${sqlTryoutSubmission.correct_answers}/${sqlTryoutSubmission.total_questions} soal (${sqlTryoutSubmission.score >= 75 ? 'Tuntas KKM' : 'Perlu Remedial'})` : '25 Soal Pilihan Ganda (5 Opsi)'}
+        </p>
+      </div>
+    </div>
+
+    <!-- 3. Mata Pelajaran Cards (Informatika & SQL RPL) -->
+    <div class="dash-subjects-grid margin-top-lg">
+      <!-- Subject 1: Informatika (Fase E) -->
+      <div class="m3-card m3-card-elevated subject-panel-card">
+        <div class="subject-panel-header">
+          <div class="subject-header-info">
+            <span class="material-symbols-rounded icon-lg text-m3-primary">memory</span>
+            <div>
+              <h2 class="m3-title-large">Informatika SMK (Fase E)</h2>
+              <p class="m3-body-small text-m3-muted">Berpikir Komputasional, TIK, Sistem Komputer, AP Python</p>
+            </div>
+          </div>
+          <span class={`m3-chip ${isInformatikaEnrolled ? 'm3-chip-tonal-success' : 'm3-chip-tonal-warning'}`}>
+            <span class="material-symbols-rounded icon-sm">{isInformatikaEnrolled ? 'check_circle' : 'lock'}</span>
+            {isInformatikaEnrolled ? 'Terdaftar' : 'Belum Enroll'}
+          </span>
+        </div>
+
+        <div class="lkpd-list margin-top-md">
+          <!-- LKPD 1 Item -->
+          <div class="lkpd-row-card">
+            <div class="lkpd-row-main">
+              <span class="m3-chip m3-chip-tonal-primary">BK 1</span>
+              <div>
+                <h4 class="m3-title-small">LKPD 1 — 4 Pilar Berpikir Komputasional</h4>
+                <p class="m3-body-small text-m3-muted">{bkFeedbackText}</p>
+              </div>
+            </div>
+            <div class="lkpd-row-score">
+              <span class="lkpd-score-badge" style={`color: ${bkScoreColor};`}>{bkScoreText}</span>
+              <a href="/belajar/informatika/bk/lkpd" class="m3-btn m3-btn-tonal btn-sm">
+                Buka
+                <span class="material-symbols-rounded icon-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- LKPD 2 Item -->
+          <div class="lkpd-row-card margin-top-xs">
+            <div class="lkpd-row-main">
+              <span class="m3-chip m3-chip-tonal-primary">BK 2</span>
+              <div>
+                <h4 class="m3-title-small">LKPD 2 — Perancangan Algoritma &amp; Flowchart</h4>
+                <p class="m3-body-small text-m3-muted">{flowFeedbackText}</p>
+              </div>
+            </div>
+            <div class="lkpd-row-score">
+              <span class="lkpd-score-badge" style={`color: ${flowScoreColor};`}>{flowScoreText}</span>
+              <a href="/belajar/informatika/bk/lkpd-2" class="m3-btn m3-btn-tonal btn-sm">
+                Buka
+                <span class="material-symbols-rounded icon-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- LKPD TIK Item -->
+          <div class="lkpd-row-card margin-top-xs">
+            <div class="lkpd-row-main">
+              <span class="m3-chip m3-chip-tonal-tertiary">TIK</span>
+              <div>
+                <h4 class="m3-title-small">LKPD TIK — Mail Merge &amp; Search Engine</h4>
+                <p class="m3-body-small text-m3-muted">{tikFeedbackText}</p>
+              </div>
+            </div>
+            <div class="lkpd-row-score">
+              <span class="lkpd-score-badge" style={`color: ${tikScoreColor};`}>{tikScoreText}</span>
+              <a href="/belajar/informatika/tik/lkpd" class="m3-btn m3-btn-tonal btn-sm">
+                Buka
+                <span class="material-symbols-rounded icon-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="subject-panel-footer margin-top-md">
+          {isInformatikaEnrolled ? (
+            <a href="/belajar/informatika" class="m3-btn m3-btn-outlined btn-sm">
+              <span>Buka Materi Informatika</span>
+              <span class="material-symbols-rounded icon-sm">arrow_forward</span>
             </a>
+          ) : (
+            <button
+              type="button"
+              class="m3-btn m3-btn-tonal-primary btn-sm btn-enroll-trigger"
+              data-course-id="informatika"
+              data-course-title="Mata Pelajaran: Informatika SMK (Fase E)"
+            >
+              <span class="material-symbols-rounded icon-sm">key</span>
+              <span>Enroll Mata Pelajaran</span>
+            </button>
           )}
-          <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">Keluar</button>
-        </div>
-      </div>
-    </div>
-
-    {(completedCount >= totalLessonsCount || isTeacherOrAdmin) && (
-      <div class="cert-congratulations-banner glass-card">
-        <div class="cert-banner-left">
-          <span class="badge badge-gold">SERTIFIKAT KELULUSAN TERSEDIA</span>
-          <h2 class="cert-banner-title">Selamat! Predikat Master SQL Engineer</h2>
-          <p class="cert-banner-desc">
-            Anda telah berhasil menyelesaikan seluruh <strong>{totalLessonsCount} Modul SQL</strong>. Unduh dan cetak Sertifikat Kompetensi Resmi Anda untuk portofolio dan CV.
-          </p>
-        </div>
-        <a href="/sertifikat/sql" class="btn btn-primary btn-cert-cta">
-          <span>Lihat &amp; Cetak Sertifikat &rarr;</span>
-        </a>
-      </div>
-    )}
-
-    {isTeacherOrAdmin && (
-      <div class="teacher-access-banner glass-card">
-        <div class="teacher-banner-left">
-          <span class="badge badge-purple">PORTAL AKSES GURU & ADMIN</span>
-          <h2 class="teacher-banner-title">Rekap Nilai Siswa & Analitik Kelas</h2>
-          <p class="teacher-banner-desc">
-            Anda terautentikasi sebagai <strong>Guru / Admin</strong> ({user.email}). Akses dashboard guru untuk memantau progres seluruh siswa, melihat analitik modul tersulit, dan mengekspor rekap nilai ke Excel (CSV).
-          </p>
-        </div>
-        <a href="/admin/dashboard" class="btn btn-primary btn-teacher-cta">
-          <span>Buka Portal Guru & Admin &rarr;</span>
-        </a>
-      </div>
-    )}
-
-    <!-- Stats row -->
-    <div class="stats-row">
-      <div class="stat-item glass-card">
-        <span class="stat-value">{completedCount} <span class="stat-total">/ {totalLessonsCount}</span></span>
-        <span class="stat-label">Modul Selesai</span>
-      </div>
-      <div class="stat-item glass-card">
-        <span class="stat-value">{completionPercentage}<span class="stat-unit">%</span></span>
-        <span class="stat-label">Tingkat Penyelesaian</span>
-      </div>
-      <div class="stat-item glass-card">
-        <span class="stat-value stat-rank">#{userRankPosition} <span class="stat-total">({rankInfo.title})</span></span>
-        <span class="stat-label">Peringkat Siswa ({user.class_name ? `Kelas #${userClassRankPosition}` : `dari ${totalStudentsCount} Siswa`})</span>
-      </div>
-    </div>
-
-    <!-- Rekap Nilai & Status Enroll Mata Pelajaran -->
-    <div class="recap-section">
-      <div class="section-head">
-        <div>
-          <h2 class="section-title">Rekap Nilai & Status Enroll Mata Pelajaran</h2>
-          <p class="section-subtitle">Pantau nilai LKPD Informatika, rata-rata nilai mata pelajaran, dan progres modul RPL.</p>
         </div>
       </div>
 
-      <div class="subject-grid">
-        <!-- Mata Pelajaran 1: Informatika SMK (Fase E) -->
-        <div class={`subject-card glass-card ${isInformatikaEnrolled ? 'is-enrolled' : 'is-locked'}`}>
-          <div class="subject-card-header">
-            <div class="subject-title-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="subject-title-svg text-accent">
-                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                <rect x="9" y="9" width="6" height="6"></rect>
-                <line x1="9" y1="1" x2="9" y2="4"></line>
-                <line x1="15" y1="1" x2="15" y2="4"></line>
-                <line x1="9" y1="20" x2="9" y2="23"></line>
-                <line x1="15" y1="20" x2="15" y2="23"></line>
-                <line x1="20" y1="9" x2="23" y2="9"></line>
-                <line x1="20" y1="15" x2="23" y2="15"></line>
-                <line x1="1" y1="9" x2="4" y2="9"></line>
-                <line x1="1" y1="15" x2="4" y2="15"></line>
-              </svg>
+      <!-- Subject 2: Pemrograman Web & Basis Data (RPL) -->
+      <div class="m3-card m3-card-elevated subject-panel-card">
+        <div class="subject-panel-header">
+          <div class="subject-header-info">
+            <span class="material-symbols-rounded icon-lg text-m3-primary">database</span>
+            <div>
+              <h2 class="m3-title-large">Web &amp; Basis Data (RPL)</h2>
+              <p class="m3-body-small text-m3-muted">SQL Masterclass, Arsitektur DDL, Relasi Tabel, dan CBT Exam</p>
+            </div>
+          </div>
+          <span class={`m3-chip ${isRplSqlEnrolled ? 'm3-chip-tonal-success' : 'm3-chip-tonal-warning'}`}>
+            <span class="material-symbols-rounded icon-sm">{isRplSqlEnrolled ? 'check_circle' : 'lock'}</span>
+            {isRplSqlEnrolled ? 'Terdaftar' : 'Belum Enroll'}
+          </span>
+        </div>
+
+        <div class="sql-paths-overview margin-top-md">
+          <div class="sql-paths-compact-grid">
+            {pathAnalytics.map((path) => (
+              <div class="sql-path-item">
+                <div class="sql-path-name">
+                  <span class="m3-body-small font-medium">{path.title}</span>
+                  <span class="m3-body-small text-m3-muted">{path.completed}/{path.total}</span>
+                </div>
+                <div class="m3-linear-progress-sm">
+                  <div class="m3-progress-fill" style={`width: ${path.percentage}%; background: ${path.accentVar};`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="cbt-tryout-box m3-card m3-card-outlined margin-top-md">
+          <div class="cbt-box-content">
+            <div class="cbt-box-header">
+              <span class="material-symbols-rounded icon-md text-m3-primary">quiz</span>
               <div>
-                <h3 class="subject-title">Mata Pelajaran: Informatika SMK (Fase E)</h3>
-                <p class="subject-sub">Integrasi Berpikir Komputasional, TIK, Sistem Komputer, & AP</p>
+                <strong class="m3-title-small">Try Out Ujian CBT SQL</strong>
+                <p class="m3-body-small text-m3-muted">25 Butir Soal Pilihan Ganda (5 Opsi A-E) dengan Evaluasi Instan.</p>
               </div>
             </div>
-            {isInformatikaEnrolled ? (
-              <span class="badge badge-success">Terdaftar</span>
-            ) : (
-              <span class="badge badge-amber">Belum Enroll</span>
-            )}
-          </div>
-
-            <div class="lkpd-items-grid">
-              <!-- LKPD 1 (BK 4 Pilar) -->
-              <div class="lkpd-item-box">
-                <div class="lkpd-item-top">
-                  <span class="badge badge-cyan badge-xs">BK ELEMEN 1</span>
-                  <a href="/belajar/informatika/bk/lkpd" class="lkpd-card-link">Buka LKPD &rarr;</a>
-                </div>
-                <div class="lkpd-item-title">LKPD 1 — 4 Pilar Berpikir Komputasional</div>
-                <div class="lkpd-item-score" style={`color: ${bkScoreColor};`}>{bkScoreText}</div>
-                <p class="lkpd-item-feedback">{bkFeedbackText}</p>
-              </div>
-
-              <!-- LKPD 2 (BK Flowchart & Pseudocode) -->
-              <div class="lkpd-item-box">
-                <div class="lkpd-item-top">
-                  <span class="badge badge-emerald badge-xs">BK ELEMEN 1</span>
-                  <a href="/belajar/informatika/bk/lkpd-2" class="lkpd-card-link">Buka LKPD &rarr;</a>
-                </div>
-                <div class="lkpd-item-title">LKPD 2 — Perancangan Algoritma &amp; Flowchart</div>
-                <div class="lkpd-item-score" style={`color: ${flowScoreColor};`}>{flowScoreText}</div>
-                <p class="lkpd-item-feedback">{flowFeedbackText}</p>
-              </div>
-
-              <!-- LKPD TIK (Mail Merge) -->
-              <div class="lkpd-item-box">
-                <div class="lkpd-item-top">
-                  <span class="badge badge-purple badge-xs">TIK ELEMEN 2</span>
-                  <a href="/belajar/informatika/tik/lkpd" class="lkpd-card-link">Buka LKPD &rarr;</a>
-                </div>
-                <div class="lkpd-item-title">LKPD TIK — Mail Merge &amp; Search Engine</div>
-                <div class="lkpd-item-score" style={`color: ${tikScoreColor};`}>{tikScoreText}</div>
-                <p class="lkpd-item-feedback">{tikFeedbackText}</p>
-              </div>
-            </div>
-
-            <!-- Rata-rata Nilai Mata Pelajaran -->
-            <div class="average-grade-box">
-              <div class="avg-label">RATA-RATA NILAI MATA PELAJARAN INFORMATIKA</div>
-              <div class="avg-value" style={`color: ${avgScoreColor};`}>{avgScoreText}</div>
-            </div>
-          </div>
-
-          <div class="subject-card-action">
-            {isInformatikaEnrolled ? (
-              <a href="/belajar/informatika" class="btn btn-outline btn-sm recap-btn">
-                Buka Mata Pelajaran Informatika &rarr;
-              </a>
-            ) : (
-              <button
-                type="button"
-                class="btn btn-enroll-trigger btn-sm recap-btn"
-                data-course-id="informatika"
-                data-course-title="Mata Pelajaran: Informatika SMK (Fase E)"
-              >
-                Enroll Mata Pelajaran (Kode Akses)
-              </button>
-            )}
+            <a href="/belajar/sql/tryout" class="m3-btn m3-btn-filled btn-sm">
+              <span>{sqlTryoutSubmission ? 'Ulangi / Review Soal' : 'Mulai Ujian CBT'}</span>
+              <span class="material-symbols-rounded icon-sm">play_arrow</span>
+            </a>
           </div>
         </div>
 
-        <!-- Mata Pelajaran 2: Pemrograman Web & Basis Data (RPL) -->
-        <div class={`subject-card glass-card ${isRplSqlEnrolled ? 'is-enrolled' : 'is-locked'}`}>
-          <div class="subject-card-header">
-            <div class="subject-title-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="subject-title-svg text-cyan">
-                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-              </svg>
-              <div>
-                <h3 class="subject-title">Mata Pelajaran: Pemrograman Web & Basis Data (RPL)</h3>
-                <p class="subject-sub">Practical SQL Masterclass & Relational Database Management</p>
-              </div>
-            </div>
-            {isRplSqlEnrolled ? (
-              <span class="badge badge-success">Terdaftar</span>
-            ) : (
-              <span class="badge badge-amber">Belum Enroll</span>
-            )}
-          </div>
-
-          <div class="subject-body">
-            <div class="lkpd-items-grid">
-              <div class="lkpd-item-box">
-                <div class="lkpd-item-title">Practical SQL Masterclass</div>
-                <div class="lkpd-item-score" style="color: #6366f1;">{completedCount} / {totalLessonsCount} Modul Selesai</div>
-                <p class="lkpd-item-feedback">{completionPercentage}% Kurikulum SQL diselesaikan</p>
-              </div>
-
-              <div class="lkpd-item-box">
-                <div class="lkpd-item-title">Predikat &amp; Kualifikasi Kompetensi</div>
-                <div class="lkpd-item-score" style="color: #a855f7;">{rankInfo.title}</div>
-                <p class="lkpd-item-feedback">Peringkat #{userRankPosition} dari {totalStudentsCount} Siswa Terdaftar</p>
-              </div>
-
-              <div class="lkpd-item-box">
-                <div class="lkpd-item-title">Try Out Ujian CBT SQL (25 Soal)</div>
-                <div class="lkpd-item-score" style={sqlTryoutSubmission ? (sqlTryoutSubmission.score >= 75 ? 'color: #10b981;' : 'color: #f59e0b;') : 'color: var(--text-muted);'}>
-                  {sqlTryoutSubmission ? `${sqlTryoutSubmission.score} / 100` : 'Belum Dikerjakan'}
-                </div>
-                <p class="lkpd-item-feedback">
-                  {sqlTryoutSubmission 
-                    ? `Benar ${sqlTryoutSubmission.correct_answers}/${sqlTryoutSubmission.total_questions} soal (${sqlTryoutSubmission.score >= 75 ? 'Tuntas KKM' : 'Perlu Remedial'})` 
-                    : 'Simulasi Try Out CBT mandiri dengan token ujian.'}
-                </p>
-                <a href="/belajar/sql/tryout" class="lkpd-link-btn margin-top-xs">
-                  {sqlTryoutSubmission ? 'Ulangi / Buka Try Out &rarr;' : 'Mulai Try Out Ujian &rarr;'}
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div class="subject-card-action">
-            {isRplSqlEnrolled ? (
-              <a href="/belajar/sql" class="btn btn-outline btn-sm recap-btn">
-                Buka Mata Pelajaran Pemrograman Web & Basis Data &rarr;
-              </a>
-            ) : (
-              <button
-                type="button"
-                class="btn btn-enroll-trigger btn-sm recap-btn"
-                data-course-id="rpl_web_sql"
-                data-course-title="Mata Pelajaran: Pemrograman Web & Basis Data (RPL)"
-              >
-                Enroll Mata Pelajaran (Kode Akses)
-              </button>
-            )}
-          </div>
+        <div class="subject-panel-footer margin-top-md">
+          {isRplSqlEnrolled ? (
+            <a href="/belajar/sql" class="m3-btn m3-btn-outlined btn-sm">
+              <span>Buka SQL Masterclass</span>
+              <span class="material-symbols-rounded icon-sm">arrow_forward</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              class="m3-btn m3-btn-tonal-primary btn-sm btn-enroll-trigger"
+              data-course-id="rpl_web_sql"
+              data-course-title="Mata Pelajaran: Pemrograman Web & Basis Data (RPL)"
+            >
+              <span class="material-symbols-rounded icon-sm">key</span>
+              <span>Enroll Mata Pelajaran</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
 
-    <!-- Overall progress -->
-    <div class="progress-card glass-card">
-      <div class="progress-header">
-        <span class="progress-label">Progress Kurikulum SQL (40 Modul)</span>
-        <span class="progress-count">{completedCount} / {totalLessonsCount}</span>
+    <!-- 4. Riwayat Modul Selesai (Recent History) -->
+    <div class="m3-card m3-card-elevated dash-history-card margin-top-lg">
+      <div class="history-card-header">
+        <h3 class="m3-title-large">Riwayat Modul SQL Terakhir</h3>
+        <a href="/belajar/sql" class="m3-btn m3-btn-text btn-sm">Lihat Semua Modul &rarr;</a>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" style={`width: ${completionPercentage}%`}></div>
-      </div>
-    </div>
-
-    <!-- Learning paths -->
-    <div class="paths-section">
-      <div class="section-head">
-        <div>
-          <h2 class="section-title">Progress per Learning Path</h2>
-          <p class="section-subtitle">5 alur belajar dari dasar hingga keamanan database</p>
-        </div>
-        <a href="/belajar/sql" class="btn btn-primary btn-sm">Lanjutkan Belajar</a>
-      </div>
-
-      <div class="paths-grid">
-        {pathAnalytics.map((path) => (
-          <div class="path-card glass-card">
-            <div class="path-top">
-              <div class="path-text">
-                <h3 class="path-title">{path.title}</h3>
-                <p class="path-desc">{path.description}</p>
-              </div>
-              <span class="path-count">{path.completed}/{path.total}</span>
-            </div>
-            <div class="path-progress-track">
-              <div class="path-progress-fill" style={`width: ${path.percentage}%; background-color: ${path.accentVar};`}></div>
-            </div>
-            <p class="path-pct">{path.percentage}% selesai</p>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <!-- History table -->
-    <div class="history-section">
-      <h2 class="section-title">Riwayat Modul Selesai</h2>
 
       {completedModules.length > 0 ? (
-        <div class="table-wrap glass-card">
-          <table class="history-table">
+        <div class="table-wrap margin-top-sm">
+          <table class="m3-table">
             <thead>
               <tr>
                 <th>Modul</th>
                 <th>Kategori</th>
-                <th>Tanggal</th>
-                <th>SQL Terakhir</th>
-                <th></th>
+                <th>Tanggal Selesai</th>
+                <th>Query SQL</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {completedModules.map((item) => (
+              {completedModules.slice(0, 5).map((item) => (
                 <tr>
                   <td>
-                    <span class="module-num">#{item.order_index}</span> {item.title}
+                    <strong>#{item.order_index}</strong> {item.title}
                   </td>
                   <td>
-                    <span class="badge badge-role">{item.category}</span>
+                    <span class="m3-chip m3-chip-tonal-secondary">{item.category}</span>
                   </td>
-                  <td class="date-col">
+                  <td class="text-m3-muted">
                     {item.completed_at ? new Date(item.completed_at).toLocaleDateString('id-ID', {
                       day: 'numeric', month: 'short', year: 'numeric'
                     }) : '—'}
                   </td>
                   <td>
-                    <code class="code-snippet">{item.submitted_code}</code>
+                    <code class="history-code-tag">{item.submitted_code.slice(0, 45)}...</code>
                   </td>
                   <td>
-                    <a href={`/belajar/sql/${item.slug}`} class="btn btn-outline btn-xs">Buka</a>
+                    <a href={`/belajar/sql/${item.slug}`} class="m3-btn m3-btn-tonal btn-sm">Buka</a>
                   </td>
                 </tr>
               ))}
@@ -615,161 +572,160 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </table>
         </div>
       ) : (
-        <div class="empty-state glass-card">
-          <p class="empty-title">Belum ada modul yang diselesaikan.</p>
-          <p class="empty-desc">Mulai latihan SQL dan selesaikan tantangan pertama Anda.</p>
-          <a href="/belajar/sql" class="btn btn-primary btn-sm" style="margin-top: 1.25rem;">Mulai Belajar</a>
+        <div class="empty-state margin-top-md">
+          <span class="material-symbols-rounded icon-xl text-m3-muted">assignment_late</span>
+          <p class="m3-title-medium margin-top-xs">Belum ada modul SQL yang diselesaikan.</p>
+          <p class="m3-body-small text-m3-muted">Mulai eksplorasi SQL Masterclass untuk mencatat progres belajar Anda.</p>
+          <a href="/belajar/sql" class="m3-btn m3-btn-filled btn-sm margin-top-sm">Buka Katalog SQL</a>
         </div>
       )}
     </div>
 
-  <!-- Modal Edit Profil Siswa -->
-  <div id="edit-profile-modal" class="modal-backdrop" style="display: none;">
-    <div class="modal-card glass-card">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
+    <!-- Modal Edit Profil Siswa -->
+    <div id="edit-profile-modal" class="modal-backdrop" style="display: none;">
+      <div class="m3-card m3-card-elevated modal-dialog-m3">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="material-symbols-rounded icon-lg text-m3-primary">account_circle</span>
+            <div>
+              <h2 class="m3-title-large">Edit Profil Siswa</h2>
+              <p class="m3-body-small text-m3-muted">Perbarui nama lengkap, identitas kelas, atau password Anda.</p>
+            </div>
           </div>
-          <div>
-            <h2 class="modal-title">Edit Profil Pengguna</h2>
-            <p class="modal-sub">Perbarui nama lengkap, identitas kelas, atau password Anda.</p>
-          </div>
-        </div>
-        <button id="close-modal-btn" class="modal-close" type="button" aria-label="Tutup Modal">&times;</button>
-      </div>
-
-      <div id="profile-error-banner" class="alert alert-error" style="display: none;"></div>
-      <div id="profile-success-banner" class="alert alert-success" style="display: none;"></div>
-
-      <form id="edit-profile-form" class="modal-form">
-        <div class="form-group">
-          <label for="edit-name">Nama Lengkap Siswa / Pengguna</label>
-          <input
-            type="text"
-            id="edit-name"
-            name="name"
-            value={user.name}
-            required
-            placeholder="Contoh: Budi Santoso"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="edit-class-select">Identitas Kelas (RPL / Vokasi)</label>
-          <select id="edit-class-select" class="form-select">
-            <option value="" disabled selected={!user.class_name}>-- Pilih Rombel / Kelas --</option>
-            <optgroup label="Kelas 10 (Fase E)">
-              <option value="10 RPL 1" selected={user.class_name === '10 RPL 1' || user.class_name === 'X RPL 1'}>10 RPL 1 (X RPL 1)</option>
-              <option value="10 RPL 2" selected={user.class_name === '10 RPL 2' || user.class_name === 'X RPL 2'}>10 RPL 2 (X RPL 2)</option>
-              <option value="10 RPL 3" selected={user.class_name === '10 RPL 3' || user.class_name === 'X RPL 3'}>10 RPL 3 (X RPL 3)</option>
-              <option value="10 RPL 4" selected={user.class_name === '10 RPL 4' || user.class_name === 'X RPL 4'}>10 RPL 4 (X RPL 4)</option>
-            </optgroup>
-            <optgroup label="Kelas 11 (XI RPL)">
-              <option value="11 RPL 1" selected={user.class_name === '11 RPL 1' || user.class_name === 'XI RPL 1'}>11 RPL 1 (XI RPL 1)</option>
-              <option value="11 RPL 2" selected={user.class_name === '11 RPL 2' || user.class_name === 'XI RPL 2'}>11 RPL 2 (XI RPL 2)</option>
-              <option value="11 RPL 3" selected={user.class_name === '11 RPL 3' || user.class_name === 'XI RPL 3'}>11 RPL 3 (XI RPL 3)</option>
-              <option value="11 RPL 4" selected={user.class_name === '11 RPL 4' || user.class_name === 'XI RPL 4'}>11 RPL 4 (XI RPL 4)</option>
-            </optgroup>
-            <optgroup label="Kelas 12 (XII RPL)">
-              <option value="12 RPL 1" selected={user.class_name === '12 RPL 1' || user.class_name === 'XII RPL 1'}>12 RPL 1 (XII RPL 1)</option>
-              <option value="12 RPL 2" selected={user.class_name === '12 RPL 2' || user.class_name === 'XII RPL 2'}>12 RPL 2 (XII RPL 2)</option>
-              <option value="12 RPL 3" selected={user.class_name === '12 RPL 3' || user.class_name === 'XII RPL 3'}>12 RPL 3 (XII RPL 3)</option>
-              <option value="12 RPL 4" selected={user.class_name === '12 RPL 4' || user.class_name === 'XII RPL 4'}>12 RPL 4 (XII RPL 4)</option>
-            </optgroup>
-            <option value="CUSTOM" selected={!!user.class_name && !['10 RPL 1', '10 RPL 2', '10 RPL 3', '10 RPL 4', '11 RPL 1', '11 RPL 2', '11 RPL 3', '11 RPL 4', '12 RPL 1', '12 RPL 2', '12 RPL 3', '12 RPL 4', 'X RPL 1', 'X RPL 2', 'X RPL 3', 'X RPL 4', 'XI RPL 1', 'XI RPL 2', 'XI RPL 3', 'XI RPL 4', 'XII RPL 1', 'XII RPL 2', 'XII RPL 3', 'XII RPL 4'].includes(user.class_name)}>Lainnya (Ketik Manual...)</option>
-          </select>
-          <input
-            type="text"
-            id="edit-class-custom"
-            name="class_name_custom"
-            value={user.class_name || ''}
-            placeholder="Contoh: XI PPLG 5 / Kelas Khusus"
-            style="display: none; margin-top: 0.5rem;"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="edit-password">Password Baru (Opsional)</label>
-          <input
-            type="password"
-            id="edit-password"
-            name="password"
-            placeholder="Biarkan kosong jika tidak ingin mengubah password"
-            autocomplete="new-password"
-          />
-        </div>
-
-        <div class="modal-footer">
-          <button id="cancel-modal-btn" class="btn btn-secondary" type="button">Batal</button>
-          <button type="submit" id="save-profile-btn" class="btn btn-primary">
-            <span class="btn-text">Simpan Perubahan</span>
-            <span class="btn-spinner" style="display: none;">Memproses...</span>
+          <button id="close-modal-btn" class="m3-btn-icon" type="button" aria-label="Tutup Modal">
+            <span class="material-symbols-rounded">close</span>
           </button>
         </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- Modal Access Code / Enroll Mata Pelajaran -->
-  <div id="enroll-access-modal" class="modal-backdrop" style="display: none;">
-    <div class="modal-card glass-card">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
+        <div id="profile-error-banner" class="m3-banner m3-banner-error margin-top-sm" style="display: none;"></div>
+        <div id="profile-success-banner" class="m3-banner m3-banner-success margin-top-sm" style="display: none;"></div>
+
+        <form id="edit-profile-form" class="modal-form margin-top-md">
+          <div class="form-group">
+            <label for="edit-name" class="m3-label-large">Nama Lengkap Siswa</label>
+            <input
+              type="text"
+              id="edit-name"
+              name="name"
+              value={user.name}
+              required
+              class="m3-text-field"
+              placeholder="Contoh: Budi Santoso"
+            />
           </div>
-          <div>
-            <h2 class="modal-title">Enroll Mata Pelajaran</h2>
-            <p class="modal-sub">Masukkan kode akses dari Guru untuk mendaftar dan membuka mata pelajaran ini.</p>
+
+          <div class="form-group margin-top-sm">
+            <label for="edit-class-select" class="m3-label-large">Identitas Kelas</label>
+            <select id="edit-class-select" class="m3-text-field">
+              <option value="" disabled selected={!user.class_name}>-- Pilih Rombel / Kelas --</option>
+              <optgroup label="Kelas 10 (Fase E)">
+                <option value="10 RPL 1" selected={user.class_name === '10 RPL 1' || user.class_name === 'X RPL 1'}>10 RPL 1 (X RPL 1)</option>
+                <option value="10 RPL 2" selected={user.class_name === '10 RPL 2' || user.class_name === 'X RPL 2'}>10 RPL 2 (X RPL 2)</option>
+                <option value="10 RPL 3" selected={user.class_name === '10 RPL 3' || user.class_name === 'X RPL 3'}>10 RPL 3 (X RPL 3)</option>
+                <option value="10 RPL 4" selected={user.class_name === '10 RPL 4' || user.class_name === 'X RPL 4'}>10 RPL 4 (X RPL 4)</option>
+              </optgroup>
+              <optgroup label="Kelas 11 (XI RPL)">
+                <option value="11 RPL 1" selected={user.class_name === '11 RPL 1' || user.class_name === 'XI RPL 1'}>11 RPL 1 (XI RPL 1)</option>
+                <option value="11 RPL 2" selected={user.class_name === '11 RPL 2' || user.class_name === 'XI RPL 2'}>11 RPL 2 (XI RPL 2)</option>
+                <option value="11 RPL 3" selected={user.class_name === '11 RPL 3' || user.class_name === 'XI RPL 3'}>11 RPL 3 (XI RPL 3)</option>
+                <option value="11 RPL 4" selected={user.class_name === '11 RPL 4' || user.class_name === 'XI RPL 4'}>11 RPL 4 (XI RPL 4)</option>
+              </optgroup>
+              <optgroup label="Kelas 12 (XII RPL)">
+                <option value="12 RPL 1" selected={user.class_name === '12 RPL 1' || user.class_name === 'XII RPL 1'}>12 RPL 1 (XII RPL 1)</option>
+                <option value="12 RPL 2" selected={user.class_name === '12 RPL 2' || user.class_name === 'XII RPL 2'}>12 RPL 2 (XII RPL 2)</option>
+                <option value="12 RPL 3" selected={user.class_name === '12 RPL 3' || user.class_name === 'XII RPL 3'}>12 RPL 3 (XII RPL 3)</option>
+                <option value="12 RPL 4" selected={user.class_name === '12 RPL 4' || user.class_name === 'XII RPL 4'}>12 RPL 4 (XII RPL 4)</option>
+              </optgroup>
+              <option value="CUSTOM" selected={!!user.class_name && !['10 RPL 1', '10 RPL 2', '10 RPL 3', '10 RPL 4', '11 RPL 1', '11 RPL 2', '11 RPL 3', '11 RPL 4', '12 RPL 1', '12 RPL 2', '12 RPL 3', '12 RPL 4', 'X RPL 1', 'X RPL 2', 'X RPL 3', 'X RPL 4', 'XI RPL 1', 'XI RPL 2', 'XI RPL 3', 'XI RPL 4', 'XII RPL 1', 'XII RPL 2', 'XII RPL 3', 'XII RPL 4'].includes(user.class_name)}>Lainnya (Ketik Manual...)</option>
+            </select>
+            <input
+              type="text"
+              id="edit-class-custom"
+              name="class_name_custom"
+              value={user.class_name || ''}
+              placeholder="Contoh: XI PPLG 5 / Kelas Khusus"
+              class="m3-text-field"
+              style="display: none; margin-top: 0.5rem;"
+            />
           </div>
-        </div>
-        <button id="close-enroll-modal-btn" class="modal-close" type="button" aria-label="Tutup Modal">&times;</button>
+
+          <div class="form-group margin-top-sm">
+            <label for="edit-password" class="m3-label-large">Password Baru (Opsional)</label>
+            <input
+              type="password"
+              id="edit-password"
+              name="password"
+              placeholder="Biarkan kosong jika tidak ingin mengubah password"
+              autocomplete="new-password"
+              class="m3-text-field"
+            />
+          </div>
+
+          <div class="modal-footer margin-top-md">
+            <button id="cancel-modal-btn" class="m3-btn m3-btn-tonal btn-sm" type="button">Batal</button>
+            <button type="submit" id="save-profile-btn" class="m3-btn m3-btn-filled btn-sm">
+              <span class="btn-text">Simpan Perubahan</span>
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
 
-      <div id="enroll-error-banner" class="alert alert-error" style="display: none;"></div>
-      <div id="enroll-success-banner" class="alert alert-success" style="display: none;"></div>
-
-      <form id="enroll-access-form" class="modal-form">
-        <input type="hidden" id="enroll-course-id" name="courseId" value="" />
-        <div class="form-group">
-          <label for="enroll-course-title">Mata Pelajaran</label>
-          <input
-            type="text"
-            id="enroll-course-title"
-            readonly
-            class="form-input-readonly"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="enroll-access-code">Kode Akses dari Guru</label>
-          <input
-            type="text"
-            id="enroll-access-code"
-            name="accessCode"
-            placeholder="Contoh: INFORMATIKA2026 atau RPL2026"
-            required
-            autocomplete="off"
-          />
-        </div>
-
-        <div class="modal-footer">
-          <button id="cancel-enroll-modal-btn" class="btn btn-secondary" type="button">Batal</button>
-          <button type="submit" id="save-enroll-btn" class="btn btn-primary">
-            <span class="btn-text">Verifikasi &amp; Enroll</span>
-            <span class="btn-spinner" style="display: none;">Memproses...</span>
+    <!-- Modal Access Code / Enroll Mata Pelajaran -->
+    <div id="enroll-access-modal" class="modal-backdrop" style="display: none;">
+      <div class="m3-card m3-card-elevated modal-dialog-m3">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="material-symbols-rounded icon-lg text-m3-primary">vpn_key</span>
+            <div>
+              <h2 class="m3-title-large">Enroll Mata Pelajaran</h2>
+              <p class="m3-body-small text-m3-muted">Masukkan kode akses dari Guru untuk mendaftar.</p>
+            </div>
+          </div>
+          <button id="close-enroll-modal-btn" class="m3-btn-icon" type="button" aria-label="Tutup Modal">
+            <span class="material-symbols-rounded">close</span>
           </button>
         </div>
-      </form>
+
+        <div id="enroll-error-banner" class="m3-banner m3-banner-error margin-top-sm" style="display: none;"></div>
+        <div id="enroll-success-banner" class="m3-banner m3-banner-success margin-top-sm" style="display: none;"></div>
+
+        <form id="enroll-access-form" class="modal-form margin-top-md">
+          <input type="hidden" id="enroll-course-id" name="courseId" value="" />
+          <div class="form-group">
+            <label for="enroll-course-title" class="m3-label-large">Mata Pelajaran</label>
+            <input
+              type="text"
+              id="enroll-course-title"
+              readonly
+              class="m3-text-field"
+              style="opacity: 0.85; cursor: not-allowed;"
+            />
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label for="enroll-access-code" class="m3-label-large">Kode Akses dari Guru</label>
+            <input
+              type="text"
+              id="enroll-access-code"
+              name="accessCode"
+              placeholder="Contoh: INFORMATIKA2026 atau RPL2026"
+              required
+              autocomplete="off"
+              class="m3-text-field"
+            />
+          </div>
+
+          <div class="modal-footer margin-top-md">
+            <button id="cancel-enroll-modal-btn" class="m3-btn m3-btn-tonal btn-sm" type="button">Batal</button>
+            <button type="submit" id="save-enroll-btn" class="m3-btn m3-btn-filled btn-sm">
+              <span class="btn-text">Verifikasi &amp; Enroll</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+
   </div>
 </MainLayout>
 
@@ -948,907 +904,304 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   });
 </script>
 
-<style>
-  .dash-wrapper {
-    max-width: 900px;
+<style is:global>
+  .m3-dash-container {
+    max-width: 1120px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+    padding: 1.5rem 1rem 4rem;
   }
 
-  /* Profile Card */
-  .profile-card {
+  /* Profile Header */
+  .dash-profile-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
     padding: 1.75rem 2rem;
   }
 
-  .profile-inner {
+  .dash-profile-main {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    flex-wrap: wrap;
   }
 
-  .avatar-circle {
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: var(--radius-full);
-    background: var(--accent-gradient);
-    color: #fff;
+  .m3-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--m3-primary);
+    color: var(--m3-on-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     flex-shrink: 0;
   }
 
-  .profile-info {
-    flex: 1;
+  .dash-student-name {
+    margin: 0;
   }
 
-  .profile-badges {
+  .dash-profile-actions {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 0.4rem;
     flex-wrap: wrap;
+    align-items: center;
   }
 
-  .profile-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-  }
-
-  .profile-email {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin-top: 0.15rem;
-  }
-
-  .profile-actions {
-    margin-left: auto;
-  }
-
-  /* Stats Row */
-  .stats-row {
+  /* KPI Cards Grid */
+  .dash-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1rem;
   }
 
-  @media (max-width: 768px) {
-    .stats-row {
-      grid-template-columns: 1fr;
-    }
+  .kpi-card {
+    padding: 1.35rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
-  .stat-item-highlight {
-    border-color: rgba(132, 204, 22, 0.4);
-    background: linear-gradient(135deg, rgba(132, 204, 22, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
-  }
-
-  .stat-rank-num {
-    color: #84cc16;
-    font-size: 2.25rem;
-  }
-
-  .stat-sub {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 400;
-    text-transform: none;
-  }
-
-  /* Student Rank Card Banner */
-  .student-rank-card {
-    padding: 1.5rem 1.75rem;
+  .kpi-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.5rem;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.95) 100%);
-    border: 1px solid rgba(132, 204, 22, 0.3);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  .rank-card-left {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .rank-trophy-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 4.5rem;
-    height: 4.5rem;
-    background: rgba(132, 204, 22, 0.12);
-    border: 1px solid rgba(132, 204, 22, 0.4);
-    border-radius: var(--radius-lg);
-  }
-
-  .trophy-emoji {
-    font-size: 1.75rem;
-    line-height: 1;
-  }
-
-  .rank-big-num {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #84cc16;
-    margin-top: 0.15rem;
-  }
-
-  .rank-badge-group {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.35rem;
-    flex-wrap: wrap;
-  }
-
-  .rank-card-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: -0.01em;
-  }
-
-  .rank-card-desc {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.75);
-    margin-top: 0.25rem;
-  }
-
-  @media (max-width: 768px) {
-    .student-rank-card {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-
-  .stat-item {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-
-  .stat-rank {
-    font-size: 1.1rem;
-    letter-spacing: 0;
-  }
-
-  .stat-total {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: var(--text-muted);
-  }
-
-  .stat-unit {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-  }
-
-  .stat-label {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  /* Overall Progress */
-  .progress-card {
-    padding: 1.25rem 1.75rem;
-  }
-
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-    font-size: 0.875rem;
-  }
-
-  .progress-label {
-    color: var(--text-secondary);
-    font-weight: 500;
-  }
-
-  .progress-count {
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-
-  .progress-track {
-    height: 6px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: var(--accent-gradient);
-    border-radius: var(--radius-full);
-    transition: width 0.6s ease;
-  }
-
-  /* Paths section */
-  .paths-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .section-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-  }
-
-  .section-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin-top: 0.2rem;
-  }
-
-  .paths-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
-  }
-
-  .path-card {
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .path-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .path-text {
-    flex: 1;
-  }
-
-  .path-title {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .path-desc {
-    font-size: 0.775rem;
-    color: var(--text-muted);
-    margin-top: 0.25rem;
-    line-height: 1.4;
-  }
-
-  .path-count {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    padding: 0.2rem 0.6rem;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-full);
-  }
-
-  .path-progress-track {
-    height: 4px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-  }
-
-  .path-progress-fill {
-    height: 100%;
-    border-radius: var(--radius-full);
-    transition: width 0.6s ease;
-  }
-
-  .path-pct {
-    font-size: 0.775rem;
-    color: var(--text-muted);
-  }
-
-  /* Badge variants */
-  .badge-role {
-    background-color: var(--bg-tertiary);
-    color: var(--text-secondary);
-    border-color: transparent;
-  }
-
-  .badge-novice {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border-color: rgba(16, 185, 129, 0.25);
-  }
-
-  .badge-intermediate {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.25);
-  }
-
-  .badge-advanced {
-    background-color: rgba(14, 165, 233, 0.1);
-    color: #0ea5e9;
-    border-color: rgba(14, 165, 233, 0.25);
-  }
-
-  .badge-master {
-    background-color: rgba(168, 85, 247, 0.1);
-    color: #a855f7;
-    border-color: rgba(168, 85, 247, 0.25);
-  }
-
-  /* Buttons */
-  .btn-sm {
-    padding: 0.45rem 0.95rem;
-    font-size: 0.875rem;
-  }
-
-  .btn-xs {
-    padding: 0.25rem 0.65rem;
-    font-size: 0.8rem;
-  }
-
-  /* History section */
-  .history-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .table-wrap {
-    overflow: hidden;
-  }
-
-  .history-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-  }
-
-  .history-table th {
-    text-align: left;
-    padding: 0.875rem 1.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--bg-secondary);
-  }
-
-  .history-table td {
-    padding: 0.875rem 1.25rem;
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-subtle);
-    vertical-align: middle;
-  }
-
-  .history-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .history-table tr:hover td {
-    background: var(--border-subtle);
-  }
-
-  .module-num {
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 0.8125rem;
-  }
-
-  .date-col {
-    color: var(--text-muted);
-    font-size: 0.8125rem;
-    white-space: nowrap;
-  }
-
-  .code-snippet {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--accent-cyan);
-    background: var(--bg-secondary);
-    padding: 0.2rem 0.5rem;
-    border-radius: var(--radius-sm);
-    display: inline-block;
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: middle;
-  }
-
-  /* Empty state */
-  .empty-state {
-    padding: 3rem 2rem;
-    text-align: center;
-  }
-
-  .empty-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    color: var(--m3-secondary);
     margin-bottom: 0.5rem;
   }
 
-  .empty-desc {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    max-width: 420px;
-    margin: 0 auto;
+  .kpi-value {
+    margin: 0.25rem 0;
+    font-weight: 800;
   }
 
-  @media (max-width: 640px) {
-    .dash-wrapper {
-      gap: 1rem;
-    }
-
-    .profile-card {
-      padding: 1.25rem;
-    }
-
-    .profile-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-
-    .profile-actions {
-      width: 100%;
-      margin-left: 0;
-    }
-
-    .profile-actions .btn {
-      width: 100%;
-      min-height: 44px;
-    }
-
-    .section-head {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
-    }
-
-    .section-head .btn {
-      width: 100%;
-      min-height: 44px;
-    }
-
-    .paths-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+  .kpi-unit {
+    font-size: 1rem;
+    font-weight: 500;
   }
 
-  /* Modal Backdrop & Form */
+  /* Progress Bars */
+  .m3-linear-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--m3-surface-container-highest);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .m3-linear-progress-sm {
+    width: 100%;
+    height: 6px;
+    background: var(--m3-surface-container-highest);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .m3-progress-fill {
+    height: 100%;
+    background: var(--m3-primary);
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+
+  /* Subjects Grid */
+  .dash-subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .subject-panel-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
+  }
+
+  .subject-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .subject-header-info {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  /* LKPD Row Item */
+  .lkpd-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .lkpd-row-card {
+    background: var(--m3-surface-container-lowest);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .lkpd-row-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .lkpd-row-score {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .lkpd-score-badge {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  /* SQL Paths Compact Grid */
+  .sql-paths-compact-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .sql-path-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .sql-path-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cbt-box-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .cbt-box-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* History Card */
+  .dash-history-card {
+    padding: 1.5rem;
+  }
+
+  .history-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .history-code-tag {
+    background: var(--m3-surface-container);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-family: var(--font-mono);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Modal Backdrop & Dialog */
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 100;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.48);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
   }
 
-  .modal-card {
+  .modal-dialog-m3 {
     width: 100%;
-    max-width: 520px;
-    padding: 2rem;
-    border-radius: var(--radius-2xl);
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-lg), 0 0 30px rgba(99, 102, 241, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+    max-width: 480px;
+    border-radius: 28px;
+    padding: 1.75rem 2rem;
+    background: var(--m3-surface-container-high);
+    border: 1px solid var(--m3-outline-variant);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
   }
 
   .modal-header {
     display: flex;
-    align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
+    align-items: flex-start;
   }
 
   .modal-title-group {
     display: flex;
-    gap: 0.875rem;
-    align-items: flex-start;
-  }
-
-  .modal-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--radius-lg);
-    background: var(--accent-gradient);
-    color: #fff;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .modal-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .modal-sub {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    font-size: 1.75rem;
-    line-height: 1;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .modal-close:hover {
-    color: var(--text-primary);
-  }
-
-  .modal-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .form-group label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .form-group input, .form-select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    font-size: 0.95rem;
-  }
-
-  .form-group input:focus, .form-select:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    gap: 0.75rem;
   }
 
   .modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
-    margin-top: 0.5rem;
   }
 
-  /* Teacher Access Banner */
-  .teacher-access-banner {
-    padding: 1.5rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-    border: 1px solid rgba(168, 85, 247, 0.3);
-    border-radius: var(--radius-xl);
-    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.1);
-    flex-wrap: wrap;
-  }
-
-  .teacher-banner-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    flex: 1;
-    min-width: 280px;
-  }
-
-  .teacher-banner-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .teacher-banner-desc {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
-
-  .btn-teacher-portal {
-    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-    border: none;
-    color: #ffffff;
-  }
-
-  .btn-teacher-cta {
-    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-    color: #ffffff;
-    border: none;
-    padding: 0.75rem 1.25rem;
-    white-space: nowrap;
-  }
-
-  /* Golden Certificate Banner */
-  .cert-congratulations-banner {
-    padding: 1.5rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.12) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    border-radius: var(--radius-xl);
-    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
-    flex-wrap: wrap;
-  }
-
-  .badge-gold {
-    background: rgba(245, 158, 11, 0.15);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    font-weight: 700;
-  }
-
-  .cert-banner-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    flex: 1;
-    min-width: 280px;
-  }
-
-  .cert-banner-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--text-primary);
-  }
-
-  .cert-banner-desc {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
-
-  .btn-cert-cta {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: #ffffff;
-    border: none;
-    padding: 0.75rem 1.25rem;
-    font-weight: 700;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-  }
-
-  /* Subject Cards & Grid */
-  .subject-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    gap: 1.25rem;
-  }
-
-  @media (max-width: 640px) {
-    .subject-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .subject-card {
-    padding: 1.75rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1.25rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .subject-card.is-locked {
-    opacity: 0.9;
-    border-style: dashed;
-  }
-
-  .subject-card:hover {
-    transform: translateY(-2px);
-  }
-
-  .subject-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .subject-title-wrap {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  .subject-title-svg {
-    flex-shrink: 0;
-    margin-top: 0.15rem;
-  }
-
-  .subject-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1.3;
-  }
-
-  .subject-sub {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-top: 0.25rem;
-    line-height: 1.35;
-  }
-
-  .subject-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .lkpd-items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .lkpd-item-box {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 0.875rem 1rem;
+  .form-group {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
   }
 
-  .lkpd-item-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.2rem;
-  }
-
-  .badge-xs {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.4rem;
-    font-weight: 700;
-  }
-
-  .lkpd-card-link {
-    font-size: 0.725rem;
-    font-weight: 600;
-    color: var(--accent-cyan);
-    text-decoration: none;
-    transition: color 0.15s ease;
-  }
-
-  .lkpd-card-link:hover {
-    color: var(--accent-blue);
-    text-decoration: underline;
-  }
-
-  .lkpd-item-title {
-    font-size: 0.725rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .lkpd-item-score {
-    font-size: 1.15rem;
-    font-weight: 800;
-  }
-
-  .lkpd-item-feedback {
-    font-size: 0.775rem;
-    color: var(--text-secondary);
-    line-height: 1.35;
-  }
-
-  .average-grade-box {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    border-radius: var(--radius-md);
-    padding: 0.875rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .avg-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    letter-spacing: 0.05em;
-  }
-
-  .avg-value {
-    font-size: 1.35rem;
-    font-weight: 800;
-  }
-
-  .subject-card-action {
-    margin-top: auto;
-  }
-
-  .badge-success {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    font-weight: 700;
-  }
-
-  .badge-amber {
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    font-weight: 700;
-  }
-
-  .form-input-readonly {
-    background: var(--bg-tertiary) !important;
-    color: var(--text-secondary) !important;
-    cursor: not-allowed;
+  @media (max-width: 640px) {
+    .dash-profile-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .dash-profile-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .lkpd-row-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .lkpd-row-score {
+      width: 100%;
+      justify-content: space-between;
+      margin-top: 0.35rem;
+    }
+    .cbt-box-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 </style>
