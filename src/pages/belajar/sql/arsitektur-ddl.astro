@@ -8,42 +8,70 @@ const user = await getSessionUser(sessionId);
 
 <MainLayout
   title="Materi Ajar: Arsitektur Basis Data & DDL (ERD, Normalisasi 1NF-3NF, Constraints) | SMK RPL"
-  description="Panduan komprehensif konsep arsitektur database relasional, perancangan diagram ERD Mermaid, teknik normalisasi data bebas anomali, sintaksis DDL, dan batasan integritas untuk siswa Kelas 11 RPL."
+  description="Panduan komprehensif konsep arsitektur database relasional, perancangan diagram ERD, teknik normalisasi data bebas anomali, sintaksis DDL, dan batasan integritas untuk siswa Kelas 11 RPL."
 >
   <div class="materi-container">
     <!-- Top Nav & Breadcrumbs -->
     <div class="top-nav-bar">
-      <a href="/belajar/sql" class="btn btn-outline btn-sm">
-        &larr; Kembali ke Katalog Modul SQL
+      <a href="/belajar/sql" class="m3-btn m3-btn-outlined btn-sm">
+        <span class="material-symbols-rounded icon-sm">arrow_back</span>
+        Kembali ke Katalog Modul SQL
       </a>
       <div class="top-nav-badges">
-        <span class="badge badge-purple">MATERI INTI KELAS 11 RPL</span>
-        <span class="badge badge-cyan">DATABASE ARCHITECTURE &amp; DDL</span>
-        <span class="badge badge-amber">PANDUAN PRA-PROYEK</span>
+        <span class="m3-chip m3-chip-tonal-primary">
+          <span class="material-symbols-rounded icon-sm">school</span>
+          KELAS 11 RPL
+        </span>
+        <span class="m3-chip m3-chip-tonal-secondary">
+          <span class="material-symbols-rounded icon-sm">architecture</span>
+          ARSITEKTUR &amp; DDL
+        </span>
+        <span class="m3-chip m3-chip-tonal-tertiary">
+          <span class="material-symbols-rounded icon-sm">folder_special</span>
+          PRA-PROYEK
+        </span>
       </div>
     </div>
 
     <!-- Hero Header Card -->
-    <div class="hero-card glass-card">
+    <div class="m3-card m3-card-elevated hero-card">
       <div class="hero-badge-wrap">
-        <span class="badge badge-primary">MODUL AJAR BASIS DATA</span>
-        <span class="badge badge-emerald">TEORI &amp; PRAKTIKUM FUNDAMENTAL</span>
+        <span class="m3-chip m3-chip-tonal-primary">
+          <span class="material-symbols-rounded icon-sm">database</span>
+          MODUL AJAR BASIS DATA
+        </span>
+        <span class="m3-chip m3-chip-tonal-success">
+          <span class="material-symbols-rounded icon-sm">verified</span>
+          TEORI &amp; PRAKTIKUM FUNDAMENTAL
+        </span>
       </div>
-      <h1 class="hero-title">Arsitektur Basis Data &amp; DDL</h1>
-      <p class="hero-subtitle">
+      <h1 class="hero-title m3-display-small">Arsitektur Basis Data &amp; DDL</h1>
+      <p class="hero-subtitle m3-body-large">
         Pelajari fondasi perancangan sistem database relasional: Mulai dari arsitektur RDBMS, pembuatan diagram relasi entitas (ERD), eliminasi anomali data melalui Normalisasi (1NF s.d. 3NF), hingga implementasi sintaksis DDL dan batasan integritas (<em>Constraints</em>).
       </p>
 
       <div class="hero-cta-row">
-        <a href="#bab-1" class="btn btn-primary btn-sm">Mulai Belajar Bab 1 &darr;</a>
-        <a href="#bab-2" class="btn btn-secondary btn-sm">Diagram ERD SmartMart &rarr;</a>
-        <a href="/belajar/sql/proyek" class="btn btn-outline btn-sm">Lembar Tugas Proyek &nearr;</a>
+        <a href="#bab-1" class="m3-btn m3-btn-filled btn-sm">
+          <span>Mulai Belajar Bab 1</span>
+          <span class="material-symbols-rounded icon-sm">arrow_downward</span>
+        </a>
+        <a href="#bab-2" class="m3-btn m3-btn-tonal btn-sm">
+          <span>Diagram ERD SmartMart</span>
+          <span class="material-symbols-rounded icon-sm">schema</span>
+        </a>
+        <a href="/belajar/sql/proyek" class="m3-btn m3-btn-outlined btn-sm">
+          <span>Lembar Tugas Proyek</span>
+          <span class="material-symbols-rounded icon-sm">open_in_new</span>
+        </a>
       </div>
     </div>
 
     <!-- Quick Navigation Table of Contents -->
-    <div class="toc-card glass-card">
-      <h3 class="toc-title">Daftar Isi Pembelajaran:</h3>
+    <div class="m3-card m3-card-elevated toc-card">
+      <div class="toc-header">
+        <span class="material-symbols-rounded icon-md text-m3-primary">menu_book</span>
+        <h3 class="toc-title m3-title-medium">Daftar Isi Pembelajaran:</h3>
+      </div>
       <div class="toc-grid">
         <a href="#bab-1" class="toc-item">
           <span class="toc-num">01</span>
@@ -93,34 +121,42 @@ const user = await getSessionUser(sessionId);
     <!-- ==========================================
          BAB 1: FONDASI ARSITEKTUR RDBMS & ACID
          ========================================== -->
-    <section id="bab-1" class="content-section glass-card">
+    <section id="bab-1" class="content-section m3-card m3-card-elevated">
       <div class="section-badge-header">
         <span class="section-step-num">BAB 01</span>
-        <h2>Fondasi Arsitektur Basis Data Relasional (RDBMS) &amp; ACID</h2>
+        <h2 class="m3-headline-medium">Fondasi Arsitektur Basis Data Relasional (RDBMS) &amp; ACID</h2>
       </div>
 
-      <p class="section-lead">
+      <p class="section-lead m3-body-large">
         Sebelum menulis kode SQL, seorang <em>Software Engineer</em> wajib memahami bagaimana sistem database bekerja di balik layar dalam memproses jutaan transaksi kasir secara aman, konsisten, dan konkuren.
       </p>
 
       <!-- Diagram 1: Arsitektur Multi-Tier Database -->
       <div class="visual-box">
         <div class="visual-header">
-          <span class="visual-badge">DIAGRAM ARSITEKTUR</span>
-          <h4>Alur Pemrosesan Query pada RDBMS</h4>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">account_tree</span>
+            DIAGRAM ARSITEKTUR
+          </span>
+          <h4 class="m3-title-large">Alur Pemrosesan Query pada RDBMS</h4>
         </div>
         
         <div class="arch-flow-wrapper">
           <!-- 1. Client Layer -->
           <div class="arch-flow-card card-client">
             <div class="flow-card-badge">
-              <span class="badge badge-cyan">LAYER 1: CLIENT APPLICATION</span>
+              <span class="m3-chip m3-chip-tonal-primary">
+                <span class="material-symbols-rounded icon-sm">point_of_sale</span>
+                LAYER 1: CLIENT APPLICATION
+              </span>
             </div>
             <div class="flow-card-main">
-              <div class="flow-card-icon">📱</div>
+              <div class="flow-card-icon-box bg-primary-container">
+                <span class="material-symbols-rounded icon-lg text-m3-primary">devices</span>
+              </div>
               <div class="flow-card-text">
-                <h5 class="flow-card-title">Aplikasi Kasir POS (Frontend / Client)</h5>
-                <p class="flow-card-desc">
+                <h5 class="flow-card-title m3-title-medium">Aplikasi Kasir POS (Frontend / Client)</h5>
+                <p class="flow-card-desc m3-body-medium">
                   Kasir memindai barcode &rarr; Aplikasi membuat perintah SQL (misal: <code>INSERT INTO transaksi ...</code>) dan mengirimkannya melalui koneksi TCP/IP.
                 </p>
               </div>
@@ -130,21 +166,29 @@ const user = await getSessionUser(sessionId);
           <!-- Flow Arrow 1 -->
           <div class="flow-connector">
             <div class="flow-line"></div>
-            <span class="flow-pill-label">Kirim Perintah SQL (Query Stream)</span>
-            <div class="flow-arrow-head">&darr;</div>
+            <span class="flow-pill-label-m3">
+              <span class="material-symbols-rounded icon-sm">send</span>
+              Kirim Perintah SQL (Query Stream via TCP/IP)
+            </span>
+            <span class="material-symbols-rounded icon-sm text-m3-primary">arrow_downward</span>
           </div>
 
           <!-- 2. Database Server Engine -->
-          <div class="arch-flow-engine glass-card">
+          <div class="arch-flow-engine">
             <div class="engine-header">
               <div class="engine-title-flex">
-                <span class="engine-icon">⚙️</span>
+                <div class="engine-icon-box bg-tertiary-container">
+                  <span class="material-symbols-rounded icon-lg text-m3-tertiary">settings_suggest</span>
+                </div>
                 <div>
-                  <h5 class="engine-title">DATABASE ENGINE (RDBMS Core: PostgreSQL / MySQL)</h5>
-                  <span class="engine-sub">Manajer Transaksi, Keamanan, &amp; Eksekusi Kueri ACID</span>
+                  <h5 class="engine-title m3-title-medium">DATABASE ENGINE (RDBMS Core: PostgreSQL / MySQL)</h5>
+                  <span class="engine-sub m3-body-small">Manajer Transaksi, Keamanan, &amp; Eksekusi Kueri ACID</span>
                 </div>
               </div>
-              <span class="badge badge-purple">SERVER SIDE</span>
+              <span class="m3-chip m3-chip-tonal-tertiary">
+                <span class="material-symbols-rounded icon-sm">dns</span>
+                SERVER SIDE
+              </span>
             </div>
 
             <div class="engine-steps-grid">
@@ -152,8 +196,8 @@ const user = await getSessionUser(sessionId);
               <div class="engine-step-card">
                 <div class="step-badge-num">1</div>
                 <div class="step-card-content">
-                  <h6 class="step-title">SQL Parser &amp; Query Optimizer</h6>
-                  <p class="step-desc">
+                  <h6 class="step-title m3-title-small">SQL Parser &amp; Optimizer</h6>
+                  <p class="step-desc m3-body-small">
                     Validasi sintaks SQL &amp; hak akses. Memilih rencana eksekusi (<em>Execution Plan</em>) dengan estimasi biaya algoritma I/O paling efisien.
                   </p>
                 </div>
@@ -163,8 +207,8 @@ const user = await getSessionUser(sessionId);
               <div class="engine-step-card">
                 <div class="step-badge-num">2</div>
                 <div class="step-card-content">
-                  <h6 class="step-title">Transaction &amp; Execution Engine (ACID)</h6>
-                  <p class="step-desc">
+                  <h6 class="step-title m3-title-small">Transaction Engine (ACID)</h6>
+                  <p class="step-desc m3-body-small">
                     Eksekusi kueri, penguncian data (<em>Row Lock</em>) untuk multi-kasir, validasi <em>Constraints</em> (PK/FK/CHECK), serta pengelolaan <code>COMMIT/ROLLBACK</code>.
                   </p>
                 </div>
@@ -174,8 +218,8 @@ const user = await getSessionUser(sessionId);
               <div class="engine-step-card">
                 <div class="step-badge-num">3</div>
                 <div class="step-card-content">
-                  <h6 class="step-title">Shared Memory Buffer &amp; Cache (RAM)</h6>
-                  <p class="step-desc">
+                  <h6 class="step-title m3-title-small">Shared Buffer &amp; RAM Cache</h6>
+                  <p class="step-desc m3-body-small">
                     Menyimpan blok data di RAM. Jika data ada di cache (<em>Buffer Cache Hit</em>), hasil kueri dikembalikan instan tanpa membaca disk fisik.
                   </p>
                 </div>
@@ -184,25 +228,30 @@ const user = await getSessionUser(sessionId);
           </div>
 
           <!-- Flow Arrow 2 (Bidirectional) -->
-          <div class="flow-connector flow-connector-bi">
-            <div class="flow-line"></div>
-            <span class="flow-pill-label">
-              <span>&darr; <strong>Write:</strong> Write-Ahead Log (WAL) &amp; Dirty Buffer Flush</span>
-              <span>&uarr; <strong>Read:</strong> Pembacaan Blok Data &amp; B-Tree Index ke RAM</span>
+          <div class="flow-connector">
+            <div class="flow-line flow-line-tertiary"></div>
+            <span class="flow-pill-label-m3 flow-pill-bi">
+              <span class="material-symbols-rounded icon-sm">sync_alt</span>
+              <span><strong>Write:</strong> WAL &amp; Dirty Buffer Flush | <strong>Read:</strong> Blok Data &amp; B-Tree Index</span>
             </span>
-            <div class="flow-arrow-head-bi">&#8645;</div>
+            <span class="material-symbols-rounded icon-sm" style="color: var(--m3-tertiary);">swap_vert</span>
           </div>
 
           <!-- 3. Storage Disk -->
           <div class="arch-flow-card card-storage">
             <div class="flow-card-badge">
-              <span class="badge badge-amber">LAYER 3: PERSISTENT STORAGE</span>
+              <span class="m3-chip m3-chip-tonal-warning">
+                <span class="material-symbols-rounded icon-sm">hard_drive</span>
+                LAYER 3: PERSISTENT STORAGE
+              </span>
             </div>
             <div class="flow-card-main">
-              <div class="flow-card-icon">💾</div>
+              <div class="flow-card-icon-box bg-warning-container">
+                <span class="material-symbols-rounded icon-lg text-m3-warning">storage</span>
+              </div>
               <div class="flow-card-text">
-                <h5 class="flow-card-title">Storage Disk Permanen (NVMe SSD / HDD)</h5>
-                <p class="flow-card-desc">
+                <h5 class="flow-card-title m3-title-medium">Storage Disk Permanen (NVMe SSD / HDD)</h5>
+                <p class="flow-card-desc m3-body-medium">
                   Media penyimpanan fisik yang menyimpan berkas data tabel (<code>data files</code>), indeks B-Tree, dan berkas transaksi (WAL) agar data transaksi tidak pernah hilang (<em>Durability</em>).
                 </p>
               </div>
@@ -210,14 +259,14 @@ const user = await getSessionUser(sessionId);
           </div>
         </div>
 
-        <p class="visual-caption">
+        <p class="visual-caption m3-body-small text-m3-muted">
           <strong>Gambar 1.1:</strong> Alur transaksi dari antarmuka kasir ke parser SQL, eksekusi ACID, buffer memori, hingga penyimpanan permanen di disk.
         </p>
       </div>
 
       <!-- Tabel 1: Flat-File vs RDBMS -->
-      <h3 class="sub-heading">Mengapa Menggunakan RDBMS, Bukan File Excel/CSV?</h3>
-      <p>
+      <h3 class="sub-heading m3-headline-small">Mengapa Menggunakan RDBMS, Bukan File Excel/CSV?</h3>
+      <p class="m3-body-medium">
         Banyak toko konvensional mencatat transaksi pada satu lembar file Excel (<em>Flat-File</em>). Namun saat skala bisnis membesar, cara ini menimbulkan bencana integritas:
       </p>
 
@@ -234,26 +283,26 @@ const user = await getSessionUser(sessionId);
           <tbody>
             <tr>
               <td><strong>Konkurensi (Banyak Kasir)</strong></td>
-              <td>❌ File terkunci jika dibuka 2 kasir bersamaan</td>
-              <td>✅ Mampu melayani ribuan kasir serentak (*Multi-User*)</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-error status-inline-icon">cancel</span> File terkunci jika dibuka 2 kasir bersamaan</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-success status-inline-icon">check_circle</span> Mampu melayani ribuan kasir serentak (*Multi-User*)</td>
               <td>Kasir 1 &amp; Kasir 2 bisa transaksi tanpa antri kunci file</td>
             </tr>
             <tr>
               <td><strong>Integritas Relasi</strong></td>
-              <td>❌ Nama pelanggan atau harga rawan salah ketik manual</td>
-              <td>✅ Terkunci otomatis via Foreign Key &amp; Constraints</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-error status-inline-icon">cancel</span> Nama pelanggan atau harga rawan salah ketik manual</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-success status-inline-icon">check_circle</span> Terkunci otomatis via Foreign Key &amp; Constraints</td>
               <td>Kasir tidak bisa menjual barang fiktif yang tidak ada di master</td>
             </tr>
             <tr>
               <td><strong>Keamanan Transaksi (ACID)</strong></td>
-              <td>❌ Jika PC mati tiba-tiba, file rawan rusak (korup)</td>
-              <td>✅ Rollback otomatis jika transaksi gagal di tengah jalan</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-error status-inline-icon">cancel</span> Jika PC mati tiba-tiba, file rawan rusak (korup)</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-success status-inline-icon">check_circle</span> Rollback otomatis jika transaksi gagal di tengah jalan</td>
               <td>Struk nota tidak akan tercatat setengah jika listrik padam</td>
             </tr>
             <tr>
               <td><strong>Kecepatan Query Data Besar</strong></td>
-              <td>❌ Lambat &amp; <em>lag</em> saat baris data mencapai &gt;100.000</td>
-              <td>✅ Cepat berkat struktur B-Tree Indexing &amp; View</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-error status-inline-icon">cancel</span> Lambat &amp; <em>lag</em> saat baris data mencapai &gt;100.000</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-success status-inline-icon">check_circle</span> Cepat berkat struktur B-Tree Indexing &amp; View</td>
               <td>Laporan omset tahunan selesai dalam hitungan milidetik</td>
             </tr>
           </tbody>
@@ -261,16 +310,18 @@ const user = await getSessionUser(sessionId);
       </div>
 
       <!-- Prinsip ACID Callout -->
-      <div class="callout-box callout-info margin-top-md">
-        <div class="callout-icon">🛡️</div>
-        <div>
-          <h4>4 Pilar Jaminan Transaksi Basis Data (Prinsip ACID):</h4>
-          <ul class="clean-list margin-top-xs">
-            <li><strong>Atomicity (Keutuhan):</strong> Transaksi diproses tuntas seluruhnya atau dibatalkan sama sekali (<em>All or Nothing</em>).</li>
-            <li><strong>Consistency (Konsistensi):</strong> Saldo stok dan total uang kasir harus selalu sesuai aturan bisnis sebelum dan sesudah transaksi.</li>
-            <li><strong>Isolation (Pemisahan):</strong> Transaksi Kasir A tidak boleh terganggu atau tercampur dengan transaksi Kasir B yang berjalan bersamaan.</li>
-            <li><strong>Durability (Ketahanan):</strong> Sekali transaksi sukses dicetak (*Commit*), data tidak akan hilang meski server mati mendadak.</li>
-          </ul>
+      <div class="m3-banner m3-banner-primary margin-top-md">
+        <div class="callout-inner-flex">
+          <span class="material-symbols-rounded icon-lg text-m3-primary callout-icon">verified_user</span>
+          <div>
+            <h4 class="m3-title-medium">4 Pilar Jaminan Transaksi Basis Data (Prinsip ACID):</h4>
+            <ul class="clean-list margin-top-xs">
+              <li><strong>Atomicity (Keutuhan):</strong> Transaksi diproses tuntas seluruhnya atau dibatalkan sama sekali (<em>All or Nothing</em>).</li>
+              <li><strong>Consistency (Konsistensi):</strong> Saldo stok dan total uang kasir harus selalu sesuai aturan bisnis sebelum dan sesudah transaksi.</li>
+              <li><strong>Isolation (Pemisahan):</strong> Transaksi Kasir A tidak boleh terganggu atau tercampur dengan transaksi Kasir B yang berjalan bersamaan.</li>
+              <li><strong>Durability (Ketahanan):</strong> Sekali transaksi sukses dicetak (*Commit*), data tidak akan hilang meski server mati mendadak.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </section>
@@ -278,21 +329,24 @@ const user = await getSessionUser(sessionId);
     <!-- ==========================================
          BAB 2: ERD & KARDINALITAS MERMAID DIAGRAM
          ========================================== -->
-    <section id="bab-2" class="content-section glass-card">
+    <section id="bab-2" class="content-section m3-card m3-card-elevated">
       <div class="section-badge-header">
         <span class="section-step-num">BAB 02</span>
-        <h2>Entity Relationship Diagram (ERD) &amp; Kardinalitas</h2>
+        <h2 class="m3-headline-medium">Entity Relationship Diagram (ERD) &amp; Kardinalitas</h2>
       </div>
 
-      <p class="section-lead">
+      <p class="section-lead m3-body-large">
         <strong>Entity Relationship Diagram (ERD)</strong> adalah diagram visual yang menggambarkan seluruh entitas tabel basis data beserta atribut (kolom) dan garis relasi antar-entitas.
       </p>
 
       <!-- Diagram 2: Static ERD Schema Diagram SmartMart POS -->
       <div class="visual-box">
         <div class="visual-header">
-          <span class="visual-badge badge-cyan">DIAGRAM ERD RELASI TABEL</span>
-          <h4>Diagram Relasi 6 Entitas Skema SmartMart POS</h4>
+          <span class="m3-chip m3-chip-tonal-secondary">
+            <span class="material-symbols-rounded icon-sm">schema</span>
+            DIAGRAM ERD RELASI TABEL
+          </span>
+          <h4 class="m3-title-large">Diagram Relasi 6 Entitas Skema SmartMart POS</h4>
         </div>
 
         <div class="erd-visual-canvas">
@@ -324,9 +378,9 @@ const user = await getSessionUser(sessionId);
           <div class="erd-tables-grid">
             <!-- 1. KASIR -->
             <div class="erd-table-card">
-              <div class="erd-table-header header-blue">
+              <div class="erd-table-header header-master">
                 <div class="erd-header-title">
-                  <span class="erd-table-icon">👤</span>
+                  <span class="material-symbols-rounded icon-sm">person</span>
                   <strong>KASIR</strong>
                 </div>
                 <span class="erd-table-type">Master Table</span>
@@ -362,9 +416,9 @@ const user = await getSessionUser(sessionId);
 
             <!-- 2. PELANGGAN -->
             <div class="erd-table-card">
-              <div class="erd-table-header header-emerald">
+              <div class="erd-table-header header-master">
                 <div class="erd-header-title">
-                  <span class="erd-table-icon">👥</span>
+                  <span class="material-symbols-rounded icon-sm">groups</span>
                   <strong>PELANGGAN</strong>
                 </div>
                 <span class="erd-table-type">Master Table</span>
@@ -400,9 +454,9 @@ const user = await getSessionUser(sessionId);
 
             <!-- 3. KATEGORI -->
             <div class="erd-table-card">
-              <div class="erd-table-header header-purple">
+              <div class="erd-table-header header-master">
                 <div class="erd-header-title">
-                  <span class="erd-table-icon">🏷️</span>
+                  <span class="material-symbols-rounded icon-sm">category</span>
                   <strong>KATEGORI</strong>
                 </div>
                 <span class="erd-table-type">Master Table</span>
@@ -428,9 +482,9 @@ const user = await getSessionUser(sessionId);
 
             <!-- 4. TRANSAKSI (Header) -->
             <div class="erd-table-card highlight-card">
-              <div class="erd-table-header header-cyan">
+              <div class="erd-table-header header-primary">
                 <div class="erd-header-title">
-                  <span class="erd-table-icon">🧾</span>
+                  <span class="material-symbols-rounded icon-sm">receipt_long</span>
                   <strong>TRANSAKSI</strong>
                 </div>
                 <span class="erd-table-type">Header Transaksi</span>
@@ -475,10 +529,10 @@ const user = await getSessionUser(sessionId);
             </div>
 
             <!-- 5. DETAIL_TRANSAKSI (Junction M:N) -->
-            <div class="erd-table-card highlight-card-gold">
-              <div class="erd-table-header header-gold">
+            <div class="erd-table-card highlight-card-tertiary">
+              <div class="erd-table-header header-tertiary">
                 <div class="erd-header-title">
-                  <span class="erd-table-icon">📦</span>
+                  <span class="material-symbols-rounded icon-sm">inventory_2</span>
                   <strong>DETAIL_TRANSAKSI</strong>
                 </div>
                 <span class="erd-table-type">Junction (M:N)</span>
@@ -519,9 +573,9 @@ const user = await getSessionUser(sessionId);
 
             <!-- 6. PRODUK -->
             <div class="erd-table-card">
-              <div class="erd-table-header header-teal">
+              <div class="erd-table-header header-master">
                 <div class="erd-header-title">
-                  <span class="erd-table-icon">🛒</span>
+                  <span class="material-symbols-rounded icon-sm">shopping_bag</span>
                   <strong>PRODUK</strong>
                 </div>
                 <span class="erd-table-type">Master Table</span>
@@ -572,40 +626,43 @@ const user = await getSessionUser(sessionId);
           </div>
         </div>
 
-        <p class="visual-caption">
+        <p class="visual-caption m3-body-small text-m3-muted">
           <strong>Gambar 2.1:</strong> Diagram ERD SmartMart POS. Perhatikan bagaimana tabel <code>DETAIL_TRANSAKSI</code> bertindak sebagai jembatan (<em>junction table</em>) antara <code>TRANSAKSI</code> dan <code>PRODUK</code> untuk menangani relasi banyak-ke-banyak (M:N).
         </p>
       </div>
 
-      <h3 class="sub-heading">Memahami Tipe Kardinalitas Relasi</h3>
+      <h3 class="sub-heading m3-headline-small">Memahami Tipe Kardinalitas Relasi</h3>
       <div class="card-grid-3 margin-top-sm">
         <div class="feature-card">
-          <span class="badge badge-purple">1 : 1 (One-to-One)</span>
-          <h4>Satu ke Satu</h4>
-          <p>Satu baris pada Tabel A hanya berpasangan tepat dengan satu baris pada Tabel B.</p>
-          <small class="text-muted">Contoh: 1 Kasir memiliki 1 Rekening Akun Penggajian.</small>
+          <span class="m3-chip m3-chip-tonal-tertiary">1 : 1 (One-to-One)</span>
+          <h4 class="m3-title-medium">Satu ke Satu</h4>
+          <p class="m3-body-small">Satu baris pada Tabel A hanya berpasangan tepat dengan satu baris pada Tabel B.</p>
+          <small class="text-m3-muted">Contoh: 1 Kasir memiliki 1 Rekening Akun Penggajian.</small>
         </div>
 
         <div class="feature-card">
-          <span class="badge badge-cyan">1 : N (One-to-Many)</span>
-          <h4>Satu ke Banyak (Paling Umum)</h4>
-          <p>Satu baris pada Tabel A dapat berpasangan dengan banyak baris pada Tabel B.</p>
-          <small class="text-muted">Contoh: 1 Kategori memiliki banyak Produk. 1 Kasir melayani banyak Transaksi.</small>
+          <span class="m3-chip m3-chip-tonal-primary">1 : N (One-to-Many)</span>
+          <h4 class="m3-title-medium">Satu ke Banyak (Paling Umum)</h4>
+          <p class="m3-body-small">Satu baris pada Tabel A dapat berpasangan dengan banyak baris pada Tabel B.</p>
+          <small class="text-m3-muted">Contoh: 1 Kategori memiliki banyak Produk. 1 Kasir melayani banyak Transaksi.</small>
         </div>
 
         <div class="feature-card">
-          <span class="badge badge-amber">M : N (Many-to-Many)</span>
-          <h4>Banyak ke Banyak</h4>
-          <p>Banyak baris di Tabel A berpasangan dengan banyak baris di Tabel B (Wajib dipecah dengan Tabel Perantara).</p>
-          <small class="text-muted">Contoh: 1 Transaksi membeli banyak Produk, dan 1 Produk terjual di banyak Transaksi.</small>
+          <span class="m3-chip m3-chip-tonal-warning">M : N (Many-to-Many)</span>
+          <h4 class="m3-title-medium">Banyak ke Banyak</h4>
+          <p class="m3-body-small">Banyak baris di Tabel A berpasangan dengan banyak baris di Tabel B (Wajib dipecah dengan Tabel Perantara).</p>
+          <small class="text-m3-muted">Contoh: 1 Transaksi membeli banyak Produk, dan 1 Produk terjual di banyak Transaksi.</small>
         </div>
       </div>
 
       <!-- Contoh Query Pemecahan Many-to-Many -->
       <div class="code-example-block margin-top-md">
         <div class="code-example-header">
-          <span class="code-badge">SQL DDL</span>
-          <strong>Contoh Pemecahan Relasi M:N Menggunakan Junction Table:</strong>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">code</span>
+            SQL DDL
+          </span>
+          <strong class="m3-label-large">Contoh Pemecahan Relasi M:N Menggunakan Junction Table:</strong>
         </div>
         <pre class="code-snippet font-mono"><code>-- 1. Tabel Header Transaksi (Menyimpan nomor invoice dan tanggal)
 CREATE TABLE transaksi (
@@ -631,44 +688,47 @@ CREATE TABLE detail_transaksi (
     <!-- ==========================================
          BAB 3: TEKNIK NORMALISASI (1NF - 3NF)
          ========================================== -->
-    <section id="bab-3" class="content-section glass-card">
+    <section id="bab-3" class="content-section m3-card m3-card-elevated">
       <div class="section-badge-header">
         <span class="section-step-num">BAB 03</span>
-        <h2>Teknik Normalisasi Data (1NF, 2NF, 3NF) Bebas Anomali</h2>
+        <h2 class="m3-headline-medium">Teknik Normalisasi Data (1NF, 2NF, 3NF) Bebas Anomali</h2>
       </div>
 
-      <p class="section-lead">
+      <p class="section-lead m3-body-large">
         <strong>Normalisasi</strong> adalah proses pengorganisasian tabel database untuk meminimalkan duplikasi data (redundansi) dan mencegah terjadinya 3 jenis anomali fatal:
       </p>
 
       <div class="card-grid-3 margin-top-sm">
-        <div class="feature-card border-red">
-          <span class="badge badge-red">ANOMALI 1</span>
-          <h4>Anomali Sisip (Insert)</h4>
-          <p>Tidak bisa menambahkan produk baru ke sistem jika belum ada pelanggan yang membelinya.</p>
+        <div class="feature-card border-left-error">
+          <span class="m3-chip m3-chip-tonal-error">ANOMALI 1</span>
+          <h4 class="m3-title-medium">Anomali Sisip (Insert)</h4>
+          <p class="m3-body-small">Tidak bisa menambahkan produk baru ke sistem jika belum ada pelanggan yang membelinya.</p>
         </div>
-        <div class="feature-card border-amber">
-          <span class="badge badge-amber">ANOMALI 2</span>
-          <h4>Anomali Ubah (Update)</h4>
-          <p>Jika nama kategori "Minuman" diubah, kita harus mengupdate ribuan baris transaksi satu per satu.</p>
+        <div class="feature-card border-left-warning">
+          <span class="m3-chip m3-chip-tonal-warning">ANOMALI 2</span>
+          <h4 class="m3-title-medium">Anomali Ubah (Update)</h4>
+          <p class="m3-body-small">Jika nama kategori "Minuman" diubah, kita harus mengupdate ribuan baris transaksi satu per satu.</p>
         </div>
-        <div class="feature-card border-purple">
-          <span class="badge badge-purple">ANOMALI 3</span>
-          <h4>Anomali Hapus (Delete)</h4>
-          <p>Jika satu nota transaksi dibatalkan/dihapus, data master produk dan kasir ikut terhapus hilang selamanya.</p>
+        <div class="feature-card border-left-tertiary">
+          <span class="m3-chip m3-chip-tonal-tertiary">ANOMALI 3</span>
+          <h4 class="m3-title-medium">Anomali Hapus (Delete)</h4>
+          <p class="m3-body-small">Jika satu nota transaksi dibatalkan/dihapus, data master produk dan kasir ikut terhapus hilang selamanya.</p>
         </div>
       </div>
 
       <!-- Studi Kasus Normalisasi Bertahap -->
-      <h3 class="sub-heading margin-top-lg">Studi Kasus: Membedah Nota Kasir Manual SmartMart</h3>
+      <h3 class="sub-heading m3-headline-small margin-top-lg">Studi Kasus: Membedah Nota Kasir Manual SmartMart</h3>
 
       <!-- 1. UNF -->
       <div class="norm-step-box margin-top-sm">
         <div class="norm-badge-row">
-          <span class="step-pill step-unf">BENTUK TIDAK TERNORMALISASI (UNF)</span>
-          <span class="status-pill status-bad">❌ Banyak Nilai Ganda &amp; Kolom Berulang</span>
+          <span class="m3-chip m3-chip-tonal-secondary">BENTUK TIDAK TERNORMALISASI (UNF)</span>
+          <span class="status-pill status-bad">
+            <span class="material-symbols-rounded icon-sm status-inline-icon">cancel</span>
+            Banyak Nilai Ganda &amp; Kolom Berulang
+          </span>
         </div>
-        <p>Data faktur manual yang digabung dalam satu lembar flat table:</p>
+        <p class="m3-body-medium">Data faktur manual yang digabung dalam satu lembar flat table:</p>
         <div class="table-responsive">
           <table class="data-table">
             <thead>
@@ -706,10 +766,13 @@ CREATE TABLE detail_transaksi (
       <!-- 2. 1NF -->
       <div class="norm-step-box margin-top-md">
         <div class="norm-badge-row">
-          <span class="step-pill step-1nf">BENTUK NORMAL KESATU (1NF)</span>
-          <span class="status-pill status-ok">✅ Nilai Bersifat Atomik (Tunggal) &amp; Tidak Ada Kolom Berulang</span>
+          <span class="m3-chip m3-chip-tonal-primary">BENTUK NORMAL KESATU (1NF)</span>
+          <span class="status-pill status-ok">
+            <span class="material-symbols-rounded icon-sm status-inline-icon">check_circle</span>
+            Nilai Bersifat Atomik (Tunggal) &amp; Tidak Ada Kolom Berulang
+          </span>
         </div>
-        <p>Setiap sel hanya berisi 1 data tunggal dan setiap baris memiliki Primary Key komposit unik (<code>No_Invoice + Kode_Barang</code>):</p>
+        <p class="m3-body-medium">Setiap sel hanya berisi 1 data tunggal dan setiap baris memiliki Primary Key komposit unik (<code>No_Invoice + Kode_Barang</code>):</p>
         <div class="table-responsive">
           <table class="data-table">
             <thead>
@@ -762,21 +825,27 @@ CREATE TABLE detail_transaksi (
             </tbody>
           </table>
         </div>
-        <small class="text-warning">⚠️ Masalah 1NF: Nama_Barang &amp; Kategori hanya bergantung pada <code>Kode_Barang</code>, bukan pada <code>No_Invoice</code> (Partial Dependency).</small>
+        <div class="m3-body-small text-m3-warning margin-top-xs">
+          <span class="material-symbols-rounded icon-sm status-inline-icon">warning</span>
+          Masalah 1NF: Nama_Barang &amp; Kategori hanya bergantung pada <code>Kode_Barang</code>, bukan pada <code>No_Invoice</code> (Partial Dependency).
+        </div>
       </div>
 
       <!-- 3. 2NF -->
       <div class="norm-step-box margin-top-md">
         <div class="norm-badge-row">
-          <span class="step-pill step-2nf">BENTUK NORMAL KEDUA (2NF)</span>
-          <span class="status-pill status-ok">✅ Memenuhi 1NF + Menghilangkan Ketergantungan Parsial</span>
+          <span class="m3-chip m3-chip-tonal-warning">BENTUK NORMAL KEDUA (2NF)</span>
+          <span class="status-pill status-ok">
+            <span class="material-symbols-rounded icon-sm status-inline-icon">check_circle</span>
+            Memenuhi 1NF + Menghilangkan Ketergantungan Parsial
+          </span>
         </div>
-        <p>Tabel dipecah menjadi Tabel Transaksi, Tabel Produk, dan Tabel Detail Item agar atribut non-kunci bergantung penuh pada Primary Key masing-masing:</p>
+        <p class="m3-body-medium">Tabel dipecah menjadi Tabel Transaksi, Tabel Produk, dan Tabel Detail Item agar atribut non-kunci bergantung penuh pada Primary Key masing-masing:</p>
         
         <div class="detail-grid-2 margin-top-xs">
           <div>
-            <strong>1. Tabel Transaksi (Header):</strong>
-            <table class="data-table mini-table">
+            <strong class="m3-label-large">1. Tabel Transaksi (Header):</strong>
+            <table class="data-table mini-table margin-top-xs">
               <thead><tr><th>No_Invoice (PK)</th><th>Kasir</th><th>Shift</th><th>Pelanggan</th></tr></thead>
               <tbody>
                 <tr><td>INV-001</td><td>Rian</td><td>Pagi</td><td>Budi</td></tr>
@@ -785,8 +854,8 @@ CREATE TABLE detail_transaksi (
             </table>
           </div>
           <div>
-            <strong>2. Tabel Detail Transaksi:</strong>
-            <table class="data-table mini-table">
+            <strong class="m3-label-large">2. Tabel Detail Transaksi:</strong>
+            <table class="data-table mini-table margin-top-xs">
               <thead><tr><th>No_Invoice (FK)</th><th>Kode_Barang (FK)</th><th>Qty</th></tr></thead>
               <tbody>
                 <tr><td>INV-001</td><td>BRG-01</td><td>2</td></tr>
@@ -801,18 +870,24 @@ CREATE TABLE detail_transaksi (
       <!-- 4. 3NF -->
       <div class="norm-step-box margin-top-md">
         <div class="norm-badge-row">
-          <span class="step-pill step-3nf">BENTUK NORMAL KETIGA (3NF) - IDEAL INDUSTRI</span>
-          <span class="status-pill status-perfect">🌟 Memenuhi 2NF + Bebas Ketergantungan Transitif</span>
+          <span class="m3-chip m3-chip-tonal-success">BENTUK NORMAL KETIGA (3NF) - STANDAR INDUSTRI</span>
+          <span class="status-pill status-perfect">
+            <span class="material-symbols-rounded icon-sm status-inline-icon">verified</span>
+            Memenuhi 2NF + Bebas Ketergantungan Transitif
+          </span>
         </div>
-        <p>Atribut non-kunci tidak boleh bergantung pada atribut non-kunci lain. Data Kasir (Shift bergantung pada Kasir), Pelanggan (Telepon bergantung pada Pelanggan), dan Kategori dipisahkan ke tabel masternya masing-masing.</p>
-        <p class="text-accent font-medium">Hasil Akhir 3NF = Skema 6 Tabel SmartMart POS (<code>kategori</code>, <code>produk</code>, <code>kasir</code>, <code>pelanggan</code>, <code>transaksi</code>, <code>detail_transaksi</code>).</p>
+        <p class="m3-body-medium">Atribut non-kunci tidak boleh bergantung pada atribut non-kunci lain. Data Kasir (Shift bergantung pada Kasir), Pelanggan (Telepon bergantung pada Pelanggan), dan Kategori dipisahkan ke tabel masternya masing-masing.</p>
+        <p class="text-m3-primary font-medium m3-body-medium">Hasil Akhir 3NF = Skema 6 Tabel SmartMart POS (<code>kategori</code>, <code>produk</code>, <code>kasir</code>, <code>pelanggan</code>, <code>transaksi</code>, <code>detail_transaksi</code>).</p>
       </div>
 
       <!-- Query Rekonstruksi Data 3NF -->
       <div class="code-example-block margin-top-md">
         <div class="code-example-header">
-          <span class="code-badge">SQL SELECT JOIN</span>
-          <strong>Query Merekonstruksi Data 3NF Menjadi Struk Kasir Lengkap:</strong>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">join_inner</span>
+            SQL SELECT JOIN
+          </span>
+          <strong class="m3-label-large">Query Merekonstruksi Data 3NF Menjadi Struk Kasir Lengkap:</strong>
         </div>
         <pre class="code-snippet font-mono"><code>SELECT 
     t.kode_invoice,
@@ -835,17 +910,17 @@ ORDER BY t.id_transaksi DESC;</code></pre>
     <!-- ==========================================
          BAB 4: SINTAKSIS BAKU DDL & TIPE DATA
          ========================================== -->
-    <section id="bab-4" class="content-section glass-card">
+    <section id="bab-4" class="content-section m3-card m3-card-elevated">
       <div class="section-badge-header">
         <span class="section-step-num">BAB 04</span>
-        <h2>Sintaksis DDL (Data Definition Language) &amp; Tipe Data</h2>
+        <h2 class="m3-headline-medium">Sintaksis DDL (Data Definition Language) &amp; Tipe Data</h2>
       </div>
 
-      <p class="section-lead">
+      <p class="section-lead m3-body-large">
         DDL digunakan untuk mendefinisikan kerangka objek database. Di bawah ini adalah panduan pemilihan tipe data dan sintaksis baku DDL:
       </p>
 
-      <h3 class="sub-heading">Matriks Pemilihan Tipe Data SQL Efisien</h3>
+      <h3 class="sub-heading m3-headline-small">Matriks Pemilihan Tipe Data SQL Efisien</h3>
       <div class="table-responsive margin-top-sm">
         <table class="data-table">
           <thead>
@@ -891,11 +966,14 @@ ORDER BY t.id_transaksi DESC;</code></pre>
         </table>
       </div>
 
-      <h3 class="sub-heading margin-top-lg">Perintah DDL Utama: CREATE, ALTER, DROP, TRUNCATE</h3>
+      <h3 class="sub-heading m3-headline-small margin-top-lg">Perintah DDL Utama: CREATE, ALTER, DROP, TRUNCATE</h3>
       <div class="code-example-block margin-top-sm">
         <div class="code-example-header">
-          <span class="code-badge">SQL DDL LENGKAP</span>
-          <strong>Kumpulan Contoh Perintah DDL Operasional:</strong>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">terminal</span>
+            SQL DDL LENGKAP
+          </span>
+          <strong class="m3-label-large">Kumpulan Contoh Perintah DDL Operasional:</strong>
         </div>
         <pre class="code-snippet font-mono"><code>-- 1. CREATE TABLE: Membuat tabel baru
 CREATE TABLE kasir (
@@ -953,9 +1031,9 @@ DROP TABLE IF EXISTS tabel_sementara;</code></pre>
             </tr>
             <tr>
               <td><strong>Filter WHERE</strong></td>
-              <td>❌ Tidak bisa pakai WHERE</td>
-              <td>❌ Tidak bisa pakai WHERE</td>
-              <td>✅ Bisa filter WHERE spesifik</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-error status-inline-icon">cancel</span> Tidak bisa pakai WHERE</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-error status-inline-icon">cancel</span> Tidak bisa pakai WHERE</td>
+              <td><span class="material-symbols-rounded icon-sm text-m3-success status-inline-icon">check_circle</span> Bisa filter WHERE spesifik</td>
             </tr>
           </tbody>
         </table>
@@ -965,106 +1043,123 @@ DROP TABLE IF EXISTS tabel_sementara;</code></pre>
     <!-- ==========================================
          BAB 5: INTEGRITY CONSTRAINTS
          ========================================== -->
-    <section id="bab-5" class="content-section glass-card">
+    <section id="bab-5" class="content-section m3-card m3-card-elevated">
       <div class="section-badge-header">
         <span class="section-step-num">BAB 05</span>
-        <h2>Batasan Integritas Data (Integrity Constraints)</h2>
+        <h2 class="m3-headline-medium">Batasan Integritas Data (Integrity Constraints)</h2>
       </div>
 
-      <p class="section-lead">
+      <p class="section-lead m3-body-large">
         <strong>Constraints</strong> adalah aturan yang diberlakukan pada kolom tabel untuk mencegah data sampah, nilai negatif yang tidak masuk akal, atau data yatim (*orphan data*) masuk ke database.
       </p>
 
       <div class="card-grid-3 margin-top-sm">
         <div class="feature-card">
-          <span class="badge badge-purple">PRIMARY KEY</span>
-          <h4>Kunci Utama (PK)</h4>
-          <p>Identitas unik tiap baris. Otomatis bersifat <code>NOT NULL</code> dan <code>UNIQUE</code>.</p>
+          <span class="m3-chip m3-chip-tonal-warning">PRIMARY KEY</span>
+          <h4 class="m3-title-medium">Kunci Utama (PK)</h4>
+          <p class="m3-body-small">Identitas unik tiap baris. Otomatis bersifat <code>NOT NULL</code> dan <code>UNIQUE</code>.</p>
         </div>
 
         <div class="feature-card">
-          <span class="badge badge-cyan">FOREIGN KEY</span>
-          <h4>Kunci Tamu (FK)</h4>
-          <p>Menghubungkan kolom ke PK tabel lain untuk menjaga integritas referensial.</p>
+          <span class="m3-chip m3-chip-tonal-primary">FOREIGN KEY</span>
+          <h4 class="m3-title-medium">Kunci Tamu (FK)</h4>
+          <p class="m3-body-small">Menghubungkan kolom ke PK tabel lain untuk menjaga integritas referensial.</p>
         </div>
 
         <div class="feature-card">
-          <span class="badge badge-amber">CHECK CONSTRAINT</span>
-          <h4>Validasi Logika Bisnis</h4>
-          <p>Memastikan nilai memenuhi rumus tertentu, misal: <code>CHECK (harga_jual &gt;= harga_beli)</code>.</p>
+          <span class="m3-chip m3-chip-tonal-tertiary">CHECK CONSTRAINT</span>
+          <h4 class="m3-title-medium">Validasi Logika Bisnis</h4>
+          <p class="m3-body-small">Memastikan nilai memenuhi rumus tertentu, misal: <code>CHECK (harga_jual &gt;= harga_beli)</code>.</p>
         </div>
       </div>
 
       <!-- Diagram Aksi Referensial Foreign Key -->
       <div class="visual-box margin-top-md">
         <div class="visual-header">
-          <span class="visual-badge">PANDUAN REFERENSIAL</span>
-          <h4>3 Pilihan Aksi Penghapusan Foreign Key (ON DELETE)</h4>
+          <span class="m3-chip m3-chip-tonal-warning">
+            <span class="material-symbols-rounded icon-sm">shield</span>
+            PANDUAN REFERENSIAL
+          </span>
+          <h4 class="m3-title-large">3 Pilihan Aksi Penghapusan Foreign Key (ON DELETE)</h4>
         </div>
 
         <div class="ondelete-flow-canvas">
           <!-- Trigger Box -->
           <div class="ondelete-root-card">
-            <div class="ondelete-root-badge">SKENARIO PEMICU</div>
-            <h5 class="ondelete-root-title">🗑️ Baris Data pada Tabel Induk (Parent) Dihapus</h5>
-            <p class="ondelete-root-desc">Misalnya: Admin menghapus sebuah baris pada tabel <code>transaksi</code> atau tabel <code>kategori</code>.</p>
+            <div class="ondelete-root-badge">
+              <span class="m3-chip m3-chip-tonal-warning">SKENARIO PEMICU</span>
+            </div>
+            <div class="ondelete-root-header margin-top-xs">
+              <span class="material-symbols-rounded icon-lg text-m3-error">delete_forever</span>
+              <h5 class="ondelete-root-title m3-title-medium">Baris Data pada Tabel Induk (Parent) Dihapus</h5>
+            </div>
+            <p class="ondelete-root-desc m3-body-medium">Misalnya: Admin menghapus sebuah baris pada tabel <code>transaksi</code> atau tabel <code>kategori</code>.</p>
           </div>
 
           <!-- 3 Branches Grid -->
           <div class="ondelete-branches-grid">
             <!-- Branch 1: CASCADE -->
             <div class="ondelete-branch-card card-cascade">
-              <div class="branch-badge badge-emerald">OPSI 1</div>
-              <h5 class="branch-title">ON DELETE CASCADE</h5>
+              <div class="branch-badge">
+                <span class="m3-chip m3-chip-tonal-success">OPSI 1</span>
+              </div>
+              <h5 class="branch-title m3-title-small">ON DELETE CASCADE</h5>
               <div class="branch-action-pill pill-emerald">Hapus Otomatis (Mengalir)</div>
-              <p class="branch-desc">
+              <p class="branch-desc m3-body-small">
                 Seluruh baris pada tabel anak (<em>child</em>) yang mereferensikan baris induk ini <strong>otomatis ikut terhapus permanen</strong> oleh sistem database.
               </p>
-              <div class="branch-example">
+              <div class="branch-example m3-body-small">
                 <strong>Contoh SmartMart:</strong> Hapus nota <code>transaksi</code> &rarr; semua baris <code>detail_transaksi</code> nota tersebut otomatis ikut terhapus bersih.
               </div>
             </div>
 
             <!-- Branch 2: RESTRICT -->
             <div class="ondelete-branch-card card-restrict">
-              <div class="branch-badge badge-red">OPSI 2 (DEFAULT)</div>
-              <h5 class="branch-title">ON DELETE RESTRICT</h5>
+              <div class="branch-badge">
+                <span class="m3-chip m3-chip-tonal-error">OPSI 2 (DEFAULT)</span>
+              </div>
+              <h5 class="branch-title m3-title-small">ON DELETE RESTRICT</h5>
               <div class="branch-action-pill pill-red">Tolak Penghapusan (Blokir)</div>
-              <p class="branch-desc">
+              <p class="branch-desc m3-body-small">
                 Database <strong>menolak dan membatalkan penghapusan</strong> jika masih ada data anak yang mereferensikan baris induk (Muncul <em>FK Constraint Violation</em>).
               </p>
-              <div class="branch-example">
+              <div class="branch-example m3-body-small">
                 <strong>Contoh SmartMart:</strong> Hapus <code>kategori</code> "Minuman" &rarr; Ditolak jika masih ada <code>produk</code> seperti "Teh Botol" yang terdaftar.
               </div>
             </div>
 
             <!-- Branch 3: SET NULL -->
             <div class="ondelete-branch-card card-setnull">
-              <div class="branch-badge badge-amber">OPSI 3</div>
-              <h5 class="branch-title">ON DELETE SET NULL</h5>
+              <div class="branch-badge">
+                <span class="m3-chip m3-chip-tonal-warning">OPSI 3</span>
+              </div>
+              <h5 class="branch-title m3-title-small">ON DELETE SET NULL</h5>
               <div class="branch-action-pill pill-amber">Ubah Nilai Menjadi NULL</div>
-              <p class="branch-desc">
+              <p class="branch-desc m3-body-small">
                 Baris anak tetap dipertahankan, namun nilai pada kolom Foreign Key (FK) anak <strong>otomatis diubah menjadi <code>NULL</code></strong>.
               </p>
-              <div class="branch-example">
+              <div class="branch-example m3-body-small">
                 <strong>Contoh SmartMart:</strong> Hapus data <code>kasir</code> yang resign &rarr; riwayat <code>transaksi</code> masa lalu tetap utuh dengan <code>id_kasir = NULL</code>.
               </div>
             </div>
           </div>
         </div>
 
-        <p class="visual-caption">
+        <p class="visual-caption m3-body-small text-m3-muted">
           <strong>Gambar 5.1:</strong> Contoh kasus SmartMart: Jika nota <code>transaksi</code> dihapus, maka <code>detail_transaksi</code> menggunakan <code>ON DELETE CASCADE</code>. Namun jika <code>kategori</code> dihapus, gunakan <code>ON DELETE RESTRICT</code> agar produk tidak terhapus tanpa sengaja.
         </p>
       </div>
 
       <!-- Simulasi Query Sukses vs Pelanggaran Constraint -->
-      <h3 class="sub-heading margin-top-lg">Simulasi: Kueri Sukses vs Pelanggaran Constraint</h3>
+      <h3 class="sub-heading m3-headline-small margin-top-lg">Simulasi: Kueri Sukses vs Pelanggaran Constraint</h3>
       
       <div class="code-example-block margin-top-sm">
         <div class="code-example-header">
-          <span class="code-badge badge-green">SKENARIO 1: SUKSES</span>
-          <strong>Pemasukan Data Valid (Sesuai Seluruh Batasan Constraint):</strong>
+          <span class="m3-chip m3-chip-tonal-success">
+            <span class="material-symbols-rounded icon-sm">check_circle</span>
+            SKENARIO 1: SUKSES
+          </span>
+          <strong class="m3-label-large">Pemasukan Data Valid (Sesuai Seluruh Batasan Constraint):</strong>
         </div>
         <pre class="code-snippet font-mono"><code>-- Valid: harga_jual (7000) &gt;= harga_beli (5000), stok &gt;= 0
 INSERT INTO produk (kode_barcode, nama_produk, id_kategori, harga_beli, harga_jual, stok)
@@ -1074,14 +1169,17 @@ VALUES ('8991234567', 'Teh Botol 250ml', 1, 5000.00, 7000.00, 50);
 
       <div class="code-example-block margin-top-sm">
         <div class="code-example-header">
-          <span class="code-badge badge-red">SKENARIO 2: ERROR CHECK CONSTRAINT</span>
-          <strong>Pelanggaran Aturan: Harga Jual Lebih Rendah dari Harga Beli:</strong>
+          <span class="m3-chip m3-chip-tonal-error">
+            <span class="material-symbols-rounded icon-sm">cancel</span>
+            SKENARIO 2: ERROR CHECK CONSTRAINT
+          </span>
+          <strong class="m3-label-large">Pelanggaran Aturan: Harga Jual Lebih Rendah dari Harga Beli:</strong>
         </div>
-        <pre class="code-snippet font-mono" style="border-left-color: #ef4444;"><code>-- Tidak Valid: harga_jual (3000) &lt; harga_beli (5000) -&gt; TOKO RUGI!
+        <pre class="code-snippet font-mono code-snippet-error"><code>-- Tidak Valid: harga_jual (3000) &lt; harga_beli (5000) -&gt; TOKO RUGI!
 INSERT INTO produk (kode_barcode, nama_produk, id_kategori, harga_beli, harga_jual, stok)
 VALUES ('8997654321', 'Kopi Instan', 1, 5000.00, 3000.00, 20);
 
--- ❌ ERROR DATABASE:
+-- ERROR DATABASE:
 -- ERROR: new row for relation "produk" violates check constraint "chk_harga_valid"
 -- DETAIL: Failing row contains (8997654321, Kopi Instan, 1, 5000.00, 3000.00, 20).</code></pre>
       </div>
@@ -1090,20 +1188,26 @@ VALUES ('8997654321', 'Kopi Instan', 1, 5000.00, 3000.00, 20);
     <!-- ==========================================
          BAB 6: CHEAT SHEET DDL SMARTMART & KUIS
          ========================================== -->
-    <section id="bab-6" class="content-section glass-card">
+    <section id="bab-6" class="content-section m3-card m3-card-elevated">
       <div class="section-badge-header">
         <span class="section-step-num">BAB 06</span>
-        <h2>Cheat Sheet Skrip DDL 6 Tabel &amp; Mini Kuis Interaktif</h2>
+        <h2 class="m3-headline-medium">Cheat Sheet Skrip DDL 6 Tabel &amp; Mini Kuis Interaktif</h2>
       </div>
 
-      <p class="section-lead">
+      <p class="section-lead m3-body-large">
         Gunakan template skrip DDL 6 tabel SmartMart POS di bawah ini sebagai referensi baku untuk tugas proyek tim Anda:
       </p>
 
       <div class="code-example-block">
         <div class="code-example-header">
-          <span class="code-badge">SQL DDL SCRIPT (LENGKAP)</span>
-          <button id="copy-ddl-btn" class="btn btn-secondary btn-xs" type="button">📋 Salin Skrip DDL</button>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">code</span>
+            SQL DDL SCRIPT (LENGKAP)
+          </span>
+          <button id="copy-ddl-btn" class="m3-btn m3-btn-tonal btn-sm" type="button">
+            <span class="material-symbols-rounded icon-sm" id="copy-btn-icon">content_copy</span>
+            <span id="copy-btn-label">Salin Skrip DDL</span>
+          </button>
         </div>
         <pre id="ddl-full-code" class="code-snippet font-mono" style="max-height: 420px; overflow-y: auto;"><code>-- ==========================================================
 -- SKRIP DDL RESMI: SMARTMART POS (6 TABEL RELASIONAL)
@@ -1175,61 +1279,67 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
       </div>
 
       <!-- Mini Kuis Interaktif Pemahaman -->
-      <div class="quiz-container margin-top-xl" id="quiz-block">
+      <div class="m3-card m3-card-outlined quiz-container margin-top-xl" id="quiz-block">
         <div class="quiz-header">
-          <span class="badge badge-purple">KUIS CEPAT</span>
-          <h3>Uji Pemahaman Arsitektur &amp; DDL (4 Soal)</h3>
-          <p>Pilih jawaban yang paling tepat untuk menguji kesiapan Anda sebelum masuk ke proyek:</p>
+          <div class="quiz-header-badge">
+            <span class="m3-chip m3-chip-tonal-tertiary">
+              <span class="material-symbols-rounded icon-sm">quiz</span>
+              KUIS CEPAT
+            </span>
+          </div>
+          <h3 class="m3-title-large">Uji Pemahaman Arsitektur &amp; DDL (4 Soal)</h3>
+          <p class="m3-body-medium text-m3-muted">Pilih jawaban yang paling tepat untuk menguji kesiapan Anda sebelum masuk ke proyek:</p>
         </div>
 
         <form id="interactive-quiz-form" class="quiz-form">
           <!-- Soal 1 -->
           <div class="quiz-question-card" data-correct="B">
-            <h4>1. Mengapa tabel <code>transaksi</code> dan <code>produk</code> memerlukan tabel perantara <code>detail_transaksi</code>?</h4>
+            <h4 class="m3-title-small">1. Mengapa tabel <code>transaksi</code> dan <code>produk</code> memerlukan tabel perantara <code>detail_transaksi</code>?</h4>
             <div class="quiz-options">
-              <label class="quiz-option"><input type="radio" name="q1" value="A" /> A. Karena kedua tabel memiliki tipe data yang berbeda</label>
-              <label class="quiz-option"><input type="radio" name="q1" value="B" /> B. Karena relasinya bersifat Many-to-Many (1 nota beli banyak barang, 1 barang dibeli di banyak nota)</label>
-              <label class="quiz-option"><input type="radio" name="q1" value="C" /> C. Agar database bisa berjalan tanpa Primary Key</label>
+              <label class="quiz-option"><input type="radio" name="q1" value="A" /> <span>A. Karena kedua tabel memiliki tipe data yang berbeda</span></label>
+              <label class="quiz-option"><input type="radio" name="q1" value="B" /> <span>B. Karena relasinya bersifat Many-to-Many (1 nota beli banyak barang, 1 barang dibeli di banyak nota)</span></label>
+              <label class="quiz-option"><input type="radio" name="q1" value="C" /> <span>C. Agar database bisa berjalan tanpa Primary Key</span></label>
             </div>
             <div class="quiz-feedback" id="feedback-q1"></div>
           </div>
 
           <!-- Soal 2 -->
           <div class="quiz-question-card" data-correct="C">
-            <h4>2. Suatu tabel dikatakan memenuhi Bentuk Normal Ketiga (3NF) apabila:</h4>
+            <h4 class="m3-title-small">2. Suatu tabel dikatakan memenuhi Bentuk Normal Ketiga (3NF) apabila:</h4>
             <div class="quiz-options">
-              <label class="quiz-option"><input type="radio" name="q2" value="A" /> A. Kolomnya memiliki nilai array dan list bertingkat</label>
-              <label class="quiz-option"><input type="radio" name="q2" value="B" /> B. Memiliki minimal 10 kolom foreign key</label>
-              <label class="quiz-option"><input type="radio" name="q2" value="C" /> C. Sudah memenuhi 2NF dan tidak memiliki ketergantungan transitif antarkolom non-kunci</label>
+              <label class="quiz-option"><input type="radio" name="q2" value="A" /> <span>A. Kolomnya memiliki nilai array dan list bertingkat</span></label>
+              <label class="quiz-option"><input type="radio" name="q2" value="B" /> <span>B. Memiliki minimal 10 kolom foreign key</span></label>
+              <label class="quiz-option"><input type="radio" name="q2" value="C" /> <span>C. Sudah memenuhi 2NF dan tidak memiliki ketergantungan transitif antarkolom non-kunci</span></label>
             </div>
             <div class="quiz-feedback" id="feedback-q2"></div>
           </div>
 
           <!-- Soal 3 -->
           <div class="quiz-question-card" data-correct="A">
-            <h4>3. Aksi referensial <code>ON DELETE CASCADE</code> pada tabel <code>detail_transaksi</code> berarti:</h4>
+            <h4 class="m3-title-small">3. Aksi referensial <code>ON DELETE CASCADE</code> pada tabel <code>detail_transaksi</code> berarti:</h4>
             <div class="quiz-options">
-              <label class="quiz-option"><input type="radio" name="q3" value="A" /> A. Jika nota induk dihapus, seluruh baris rincian item di nota tersebut otomatis ikut terhapus</label>
-              <label class="quiz-option"><input type="radio" name="q3" value="B" /> B. Database menolak penghapusan nota jika ada rincian item</label>
-              <label class="quiz-option"><input type="radio" name="q3" value="C" /> C. Mengubah harga barang menjadi 0</label>
+              <label class="quiz-option"><input type="radio" name="q3" value="A" /> <span>A. Jika nota induk dihapus, seluruh baris rincian item di nota tersebut otomatis ikut terhapus</span></label>
+              <label class="quiz-option"><input type="radio" name="q3" value="B" /> <span>B. Database menolak penghapusan nota jika ada rincian item</span></label>
+              <label class="quiz-option"><input type="radio" name="q3" value="C" /> <span>C. Mengubah harga barang menjadi 0</span></label>
             </div>
             <div class="quiz-feedback" id="feedback-q3"></div>
           </div>
 
           <!-- Soal 4 -->
           <div class="quiz-question-card" data-correct="B">
-            <h4>4. Tipe data yang paling tepat dan aman untuk kolom harga uang (<code>harga_jual</code>) adalah:</h4>
+            <h4 class="m3-title-small">4. Tipe data yang paling tepat dan aman untuk kolom harga uang (<code>harga_jual</code>) adalah:</h4>
             <div class="quiz-options">
-              <label class="quiz-option"><input type="radio" name="q4" value="A" /> A. <code>FLOAT</code> karena mendukung pecahan desimal cepat</label>
-              <label class="quiz-option"><input type="radio" name="q4" value="B" /> B. <code>DECIMAL(10,2)</code> karena presisi eksak tanpa galat pembulatan floating point</label>
-              <label class="quiz-option"><input type="radio" name="q4" value="C" /> C. <code>VARCHAR(20)</code> agar bisa ditulis format "Rp 10.000"</label>
+              <label class="quiz-option"><input type="radio" name="q4" value="A" /> <span>A. <code>FLOAT</code> karena mendukung pecahan desimal cepat</span></label>
+              <label class="quiz-option"><input type="radio" name="q4" value="B" /> <span>B. <code>DECIMAL(10,2)</code> karena presisi eksak tanpa galat pembulatan floating point</span></label>
+              <label class="quiz-option"><input type="radio" name="q4" value="C" /> <span>C. <code>VARCHAR(20)</code> agar bisa ditulis format "Rp 10.000"</span></label>
             </div>
             <div class="quiz-feedback" id="feedback-q4"></div>
           </div>
 
           <div class="quiz-action-footer">
-            <button type="button" id="check-quiz-btn" class="btn btn-primary btn-md">
-              Periksa Jawaban Kuis &check;
+            <button type="button" id="check-quiz-btn" class="m3-btn m3-btn-filled btn-md">
+              <span>Periksa Jawaban Kuis</span>
+              <span class="material-symbols-rounded icon-sm">check</span>
             </button>
             <div id="quiz-score-badge" class="quiz-score-pill"></div>
           </div>
@@ -1237,20 +1347,25 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
       </div>
 
       <!-- CTA Footer Box -->
-      <div class="next-step-card glass-card margin-top-xl">
+      <div class="m3-card m3-card-elevated next-step-card margin-top-xl">
         <div class="next-step-content">
-          <span class="badge badge-emerald">SIAP MENGERJAKAN PROYEK</span>
-          <h3>Sudah Menguasai Arsitektur &amp; DDL?</h3>
-          <p>
+          <span class="m3-chip m3-chip-tonal-success">
+            <span class="material-symbols-rounded icon-sm">task_alt</span>
+            SIAP MENGERJAKAN PROYEK
+          </span>
+          <h3 class="m3-headline-small">Sudah Menguasai Arsitektur &amp; DDL?</h3>
+          <p class="m3-body-medium">
             Lanjutkan ke lembar <strong>Tugas Proyek SmartMart POS</strong> untuk membentuk kelompok 2 orang, menyusun skrip DDL &amp; DML, menyelesaikan 5 query analitik bisnis, dan mengumpulkan tugas.
           </p>
         </div>
         <div class="next-step-action">
-          <a href="/belajar/sql/tryout" class="btn btn-secondary btn-lg">
-            📝 Ikuti Try Out Ujian CBT &rarr;
+          <a href="/belajar/sql/tryout" class="m3-btn m3-btn-tonal btn-lg">
+            <span class="material-symbols-rounded icon-sm">quiz</span>
+            <span>Ikuti Try Out CBT</span>
           </a>
-          <a href="/belajar/sql/proyek" class="btn btn-primary btn-lg">
-            Buka Tugas Proyek SmartMart POS &rarr;
+          <a href="/belajar/sql/proyek" class="m3-btn m3-btn-filled btn-lg">
+            <span>Buka Tugas Proyek</span>
+            <span class="material-symbols-rounded icon-sm">arrow_forward</span>
           </a>
         </div>
       </div>
@@ -1262,13 +1377,19 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   const setupPage = () => {
     // Copy DDL Code Button
     const copyBtn = document.getElementById('copy-ddl-btn');
+    const copyLabel = document.getElementById('copy-btn-label');
+    const copyIcon = document.getElementById('copy-btn-icon');
     const ddlCode = document.getElementById('ddl-full-code');
 
     copyBtn?.addEventListener('click', () => {
       if (ddlCode) {
         navigator.clipboard.writeText(ddlCode.textContent || '').then(() => {
-          copyBtn.textContent = '✅ Berhasil Disalin!';
-          setTimeout(() => { copyBtn.textContent = '📋 Salin Skrip DDL'; }, 2000);
+          if (copyLabel) copyLabel.textContent = 'Berhasil Disalin!';
+          if (copyIcon) copyIcon.textContent = 'check';
+          setTimeout(() => {
+            if (copyLabel) copyLabel.textContent = 'Salin Skrip DDL';
+            if (copyIcon) copyIcon.textContent = 'content_copy';
+          }, 2000);
         });
       }
     });
@@ -1291,30 +1412,30 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
         if (feedback) {
           if (!selected) {
             feedback.className = 'quiz-feedback feedback-warn';
-            feedback.textContent = '⚠️ Silakan pilih salah satu opsi jawaban terlebih dahulu.';
-            feedback.style.display = 'block';
+            feedback.innerHTML = '<span class="material-symbols-rounded icon-sm">warning</span> <span>Silakan pilih salah satu opsi jawaban terlebih dahulu.</span>';
+            feedback.style.display = 'flex';
           } else if (selected === correct) {
             score++;
             feedback.className = 'quiz-feedback feedback-correct';
-            feedback.textContent = '✅ Benar! Jawaban Anda tepat sesuai kaidah arsitektur basis data.';
-            feedback.style.display = 'block';
+            feedback.innerHTML = '<span class="material-symbols-rounded icon-sm">check_circle</span> <span>Benar! Jawaban Anda tepat sesuai kaidah arsitektur basis data.</span>';
+            feedback.style.display = 'flex';
           } else {
             feedback.className = 'quiz-feedback feedback-wrong';
-            feedback.textContent = `❌ Kurang tepat. Jawaban yang benar adalah Opsi ${correct}.`;
-            feedback.style.display = 'block';
+            feedback.innerHTML = `<span class="material-symbols-rounded icon-sm">cancel</span> <span>Kurang tepat. Jawaban yang benar adalah Opsi ${correct}.</span>`;
+            feedback.style.display = 'flex';
           }
         }
       });
 
       if (scoreBadge) {
         const finalScore = Math.round((score / total) * 100);
-        scoreBadge.style.display = 'inline-block';
+        scoreBadge.style.display = 'inline-flex';
         if (finalScore >= 75) {
           scoreBadge.className = 'quiz-score-pill score-pass';
-          scoreBadge.innerHTML = `🎉 Skor Anda: <strong>${finalScore}/100</strong> (TUNTAS - Siap Masuk ke Tugas Proyek!)`;
+          scoreBadge.innerHTML = `<span class="material-symbols-rounded icon-sm">celebration</span> <span>Skor Anda: <strong>${finalScore}/100</strong> (TUNTAS - Siap Masuk ke Tugas Proyek!)</span>`;
         } else {
           scoreBadge.className = 'quiz-score-pill score-fail';
-          scoreBadge.innerHTML = `📖 Skor Anda: <strong>${finalScore}/100</strong> (Pelajari kembali materi di atas & coba lagi)`;
+          scoreBadge.innerHTML = `<span class="material-symbols-rounded icon-sm">menu_book</span> <span>Skor Anda: <strong>${finalScore}/100</strong> (Pelajari kembali materi di atas & coba lagi)</span>`;
         }
       }
     });
@@ -1329,12 +1450,12 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
 
 <style>
   .materi-container {
-    max-width: 1060px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 2rem 1.25rem 5rem;
     display: flex;
     flex-direction: column;
-    gap: 2.25rem;
+    gap: 2rem;
   }
 
   .top-nav-bar {
@@ -1353,13 +1474,10 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
 
   /* Hero Card */
   .hero-card {
-    padding: 2.5rem;
-    border-radius: var(--radius-lg);
+    padding: 2.25rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%), var(--bg-card);
-    border: 1px solid var(--border-color);
   }
 
   .hero-badge-wrap {
@@ -1369,17 +1487,13 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .hero-title {
-    font-size: 2.3rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    line-height: 1.2;
+    margin: 0;
   }
 
   .hero-subtitle {
-    font-size: 1.05rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    max-width: 860px;
+    margin: 0;
+    max-width: 880px;
+    color: var(--m3-on-surface-variant);
   }
 
   .hero-cta-row {
@@ -1392,14 +1506,17 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   /* TOC Card */
   .toc-card {
     padding: 1.75rem 2rem;
-    border-radius: var(--radius-lg);
+  }
+
+  .toc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .toc-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin: 0;
   }
 
   .toc-grid {
@@ -1412,23 +1529,24 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    padding: 0.75rem 1rem;
-    background: var(--bg-surface, var(--bg-secondary));
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    background: var(--m3-surface-container-lowest);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 12px;
     text-decoration: none;
-    transition: all var(--transition-fast);
+    transition: all 0.2s ease;
   }
 
   .toc-item:hover {
-    border-color: var(--accent-primary);
+    border-color: var(--m3-primary);
+    background: var(--m3-surface-container-low);
     transform: translateY(-2px);
   }
 
   .toc-num {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    color: var(--accent-primary);
+    color: var(--m3-primary);
     font-family: var(--font-mono);
   }
 
@@ -1439,18 +1557,17 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
 
   .toc-item strong {
     font-size: 0.9rem;
-    color: var(--text-primary);
+    color: var(--m3-on-surface);
   }
 
   .toc-item span {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: 0.775rem;
+    color: var(--m3-outline);
   }
 
   /* Content Sections */
   .content-section {
-    padding: 2.5rem;
-    border-radius: var(--radius-lg);
+    padding: 2.25rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -1461,96 +1578,78 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--m3-outline-variant);
     padding-bottom: 0.75rem;
     flex-wrap: wrap;
   }
 
   .section-step-num {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
-    color: #fff;
+    background: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
     font-size: 0.8rem;
     font-weight: 800;
     padding: 0.25rem 0.65rem;
-    border-radius: var(--radius-sm);
-  }
-
-  .section-badge-header h2 {
-    font-size: 1.65rem;
-    font-weight: 800;
-    color: var(--text-primary);
+    border-radius: 8px;
+    font-family: var(--font-mono);
   }
 
   .section-lead {
-    font-size: 1.05rem;
-    color: var(--text-secondary);
+    color: var(--m3-on-surface-variant);
     line-height: 1.6;
   }
 
   .sub-heading {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
     margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
   }
 
-  /* Visual Boxes & Mermaid */
+  /* Visual Boxes & M3 Diagram Wrapper */
   .visual-box {
-    background: var(--bg-surface, var(--bg-secondary));
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    background: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 20px;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .visual-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-  }
-
-  .visual-badge {
-    background: rgba(99, 102, 241, 0.15);
-    color: var(--accent-primary);
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
+    gap: 0.85rem;
+    flex-wrap: wrap;
   }
 
   .visual-header h4 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    margin: 0;
   }
 
-  /* Architecture Flow Diagram (Bab 1) */
+  /* Architecture Flow Diagram (Bab 1) - Polished M3 */
   .arch-flow-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 1.5rem 1rem;
-    background: #090d16;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-md);
+    gap: 0.85rem;
+    padding: 1.5rem;
+    background: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
   }
 
   .arch-flow-card {
-    border-radius: var(--radius-md);
+    background: var(--m3-surface-container-lowest);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
     padding: 1.25rem 1.5rem;
-    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   }
 
   .card-client {
-    background: rgba(14, 165, 233, 0.08);
-    border-color: rgba(14, 165, 233, 0.35);
+    border-left: 4px solid var(--m3-primary);
   }
 
   .card-storage {
-    background: rgba(245, 158, 11, 0.08);
-    border-color: rgba(245, 158, 11, 0.35);
+    border-left: 4px solid var(--m3-warning);
   }
 
   .flow-card-badge {
@@ -1563,22 +1662,35 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     align-items: flex-start;
   }
 
-  .flow-card-icon {
-    font-size: 2.25rem;
-    line-height: 1;
+  .flow-card-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
 
+  .bg-primary-container {
+    background: var(--m3-primary-container);
+  }
+
+  .bg-tertiary-container {
+    background: var(--m3-tertiary-container);
+  }
+
+  .bg-warning-container {
+    background: var(--m3-warning-container);
+  }
+
   .flow-card-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.35rem;
+    margin: 0 0 0.25rem;
   }
 
   .flow-card-desc {
-    font-size: 0.885rem;
-    color: var(--text-secondary);
+    margin: 0;
+    color: var(--m3-on-surface-variant);
     line-height: 1.5;
   }
 
@@ -1586,88 +1698,80 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     padding: 0.25rem 0;
   }
 
   .flow-line {
     width: 2px;
-    height: 12px;
-    background: var(--accent-cyan);
+    height: 14px;
+    background: var(--m3-primary);
   }
 
-  .flow-pill-label {
-    font-size: 0.775rem;
+  .flow-line-tertiary {
+    background: var(--m3-tertiary);
+  }
+
+  .flow-pill-label-m3 {
+    font-size: 0.8rem;
     font-weight: 700;
-    color: var(--accent-cyan);
-    background: rgba(14, 165, 233, 0.15);
-    border: 1px solid rgba(14, 165, 233, 0.3);
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-  }
-
-  .flow-arrow-head {
-    font-size: 1.25rem;
-    color: var(--accent-cyan);
-    line-height: 1;
-  }
-
-  .flow-connector-bi .flow-pill-label {
-    display: flex;
-    flex-direction: column;
+    color: var(--m3-on-primary-container);
+    background: var(--m3-primary-container);
+    border: 1px solid var(--m3-outline-variant);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    display: inline-flex;
     align-items: center;
-    gap: 0.2rem;
-    font-size: 0.75rem;
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.12);
-    border-color: rgba(245, 158, 11, 0.3);
+    gap: 0.4rem;
   }
 
-  .flow-connector-bi .flow-line {
-    background: #f59e0b;
-  }
-
-  .flow-arrow-head-bi {
-    font-size: 1.35rem;
-    color: #f59e0b;
-    line-height: 1;
+  .flow-pill-bi {
+    color: var(--m3-on-tertiary-container);
+    background: var(--m3-tertiary-container);
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .arch-flow-engine {
-    border-radius: var(--radius-md);
-    padding: 1.25rem 1.5rem;
-    border: 1px solid rgba(99, 102, 241, 0.4);
-    background: rgba(99, 102, 241, 0.05);
+    border-radius: 16px;
+    padding: 1.35rem 1.5rem;
+    border: 1px solid var(--m3-outline-variant);
+    background: var(--m3-surface-container-high);
   }
 
   .engine-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--m3-outline-variant);
+    padding-bottom: 0.85rem;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .engine-title-flex {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
-  .engine-icon {
-    font-size: 1.75rem;
+  .engine-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .engine-title {
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--text-primary);
+    margin: 0;
   }
 
   .engine-sub {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--m3-on-surface-variant);
   }
 
   .engine-steps-grid {
@@ -1683,9 +1787,9 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .engine-step-card {
-    background: var(--bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-sm);
+    background: var(--m3-surface-container-lowest);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 12px;
     padding: 1rem;
     display: flex;
     gap: 0.75rem;
@@ -1693,12 +1797,12 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .step-badge-num {
-    background: var(--accent-primary);
-    color: #fff;
+    background: var(--m3-primary);
+    color: var(--m3-on-primary);
     font-size: 0.8rem;
     font-weight: 800;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1707,24 +1811,21 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .step-title {
-    font-size: 0.885rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin: 0 0 0.25rem;
   }
 
   .step-desc {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    margin: 0;
+    color: var(--m3-on-surface-variant);
     line-height: 1.45;
   }
 
   /* ERD Schema Visualizer (Bab 2) */
   .erd-visual-canvas {
-    background: #090d16;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-md);
-    padding: 1.5rem 1rem;
+    background: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -1733,24 +1834,24 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   .erd-relationships-banner {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed rgba(255, 255, 255, 0.15);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    gap: 0.65rem 1.25rem;
+    background: var(--m3-surface-container-lowest);
+    border: 1px dashed var(--m3-outline);
+    border-radius: 12px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.825rem;
+    color: var(--m3-on-surface-variant);
   }
 
   .rel-badge-item {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
   }
 
   .rel-line-icon {
     font-family: var(--font-mono);
-    color: var(--accent-cyan);
+    color: var(--m3-primary);
     font-weight: 700;
   }
 
@@ -1761,144 +1862,157 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .erd-table-card {
-    background: var(--bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-md);
+    background: var(--m3-surface-container-lowest);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
   .highlight-card {
-    border-color: rgba(14, 165, 233, 0.5);
+    border-color: var(--m3-primary);
   }
 
-  .highlight-card-gold {
-    border-color: rgba(245, 158, 11, 0.5);
+  .highlight-card-tertiary {
+    border-color: var(--m3-tertiary);
   }
 
   .erd-table-header {
-    padding: 0.65rem 0.85rem;
+    padding: 0.75rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #fff;
     font-size: 0.85rem;
+    border-bottom: 1px solid var(--m3-outline-variant);
   }
 
-  .header-blue { background: #1e3a8a; }
-  .header-emerald { background: #064e3b; }
-  .header-purple { background: #4c1d95; }
-  .header-cyan { background: #0e7490; }
-  .header-gold { background: #78350f; }
-  .header-teal { background: #115e59; }
+  .header-master {
+    background: var(--m3-surface-container-high);
+    color: var(--m3-on-surface);
+  }
+
+  .header-primary {
+    background: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
+  }
+
+  .header-tertiary {
+    background: var(--m3-tertiary-container);
+    color: var(--m3-on-tertiary-container);
+  }
 
   .erd-header-title {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-weight: 700;
     letter-spacing: 0.05em;
   }
 
   .erd-table-type {
     font-size: 0.675rem;
-    opacity: 0.8;
     text-transform: uppercase;
     font-weight: 700;
+    opacity: 0.8;
   }
 
   .erd-table-body {
     display: flex;
     flex-direction: column;
-    padding: 0.5rem 0;
+    padding: 0.4rem 0;
   }
 
   .erd-column-row {
     display: flex;
     align-items: center;
     padding: 0.35rem 0.85rem;
-    font-size: 0.775rem;
+    font-size: 0.8rem;
     gap: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--m3-outline-variant);
+  }
+
+  .erd-column-row:last-child {
+    border-bottom: none;
   }
 
   .pk-row {
-    background: rgba(245, 158, 11, 0.08);
+    background: var(--m3-warning-container);
+    color: var(--m3-on-warning-container);
   }
 
   .fk-row {
-    background: rgba(99, 102, 241, 0.08);
+    background: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
   }
 
   .col-key {
-    width: 26px;
+    width: 28px;
     flex-shrink: 0;
   }
 
   .badge-pk {
-    background: #f59e0b;
-    color: #000;
-    font-size: 0.625rem;
+    background: var(--m3-warning);
+    color: var(--m3-on-warning);
+    font-size: 0.65rem;
     font-weight: 800;
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
   }
 
   .badge-fk {
-    background: #6366f1;
-    color: #fff;
-    font-size: 0.625rem;
+    background: var(--m3-primary);
+    color: var(--m3-on-primary);
+    font-size: 0.65rem;
     font-weight: 800;
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
   }
 
   .col-name {
     flex: 1;
     font-weight: 600;
-    color: var(--text-primary);
   }
 
   .col-type {
-    font-size: 0.7rem;
-    color: var(--text-muted);
+    font-size: 0.725rem;
+    color: var(--m3-outline);
   }
 
   /* ON DELETE Flow Canvas (Bab 5) */
   .ondelete-flow-canvas {
-    background: #090d16;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-md);
-    padding: 1.5rem 1rem;
+    background: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
   }
 
   .ondelete-root-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px dashed rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    padding: 1rem 1.25rem;
+    background: var(--m3-surface-container-lowest);
+    border: 1px dashed var(--m3-outline);
+    border-radius: 14px;
+    padding: 1.25rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  .ondelete-root-badge {
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: var(--accent-amber);
-    margin-bottom: 0.25rem;
+  .ondelete-root-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .ondelete-root-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin: 0;
   }
 
   .ondelete-root-desc {
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    margin: 0.25rem 0 0;
+    color: var(--m3-on-surface-variant);
   }
 
   .ondelete-branches-grid {
@@ -1914,65 +2028,72 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .ondelete-branch-card {
-    border-radius: var(--radius-md);
+    background: var(--m3-surface-container-lowest);
+    border-radius: 14px;
     padding: 1.25rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--m3-outline-variant);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
 
   .card-cascade {
-    background: rgba(16, 185, 129, 0.06);
-    border-color: rgba(16, 185, 129, 0.35);
+    border-top: 4px solid var(--m3-success);
   }
 
   .card-restrict {
-    background: rgba(239, 68, 68, 0.06);
-    border-color: rgba(239, 68, 68, 0.35);
+    border-top: 4px solid var(--m3-error);
   }
 
   .card-setnull {
-    background: rgba(245, 158, 11, 0.06);
-    border-color: rgba(245, 158, 11, 0.35);
+    border-top: 4px solid var(--m3-warning);
   }
 
   .branch-title {
-    font-size: 0.95rem;
+    margin: 0;
     font-weight: 800;
-    color: var(--text-primary);
   }
 
   .branch-action-pill {
     font-size: 0.75rem;
     font-weight: 700;
     padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
     width: fit-content;
   }
 
-  .pill-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-  .pill-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-  .pill-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+  .pill-emerald {
+    background: var(--m3-success-container);
+    color: var(--m3-on-success-container);
+  }
+
+  .pill-red {
+    background: var(--m3-error-container);
+    color: var(--m3-on-error-container);
+  }
+
+  .pill-amber {
+    background: var(--m3-warning-container);
+    color: var(--m3-on-warning-container);
+  }
 
   .branch-desc {
-    font-size: 0.825rem;
-    color: var(--text-secondary);
+    margin: 0;
+    color: var(--m3-on-surface-variant);
     line-height: 1.45;
   }
 
   .branch-example {
     margin-top: auto;
-    font-size: 0.785rem;
-    color: var(--text-muted);
-    background: rgba(0, 0, 0, 0.25);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-sm);
+    color: var(--m3-outline);
+    background: var(--m3-surface-container-low);
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--m3-outline-variant);
   }
 
   .visual-caption {
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    margin: 0;
     line-height: 1.5;
   }
 
@@ -1980,6 +2101,8 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   .table-responsive {
     overflow-x: auto;
     width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--m3-outline-variant);
   }
 
   .data-table {
@@ -1990,19 +2113,19 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .data-table th, .data-table td {
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--m3-outline-variant);
   }
 
   .data-table th {
-    background: var(--bg-surface, var(--bg-secondary));
-    color: var(--text-primary);
+    background: var(--m3-surface-container-high);
+    color: var(--m3-on-surface);
     font-weight: 700;
   }
 
   .data-table td {
-    color: var(--text-secondary);
-    background: var(--bg-card);
+    color: var(--m3-on-surface-variant);
+    background: var(--m3-surface-container-lowest);
   }
 
   .mini-table {
@@ -2010,32 +2133,19 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .mini-table th, .mini-table td {
-    padding: 0.45rem 0.65rem;
+    padding: 0.5rem 0.65rem;
   }
 
-  /* Callout Boxes */
-  .callout-box {
+  .status-inline-icon {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+  }
+
+  /* Callout inner flex */
+  .callout-inner-flex {
     display: flex;
     gap: 1rem;
-    padding: 1.25rem 1.5rem;
-    border-radius: var(--radius-md);
     align-items: flex-start;
-  }
-
-  .callout-info {
-    background: rgba(99, 102, 241, 0.08);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-  }
-
-  .callout-icon {
-    font-size: 1.75rem;
-    flex-shrink: 0;
-  }
-
-  .callout-box h4 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
   }
 
   .clean-list {
@@ -2045,7 +2155,7 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     flex-direction: column;
     gap: 0.4rem;
     font-size: 0.8875rem;
-    color: var(--text-secondary);
+    color: var(--m3-on-surface-variant);
   }
 
   /* Card Grids */
@@ -2062,40 +2172,38 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .feature-card {
-    background: var(--bg-surface, var(--bg-secondary));
-    border: 1px solid var(--border-color);
+    background: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
     padding: 1.25rem;
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
 
   .feature-card h4 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    margin: 0;
   }
 
   .feature-card p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    margin: 0;
+    color: var(--m3-on-surface-variant);
     line-height: 1.5;
   }
 
-  .border-red { border-left: 3px solid #ef4444; }
-  .border-amber { border-left: 3px solid #f59e0b; }
-  .border-purple { border-left: 3px solid var(--accent-primary); }
+  .border-left-error { border-left: 4px solid var(--m3-error); }
+  .border-left-warning { border-left: 4px solid var(--m3-warning); }
+  .border-left-tertiary { border-left: 4px solid var(--m3-tertiary); }
 
   /* Normalization Step Boxes */
   .norm-step-box {
-    background: var(--bg-surface, var(--bg-secondary));
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1.25rem;
+    background: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
+    padding: 1.35rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
   .norm-badge-row {
@@ -2106,54 +2214,45 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     gap: 0.5rem;
   }
 
-  .step-pill {
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-    color: #fff;
-  }
-
-  .step-unf { background: #64748b; }
-  .step-1nf { background: #0284c7; }
-  .step-2nf { background: #d97706; }
-  .step-3nf { background: #16a34a; }
-
   .status-pill {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
+    display: inline-flex;
+    align-items: center;
   }
 
-  .status-bad { color: #f87171; }
-  .status-ok { color: #38bdf8; }
-  .status-perfect { color: #4ade80; }
+  .status-bad { color: var(--m3-error); }
+  .status-ok { color: var(--m3-primary); }
+  .status-perfect { color: var(--m3-success); }
+
+  .detail-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .detail-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
 
   /* Code Example Blocks */
   .code-example-block {
-    background: #090d16;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    background: #181c24;
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
     overflow: hidden;
   }
 
   .code-example-header {
-    background: rgba(255, 255, 255, 0.04);
+    background: #10131a;
     padding: 0.65rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    font-size: 0.85rem;
-    color: var(--text-primary);
-  }
-
-  .code-badge {
-    background: var(--accent-primary);
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 0.15rem 0.45rem;
-    border-radius: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
   }
 
   .code-snippet {
@@ -2165,17 +2264,15 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
     overflow-x: auto;
   }
 
-  .btn-xs {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+  .code-snippet-error {
+    border-left: 4px solid var(--m3-error);
   }
 
-  /* Mini Quiz */
+  /* Mini Quiz M3 */
   .quiz-container {
-    background: var(--bg-surface, var(--bg-secondary));
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
+    padding: 1.75rem 2rem;
+    background: var(--m3-surface-container-low);
+    border-radius: 20px;
   }
 
   .quiz-header {
@@ -2186,9 +2283,7 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .quiz-header h3 {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--text-primary);
+    margin: 0;
   }
 
   .quiz-form {
@@ -2198,9 +2293,9 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .quiz-question-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    background: var(--m3-surface-container-lowest);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 14px;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
@@ -2208,9 +2303,7 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .quiz-question-card h4 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    margin: 0;
     line-height: 1.5;
   }
 
@@ -2223,45 +2316,48 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   .quiz-option {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.75rem;
     font-size: 0.8875rem;
-    color: var(--text-secondary);
+    color: var(--m3-on-surface-variant);
     cursor: pointer;
-    padding: 0.4rem 0.65rem;
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-fast);
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+    border: 1px solid transparent;
   }
 
   .quiz-option:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--text-primary);
+    background: var(--m3-surface-container-high);
+    color: var(--m3-on-surface);
   }
 
   .quiz-feedback {
     display: none;
     padding: 0.65rem 0.85rem;
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     font-size: 0.85rem;
     font-weight: 600;
     margin-top: 0.25rem;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .feedback-correct {
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #86efac;
+    background: var(--m3-success-container);
+    border: 1px solid var(--m3-success);
+    color: var(--m3-on-success-container);
   }
 
   .feedback-wrong {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
+    background: var(--m3-error-container);
+    border: 1px solid var(--m3-error);
+    color: var(--m3-on-error-container);
   }
 
   .feedback-warn {
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: #fcd34d;
+    background: var(--m3-warning-container);
+    border: 1px solid var(--m3-warning);
+    color: var(--m3-on-warning-container);
   }
 
   .quiz-action-footer {
@@ -2275,32 +2371,34 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   .quiz-score-pill {
     display: none;
     padding: 0.5rem 1rem;
-    border-radius: var(--radius-md);
+    border-radius: 9999px;
     font-size: 0.9rem;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .score-pass {
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #86efac;
+    background: var(--m3-success-container);
+    border: 1px solid var(--m3-success);
+    color: var(--m3-on-success-container);
   }
 
   .score-fail {
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: #fcd34d;
+    background: var(--m3-warning-container);
+    border: 1px solid var(--m3-warning);
+    color: var(--m3-on-warning-container);
   }
 
   /* Next Step CTA */
   .next-step-card {
     padding: 2rem 2.5rem;
-    border-radius: var(--radius-lg);
+    border-radius: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1.5rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1));
-    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: var(--m3-surface-container-high);
+    border: 1px solid var(--m3-outline-variant);
     flex-wrap: wrap;
   }
 
@@ -2313,26 +2411,32 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
   }
 
   .next-step-content h3 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-primary);
+    margin: 0;
   }
 
   .next-step-content p {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
+    margin: 0;
+    color: var(--m3-on-surface-variant);
     line-height: 1.5;
   }
 
-  /* Utilities */
+  .next-step-action {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* Spacing Utilities */
   .margin-top-xs { margin-top: 0.35rem; }
   .margin-top-sm { margin-top: 0.75rem; }
   .margin-top-md { margin-top: 1.25rem; }
   .margin-top-lg { margin-top: 1.75rem; }
   .margin-top-xl { margin-top: 2.25rem; }
-  .text-muted { color: var(--text-muted); }
-  .text-warning { color: #f59e0b; }
-  .text-accent { color: var(--accent-primary); }
+  .text-m3-muted { color: var(--m3-outline); }
+  .text-m3-warning { color: var(--m3-warning); }
+  .text-m3-error { color: var(--m3-error); }
+  .text-m3-success { color: var(--m3-success); }
+  .text-m3-primary { color: var(--m3-primary); }
 
   /* Mobile Responsive */
   @media (max-width: 640px) {
@@ -2345,19 +2449,11 @@ CREATE INDEX idx_detail_trans ON detail_transaksi(id_transaksi);</code></pre>
       padding: 1.5rem 1rem;
     }
 
-    .hero-title {
-      font-size: 1.75rem;
-    }
-
-    .section-badge-header h2 {
-      font-size: 1.35rem;
-    }
-
     .next-step-action {
       width: 100%;
     }
 
-    .next-step-action .btn {
+    .next-step-action .m3-btn {
       width: 100%;
       justify-content: center;
     }
