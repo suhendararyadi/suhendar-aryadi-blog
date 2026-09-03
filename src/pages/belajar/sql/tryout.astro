@@ -216,22 +216,28 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
       <div id="screen-cbt" class="m3-screen" style="display: none;">
         <!-- M3 Top App Bar -->
         <header class="m3-top-app-bar">
-          <div class="m3-app-bar-leading">
-            <span class="m3-badge-tonal">CBT SQL</span>
-            <span class="m3-title-small m3-app-bar-title" id="cbt-user-name">{user?.name || 'Peserta Siswa'}</span>
-          </div>
+          <div class="m3-app-bar-top-row">
+            <div class="m3-app-bar-leading">
+              <span class="m3-badge-tonal">CBT SQL</span>
+              <span class="material-symbols-rounded icon-sm text-secondary">person</span>
+              <span class="m3-title-small m3-app-bar-title" id="cbt-user-name">{user?.name || 'Peserta Siswa'}</span>
+            </div>
 
-          <div class="m3-timer-container">
-            <span class="m3-label-small text-secondary">Sisa Waktu:</span>
-            <span class="m3-title-medium font-mono m3-timer-text" id="cbt-timer">45:00</span>
+            <div class="m3-timer-container">
+              <span class="material-symbols-rounded icon-sm timer-icon">timer</span>
+              <span class="m3-label-small timer-label text-secondary">Sisa:</span>
+              <span class="m3-title-medium font-mono m3-timer-text" id="cbt-timer">45:00</span>
+            </div>
           </div>
 
           <div class="m3-app-bar-actions">
             <button type="button" id="btn-mobile-palette-toggle" class="m3-btn m3-btn-tonal m3-mobile-only" title="Daftar Nomor Soal">
-              Daftar Soal (<span id="mobile-palette-badge">1/25</span>)
+              <span class="material-symbols-rounded icon-sm">grid_view</span>
+              <span>Daftar Soal (<span id="mobile-palette-badge">1/25</span>)</span>
             </button>
-            <button type="button" id="btn-submit-exam" class="m3-btn m3-btn-filled m3-btn-success">
-              <span class="m3-btn-label">Selesai &amp; Kumpulkan</span>
+            <button type="button" id="btn-submit-exam" class="m3-btn m3-btn-filled m3-btn-success" title="Selesai &amp; Kumpulkan">
+              <span class="material-symbols-rounded icon-sm">check_circle</span>
+              <span class="m3-btn-label">Kumpulkan</span>
             </button>
           </div>
         </header>
@@ -380,7 +386,7 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     </div>
 
     <!-- M3 Mobile Bottom Sheet Drawer for Palette Navigation -->
-    <div id="mobile-palette-modal" class="m3-scrim-backdrop" style="display: none;">
+    <div id="mobile-palette-modal" class="m3-scrim-backdrop mobile-palette-backdrop" style="display: none;">
       <div class="m3-bottom-sheet">
         <div class="m3-sheet-drag-handle"></div>
         <div class="m3-sheet-header">
@@ -1538,6 +1544,7 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     padding: 0.75rem 1.25rem;
     background: var(--m3-surface-container-low);
     border: 1px solid var(--m3-outline-variant);
@@ -1545,34 +1552,61 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     position: sticky;
     top: 0.75rem;
     z-index: 90;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .m3-app-bar-top-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+    min-width: 0;
   }
 
   .m3-app-bar-leading {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.5rem;
+    min-width: 0;
   }
 
   .m3-app-bar-title {
-    max-width: 180px;
+    max-width: 220px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.95rem;
+    font-weight: 600;
   }
 
   .m3-timer-container {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     background: var(--m3-surface-container);
     border: 1px solid var(--m3-outline-variant);
-    padding: 0.35rem 0.95rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 9999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .timer-icon {
+    font-size: 1.1rem;
+    color: var(--m3-primary);
+  }
+
+  .timer-label {
+    font-size: 0.8rem;
+    font-weight: 500;
   }
 
   .m3-timer-text {
     letter-spacing: 0.05em;
+    font-weight: 700;
   }
 
   .timer-warning {
@@ -1584,24 +1618,27 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
   }
 
   .m3-cbt-layout {
     display: grid;
-    grid-template-columns: 1fr 310px;
+    grid-template-columns: minmax(0, 1fr) 310px;
     gap: 1.25rem;
     align-items: start;
-  }
-
-  @media (max-width: 850px) {
-    .m3-cbt-layout {
-      grid-template-columns: 1fr;
-    }
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .m3-question-card {
     border-radius: 20px;
     padding: 1.75rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .m3-question-header {
@@ -1612,32 +1649,54 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     border-bottom: 1px solid var(--m3-outline-variant);
     gap: 0.75rem;
     flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .m3-question-title {
     font-size: 1.15rem;
     font-weight: 600;
     line-height: 1.6;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   .m3-code-container {
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
     border-radius: 12px;
     padding: 0.85rem 1rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .m3-code-header {
-    color: #94a3b8;
+    color: var(--m3-primary);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
     margin-bottom: 0.35rem;
   }
 
   .m3-code-block {
     margin: 0;
-    color: #38bdf8;
+    color: #0f172a;
     font-size: 0.875rem;
-    line-height: 1.5;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  [data-theme='dark'] .m3-code-container {
+    background: var(--m3-surface-container);
+    border-color: var(--m3-outline-variant);
+  }
+
+  [data-theme='dark'] .m3-code-block {
+    color: var(--m3-on-surface);
   }
 
   /* =========================================================
@@ -1648,13 +1707,15 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     flex-direction: column;
     gap: 0.75rem;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .m3-option-card {
     display: flex !important;
     align-items: flex-start !important;
-    gap: 1rem !important;
-    padding: 1rem 1.25rem !important;
+    gap: 0.85rem !important;
+    padding: 0.95rem 1.15rem !important;
     background: var(--m3-surface-container-lowest) !important;
     border: 1.5px solid var(--m3-outline-variant) !important;
     border-radius: 16px !important;
@@ -1663,6 +1724,10 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     box-sizing: border-box !important;
     position: relative !important;
     user-select: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
 
   .m3-option-card:hover {
@@ -1714,6 +1779,9 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     line-height: 1.55 !important;
     color: inherit !important;
     flex: 1 !important;
+    min-width: 0 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
   }
 
   .m3-option-card.selected .m3-option-text {
@@ -1727,6 +1795,9 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
     align-items: center;
     padding-top: 1.25rem;
     border-top: 1px solid var(--m3-outline-variant);
+    gap: 0.75rem;
+    box-sizing: border-box;
+    width: 100%;
   }
 
   /* =========================================================
@@ -2137,49 +2208,182 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
 
   @media (max-width: 850px) {
     .m3-mobile-only {
-      display: inline-flex;
+      display: inline-flex !important;
     }
 
     .m3-palette-card {
-      display: none;
+      display: none !important;
     }
 
+    .m3-cbt-layout {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 1rem;
+    }
+
+    /* 2-Tier M3 Top App Bar for Mobile */
     .m3-top-app-bar {
-      padding: 0.65rem 0.85rem;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0.65rem !important;
+      padding: 0.65rem 0.75rem !important;
+      border-radius: 16px !important;
+      top: 0.5rem !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    .m3-app-bar-top-row {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      width: 100% !important;
+      gap: 0.5rem !important;
     }
 
     .m3-app-bar-leading {
-      max-width: 130px;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.35rem !important;
+      min-width: 0 !important;
+      flex: 1 !important;
+    }
+
+    .m3-app-bar-title {
+      max-width: 140px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      font-size: 0.875rem !important;
+      font-weight: 600 !important;
     }
 
     .m3-timer-container {
-      padding: 0.25rem 0.65rem;
+      padding: 0.25rem 0.65rem !important;
+      font-size: 0.8125rem !important;
+      flex-shrink: 0 !important;
+      gap: 0.35rem !important;
+    }
+
+    .timer-icon {
+      font-size: 1rem !important;
+    }
+
+    .timer-label {
+      font-size: 0.75rem !important;
+    }
+
+    .m3-timer-text {
+      font-size: 0.95rem !important;
+    }
+
+    .m3-app-bar-actions {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+    }
+
+    .m3-app-bar-actions .m3-btn {
+      width: 100% !important;
+      height: 38px !important;
+      padding: 0 8px !important;
+      font-size: 0.8125rem !important;
+      gap: 0.35rem !important;
+      box-sizing: border-box !important;
+      white-space: nowrap !important;
+      justify-content: center !important;
     }
 
     .m3-question-card {
-      padding: 1.25rem 1rem;
+      padding: 1.15rem 0.85rem !important;
+      border-radius: 16px !important;
     }
 
     .m3-option-card {
-      padding: 0.85rem 1rem !important;
+      padding: 0.85rem 0.85rem !important;
+      gap: 0.65rem !important;
+      border-radius: 14px !important;
+    }
+
+    .m3-option-circle {
+      width: 28px !important;
+      height: 28px !important;
+      min-width: 28px !important;
+      font-size: 0.8125rem !important;
+    }
+
+    .m3-option-text {
+      font-size: 0.875rem !important;
     }
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
+    .m3-tryout-page {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+
     .m3-tryout-container {
-      padding: 1rem 0.5rem 3rem;
+      padding: 0.5rem 0 3rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
     }
 
     .m3-badge-tonal {
-      display: none;
+      display: none !important;
     }
 
-    .m3-btn-label {
-      display: none;
+    .m3-breadcrumb {
+      margin-bottom: 1rem;
+      font-size: 0.8125rem;
+      flex-wrap: wrap;
     }
 
-    .m3-btn-label:before {
-      content: "Selesai";
+    .m3-gate-card {
+      padding: 1.25rem 0.85rem !important;
+      border-radius: 16px !important;
+    }
+
+    .m3-question-title {
+      font-size: 1rem !important;
+      line-height: 1.5 !important;
+    }
+
+    .m3-question-footer {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 0.65rem !important;
+      align-items: center !important;
+    }
+
+    #btn-prev-q {
+      grid-column: 1 !important;
+      grid-row: 2 !important;
+      width: 100% !important;
+      height: 42px !important;
+      padding: 0 8px !important;
+      font-size: 0.8125rem !important;
+      justify-content: center !important;
+    }
+
+    #btn-next-q {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+      width: 100% !important;
+      height: 42px !important;
+      padding: 0 8px !important;
+      font-size: 0.8125rem !important;
+      justify-content: center !important;
+    }
+
+    #nav-indicator-text {
+      grid-column: 1 / span 2 !important;
+      grid-row: 1 !important;
+      text-align: center !important;
+      margin-bottom: 0.15rem !important;
+      font-size: 0.8125rem !important;
     }
 
     .m3-segmented-button-group {
@@ -2192,12 +2396,46 @@ const initialQuestions = sqlTryoutQuestions.map((q) => ({
       flex: 1;
     }
 
+    .m3-result-card {
+      padding: 1.25rem 0.85rem !important;
+      border-radius: 16px !important;
+    }
+
+    .m3-result-hero-banner {
+      flex-direction: column !important;
+      text-align: center !important;
+      gap: 1rem !important;
+    }
+
+    .m3-score-gauge-wrap {
+      margin: 0 auto !important;
+    }
+
+    .m3-stats-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.5rem !important;
+    }
+
     .m3-result-actions {
-      flex-direction: column;
+      flex-direction: column !important;
     }
 
     .m3-result-actions .m3-btn {
-      width: 100%;
+      width: 100% !important;
+    }
+
+    .m3-bottom-sheet {
+      padding: 1.25rem 1rem 2rem !important;
+      max-width: 100% !important;
+    }
+
+    .m3-palette-grid {
+      gap: 0.35rem !important;
+    }
+
+    .m3-palette-btn {
+      height: 38px !important;
+      font-size: 0.8125rem !important;
     }
   }
 
