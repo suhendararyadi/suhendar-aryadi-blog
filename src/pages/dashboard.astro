@@ -313,7 +313,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     </div>
 
     <!-- 2. KPI Overview (3 Columns) -->
-    <div class="dash-kpi-grid margin-top-md">
+    <div class="dash-kpi-grid">
       <!-- KPI 1: Informatika LKPD Average -->
       <div class="m3-card m3-card-elevated kpi-card">
         <div class="kpi-top">
@@ -361,7 +361,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     </div>
 
     <!-- 3. Mata Pelajaran Cards (Informatika & SQL RPL) -->
-    <div class="dash-subjects-grid margin-top-lg">
+    <div class="dash-subjects-grid">
       <!-- Subject 1: Informatika (Fase E) -->
       <div class="m3-card m3-card-elevated subject-panel-card">
         <div class="subject-panel-header">
@@ -379,7 +379,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </span>
         </div>
 
-        <div class="lkpd-list margin-top-md">
+        <div class="lkpd-list">
           <!-- LKPD 1 Item -->
           <div class="lkpd-row-card">
             <div class="lkpd-row-main">
@@ -435,7 +435,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </div>
         </div>
 
-        <div class="subject-panel-footer margin-top-md">
+        <div class="subject-panel-footer">
           {isInformatikaEnrolled ? (
             <a href="/belajar/informatika" class="m3-btn m3-btn-outlined btn-sm full-width">
               <span>Buka Materi Informatika</span>
@@ -472,7 +472,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </span>
         </div>
 
-        <div class="sql-paths-overview margin-top-md">
+        <div class="sql-paths-overview">
           <div class="sql-paths-compact-grid">
             {pathAnalytics.map((path) => (
               <div class="sql-path-item">
@@ -488,7 +488,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </div>
         </div>
 
-        <div class="cbt-tryout-box margin-top-md">
+        <div class="cbt-tryout-box">
           <div class="cbt-box-content">
             <div class="cbt-box-header">
               <span class="material-symbols-rounded icon-md text-m3-primary">quiz</span>
@@ -504,7 +504,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </div>
         </div>
 
-        <div class="subject-panel-footer margin-top-md">
+        <div class="subject-panel-footer">
           {isRplSqlEnrolled ? (
             <a href="/belajar/sql" class="m3-btn m3-btn-outlined btn-sm full-width">
               <span>Buka SQL Masterclass</span>
@@ -526,7 +526,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     </div>
 
     <!-- 4. Riwayat Modul Selesai (Recent History) -->
-    <div class="m3-card m3-card-elevated dash-history-card margin-top-lg">
+    <div class="m3-card m3-card-elevated dash-history-card">
       <div class="history-card-header">
         <h3 class="m3-title-large">Riwayat Modul SQL Terakhir</h3>
         <a href="/belajar/sql" class="m3-btn m3-btn-text btn-sm">Lihat Semua Modul &rarr;</a>
@@ -904,108 +904,100 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
 
 <style is:global>
   .m3-dash-container {
-    max-width: 1180px;
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 2.25rem 1.5rem 5rem;
+    padding: 1.5rem 1rem 3.5rem;
     display: flex;
     flex-direction: column;
-    gap: 2.25rem; /* Generous breathing room between all major card sections */
+    gap: 1.25rem;
   }
-
-  /* Utility Spacers */
-  .margin-top-xs { margin-top: 0.5rem !important; }
-  .margin-top-sm { margin-top: 1rem !important; }
-  .margin-top-md { margin-top: 1.75rem !important; }
-  .margin-top-lg { margin-top: 2.25rem !important; }
-  .margin-top-xl { margin-top: 3rem !important; }
 
   /* Profile Header */
   .dash-profile-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem;
-    padding: 2rem 2.25rem;
+    gap: 1.25rem;
+    padding: 1.5rem 1.75rem;
     border-radius: var(--radius-2xl, 28px);
     background: var(--m3-surface-container-low, #f7f3f9);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   }
 
   @media (max-width: 860px) {
     .dash-profile-card {
       flex-direction: column;
       align-items: flex-start;
-      gap: 1.5rem;
-      padding: 1.5rem;
+      gap: 1.25rem;
+      padding: 1.25rem;
     }
   }
 
   .dash-profile-main {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
 
   .m3-avatar {
-    width: 68px;
-    height: 68px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: var(--m3-primary, #005ac1);
     color: var(--m3-on-primary, #ffffff);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.85rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    box-shadow: 0 4px 14px rgba(0, 90, 193, 0.22);
+    box-shadow: 0 4px 12px rgba(0, 90, 193, 0.2);
     flex-shrink: 0;
   }
 
   .dash-name-cluster {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     flex-wrap: wrap;
   }
 
   .dash-student-name {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     font-weight: 800;
     color: var(--m3-on-surface, #1a1b1f);
     margin: 0;
-    line-height: 1.25;
+    line-height: 1.2;
   }
 
   .dash-class-chip {
-    font-size: 0.775rem;
-    height: 26px;
-    padding: 0 0.65rem;
-    gap: 0.3rem;
+    font-size: 0.75rem;
+    height: 24px;
+    padding: 0 0.55rem;
+    gap: 0.25rem;
   }
 
   .dash-student-email {
-    font-size: 0.875rem;
-    margin: 0.25rem 0 0.65rem;
+    font-size: 0.85rem;
+    margin: 0.15rem 0 0.45rem;
   }
 
   .dash-badges-row {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
     flex-wrap: wrap;
     align-items: center;
   }
 
   .dash-badges-row .m3-chip {
-    font-size: 0.775rem;
-    height: 26px;
-    padding: 0 0.65rem;
-    gap: 0.3rem;
+    font-size: 0.75rem;
+    height: 24px;
+    padding: 0 0.55rem;
+    gap: 0.25rem;
   }
 
   .dash-profile-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.45rem;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
@@ -1022,55 +1014,53 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   .dash-kpi-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 800px) {
     .dash-kpi-grid {
       grid-template-columns: 1fr;
     }
   }
 
   .kpi-card {
-    padding: 1.65rem 1.75rem;
+    padding: 1.25rem 1.4rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    border-radius: var(--radius-xl, 20px);
+    border-radius: var(--radius-xl, 16px);
     background: var(--m3-surface-container-low, #f7f3f9);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    min-height: 165px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
   .kpi-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
   }
 
   .kpi-label {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--m3-on-surface-variant, #44474f);
   }
 
   .kpi-value {
-    font-size: 1.85rem;
+    font-size: 1.75rem;
     font-weight: 800;
-    margin: 0.25rem 0;
+    margin: 0.15rem 0;
     line-height: 1.2;
   }
 
   .kpi-unit {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
   }
 
   .kpi-caption {
-    font-size: 0.825rem;
-    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    margin: 0.35rem 0 0;
   }
 
   /* Progress Bars */
@@ -1080,7 +1070,6 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     background: var(--m3-surface-container-highest, #e1e2ec);
     border-radius: 9999px;
     overflow: hidden;
-    margin: 0.4rem 0;
   }
 
   .m3-linear-progress-sm {
@@ -1089,7 +1078,6 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     background: var(--m3-surface-container-highest, #e1e2ec);
     border-radius: 9999px;
     overflow: hidden;
-    margin: 0.25rem 0;
   }
 
   .m3-progress-fill {
@@ -1103,10 +1091,10 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   .dash-subjects-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
+    gap: 1.25rem;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 900px) {
     .dash-subjects-grid {
       grid-template-columns: 1fr;
     }
@@ -1115,11 +1103,10 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   .subject-panel-card {
     display: flex;
     flex-direction: column;
-    padding: 2rem 2.25rem;
+    padding: 1.5rem;
     border-radius: var(--radius-2xl, 28px);
     background: var(--m3-surface-container-low, #f7f3f9);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   }
 
   .subject-panel-header {
@@ -1127,19 +1114,19 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .subject-header-info {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
   }
 
   .subject-icon-box {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1150,46 +1137,44 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     font-weight: 700;
     color: var(--m3-on-surface, #1a1b1f);
     margin: 0;
-    letter-spacing: -0.01em;
   }
 
   /* LKPD Row Item */
   .lkpd-list {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 0.6rem;
   }
 
   .lkpd-row-card {
     background: var(--m3-surface, #ffffff);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    border-radius: 14px;
-    padding: 0.95rem 1.25rem;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.25rem;
-    transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    gap: 1rem;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
   }
 
   .lkpd-row-card:hover {
     border-color: var(--m3-primary, #005ac1);
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
   }
 
   .lkpd-row-main {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
     flex: 1;
     min-width: 0;
   }
 
   .lkpd-chip {
     font-weight: 700;
-    font-size: 0.775rem;
-    height: 26px;
-    padding: 0 0.6rem;
+    font-size: 0.75rem;
+    height: 24px;
+    padding: 0 0.5rem;
     flex-shrink: 0;
   }
 
@@ -1198,7 +1183,7 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   }
 
   .lkpd-title {
-    font-size: 0.95rem;
+    font-size: 0.925rem;
     font-weight: 600;
     color: var(--m3-on-surface, #1a1b1f);
     margin: 0;
@@ -1208,15 +1193,15 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   }
 
   .lkpd-note {
-    font-size: 0.775rem;
-    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    margin: 0.15rem 0 0;
     font-style: italic;
   }
 
   .lkpd-row-score {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
     flex-shrink: 0;
   }
 
@@ -1228,8 +1213,8 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
 
   /* Subject Panel Footer */
   .subject-panel-footer {
-    margin-top: auto;
-    padding-top: 1.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--m3-outline-variant, #c4c6d0);
   }
 
@@ -1237,17 +1222,17 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   .sql-paths-compact-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 0.65rem;
     background: var(--m3-surface, #ffffff);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    border-radius: 14px;
-    padding: 1.15rem 1.35rem;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
   }
 
   .sql-path-item {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.25rem;
   }
 
   .sql-path-name {
@@ -1259,35 +1244,35 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
   .cbt-tryout-box {
     background: var(--m3-surface, #ffffff);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    border-radius: 14px;
-    padding: 1.15rem 1.35rem;
-    margin-top: 1rem;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.85rem;
   }
 
   .cbt-box-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
     flex-wrap: wrap;
   }
 
   .cbt-box-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.65rem;
   }
 
   .cbt-title {
-    font-size: 0.95rem;
+    font-size: 0.925rem;
     font-weight: 700;
     color: var(--m3-on-surface, #1a1b1f);
     display: block;
   }
 
   .cbt-desc {
-    font-size: 0.8rem;
-    margin: 0.15rem 0 0;
+    font-size: 0.775rem;
+    margin: 0.1rem 0 0;
   }
 
   .full-width {
@@ -1297,18 +1282,17 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
 
   /* History Card */
   .dash-history-card {
-    padding: 2rem 2.25rem;
+    padding: 1.5rem;
     border-radius: var(--radius-2xl, 28px);
     background: var(--m3-surface-container-low, #f7f3f9);
     border: 1px solid var(--m3-outline-variant, #c4c6d0);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   }
 
   .history-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .history-card-header {
