@@ -10,14 +10,11 @@ const modules = await getCollection('modules');
   description="Kumpulan modul ajar, bahan praktikum, dan materi pembelajaran Rekayasa Perangkat Lunak (RPL) SMK oleh Suhendar Aryadi, S.Pd.,Gr."
 >
   <div class="materi-header">
-    <span class="badge badge-cyan">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-      </svg>
-      Bahan Ajar & Modul Vokasi
+    <span class="m3-chip m3-chip-tonal-primary">
+      <span class="material-symbols-rounded">menu_book</span>
+      <span>Bahan Ajar &amp; Modul Vokasi</span>
     </span>
-    <h1 class="page-title">Materi Pembelajaran <span class="text-gradient">SMK RPL</span></h1>
+    <h1 class="page-title">Materi Pembelajaran <span class="highlight-primary">SMK RPL</span></h1>
     <p class="page-subtitle">
       Akses dan unduh modul pembelajaran, panduan praktikum, serta dokumentasi kurikulum Jurusan Rekayasa Perangkat Lunak.
     </p>
@@ -26,26 +23,18 @@ const modules = await getCollection('modules');
   {modules.length > 0 ? (
     <div class="modules-grid">
       {modules.map((mod) => (
-        <article class="glass-card glass-card-interactive module-card">
+        <article class="m3-card m3-card-elevated module-card">
           <!-- Module Thumbnail Container -->
           <a href={`/materi/${mod.slug}`} class="module-thumb-wrapper">
             {mod.data.image ? (
               <img src={mod.data.image} alt={mod.data.title} class="module-thumb-img" loading="lazy" />
             ) : (
               <div class="module-thumb-placeholder">
-                <div class="thumb-pattern"></div>
-                <div class="thumb-content">
-                  <div class="thumb-book-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                    </svg>
-                  </div>
-                  <span class="thumb-subject">{mod.data.subject}</span>
-                </div>
+                <span class="material-symbols-rounded thumb-m3-icon">menu_book</span>
+                <span class="thumb-subject">{mod.data.subject}</span>
               </div>
             )}
-            <span class="module-grade-badge">{mod.data.grade}</span>
+            <span class="m3-chip m3-chip-tonal-secondary module-grade-badge">{mod.data.grade}</span>
           </a>
 
           <div class="module-body">
@@ -55,16 +44,16 @@ const modules = await getCollection('modules');
 
             <div class="module-tags">
               {mod.data.tags.map((tag) => (
-                <span class="tag">#{tag}</span>
+                <span class="m3-chip m3-chip-outline tag-chip">#{tag}</span>
               ))}
             </div>
 
             <div class="module-footer">
-              <a href={`/materi/${mod.slug}`} class="btn btn-primary btn-sm">
+              <a href={`/materi/${mod.slug}`} class="m3-btn m3-btn-filled module-btn">
                 <span>Baca Modul</span>
               </a>
               {mod.data.downloadUrl && (
-                <a href={mod.data.downloadUrl} target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                <a href={mod.data.downloadUrl} target="_blank" rel="noopener noreferrer" class="m3-btn m3-btn-outlined module-btn">
                   <span>Download PDF</span>
                 </a>
               )}
@@ -74,7 +63,7 @@ const modules = await getCollection('modules');
       ))}
     </div>
   ) : (
-    <div class="glass-card empty-card">
+    <div class="m3-card m3-card-elevated empty-card">
       <p class="empty-text">Belum ada modul pembelajaran yang tersedia saat ini.</p>
     </div>
   )}
@@ -85,31 +74,35 @@ const modules = await getCollection('modules');
     text-align: center;
     max-width: 750px;
     margin: 1rem auto 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .page-title {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 4vw, 2.5rem);
     font-weight: 800;
     line-height: 1.2;
-    margin: 0.75rem 0;
+    margin: 0.5rem 0;
+    color: var(--m3-on-surface, #1a1b1f);
   }
 
-  @media (max-width: 768px) {
-    .page-title {
-      font-size: 1.875rem;
-    }
+  .highlight-primary {
+    color: var(--m3-primary, #005ac1);
   }
 
   .page-subtitle {
-    font-size: 1.0625rem;
-    color: var(--text-secondary);
+    font-size: 1.05rem;
+    color: var(--m3-on-surface-variant, #44474f);
     line-height: 1.6;
+    margin: 0;
   }
 
   .modules-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.75rem;
   }
 
   @media (max-width: 640px) {
@@ -124,7 +117,7 @@ const modules = await getCollection('modules');
     height: 100%;
     overflow: hidden;
     padding: 0;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-xl, 16px);
   }
 
   /* Thumbnail Container */
@@ -133,7 +126,7 @@ const modules = await getCollection('modules');
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: var(--bg-tertiary);
+    background: var(--m3-surface-container, #f1edf3);
     display: block;
   }
 
@@ -141,58 +134,28 @@ const modules = await getCollection('modules');
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform var(--transition-normal);
   }
 
   .module-card:hover .module-thumb-img {
-    transform: scale(1.06);
+    transform: scale(1.05);
   }
 
   .module-thumb-placeholder {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #0f172a 0%, #06b6d4 50%, #6366f1 100%);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.4s ease;
-  }
-
-  .module-card:hover .module-thumb-placeholder {
-    transform: scale(1.04);
-  }
-
-  .thumb-pattern {
-    position: absolute;
-    inset: 0;
-    opacity: 0.15;
-    background-image: radial-gradient(#ffffff 1px, transparent 1px);
-    background-size: 16px 16px;
-  }
-
-  .thumb-content {
-    position: relative;
-    z-index: 2;
+    background: var(--m3-surface-container-high, #ebe7ed);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    color: #ffffff;
+    color: var(--m3-on-surface-variant, #44474f);
   }
 
-  .thumb-book-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  .thumb-m3-icon {
+    font-size: 2.5rem;
+    color: var(--m3-primary, #005ac1);
   }
 
   .thumb-subject {
@@ -200,81 +163,73 @@ const modules = await getCollection('modules');
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
   }
 
   .module-grade-badge {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
+    top: 0.85rem;
+    left: 0.85rem;
     z-index: 3;
-    padding: 0.3rem 0.75rem;
     font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: var(--radius-full);
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   }
 
   .module-body {
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem 1.5rem;
     display: flex;
     flex-direction: column;
     flex: 1;
   }
 
   .module-title {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 700;
     line-height: 1.35;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     flex: 1;
   }
 
   .module-title a {
-    color: var(--text-primary);
+    color: var(--m3-on-surface, #1a1b1f);
   }
 
   .module-title a:hover {
-    color: var(--accent-cyan);
+    color: var(--m3-primary, #005ac1);
   }
 
   .module-tags {
     display: flex;
-    gap: 0.375rem;
+    gap: 0.35rem;
     flex-wrap: wrap;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
   }
 
-  .tag {
+  .tag-chip {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    padding: 0.15rem 0.5rem;
   }
 
   .module-footer {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--border-subtle);
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--m3-outline-variant, #c4c6d0);
   }
 
-  .btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+  .module-btn {
+    height: 38px;
+    padding: 0 1.15rem;
+    font-size: 0.8125rem;
   }
 
   .empty-card {
     padding: 3rem;
     text-align: center;
+    border-radius: var(--radius-xl, 16px);
   }
 
   .empty-text {
-    color: var(--text-muted);
+    color: var(--m3-outline, #74777f);
     font-size: 1.0625rem;
   }
 </style>
-
