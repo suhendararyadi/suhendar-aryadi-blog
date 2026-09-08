@@ -173,12 +173,12 @@ const comparisons = [
           <div class="comp-split">
             <div class="pane-box wrong-box">
               <div class="pane-badge badge-wrong">❌ CONTOH SALAH / HINDARI</div>
-              <pre class="box-content font-mono">{c.wrong}</pre>
+              <div class="box-content font-mono">{c.wrong}</div>
               <p class="box-note">{c.wrongWhy}</p>
             </div>
             <div class="pane-box right-box">
               <div class="pane-badge badge-right">✅ CONTOH BENAR / STANDAR</div>
-              <pre class="box-content font-mono">{c.right}</pre>
+              <div class="box-content font-mono">{c.right}</div>
               <p class="box-note">{c.rightWhy}</p>
             </div>
           </div>
@@ -455,57 +455,115 @@ const comparisons = [
 
   .pane-box {
     padding: 1.25rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg, 16px);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
   .wrong-box {
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: #fff5f5;
+    border: 1px solid #fecaca;
   }
 
   .right-box {
-    background: rgba(34, 197, 94, 0.05);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
   }
 
   .pane-badge {
     font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-sm);
-    display: inline-block;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--radius-sm, 8px);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     align-self: flex-start;
   }
 
   .badge-wrong {
-    background: rgba(239, 68, 68, 0.2);
-    color: #fca5a5;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
   }
 
   .badge-right {
-    background: rgba(34, 197, 94, 0.2);
-    color: #86efac;
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
   }
 
   .box-content {
-    background: var(--bg-surface);
-    padding: 0.85rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    color: var(--text-primary);
+    background: #ffffff !important;
+    padding: 1rem 1.15rem;
+    border-radius: 10px;
+    font-size: 0.925rem;
+    line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
-    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .wrong-box .box-content {
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+    border-left: 4px solid #ef4444 !important;
+    background: #ffffff !important;
+  }
+
+  .right-box .box-content {
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
+    border-left: 4px solid #10b981 !important;
+    background: #ffffff !important;
   }
 
   .box-note {
-    font-size: 0.825rem;
-    color: var(--text-muted);
-    line-height: 1.5;
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .wrong-box .box-note {
+    color: #7f1d1d;
+  }
+
+  .right-box .box-note {
+    color: #14532d;
+  }
+
+  /* Dark mode support */
+  [data-theme='dark'] .wrong-box {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+  }
+
+  [data-theme='dark'] .right-box {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.35);
+  }
+
+  [data-theme='dark'] .wrong-box .box-content {
+    background: #1f1415 !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    border-left: 4px solid #ef4444 !important;
+  }
+
+  [data-theme='dark'] .right-box .box-content {
+    background: #102117 !important;
+    color: #86efac !important;
+    border-color: rgba(34, 197, 94, 0.4) !important;
+    border-left: 4px solid #10b981 !important;
+  }
+
+  [data-theme='dark'] .wrong-box .box-note {
+    color: #fca5a5;
+  }
+
+  [data-theme='dark'] .right-box .box-note {
+    color: #86efac;
   }
 
   .formula-card {
@@ -572,8 +630,18 @@ const comparisons = [
     font-family: var(--font-mono);
     font-size: 0.95rem;
     color: var(--accent-purple);
+    background: #ffffff;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.25);
     font-weight: 700;
     word-break: break-all;
+  }
+
+  [data-theme='dark'] .formula-code {
+    background: #1e1b2e;
+    color: #d8b4fe;
+    border-color: rgba(168, 85, 247, 0.4);
   }
 
   .cta-banner {
