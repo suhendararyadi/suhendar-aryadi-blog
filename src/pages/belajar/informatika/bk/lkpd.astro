@@ -183,6 +183,10 @@ try {
         <div class="doc-meta-right">
           <span>Pengampu: <strong>Suhendar Aryadi, S.Pd.,Gr.</strong></span>
           <span>Siswa Login: <strong>{user.name}</strong></span>
+          <div id="bk1-autosave-indicator" class="m3-autosave-indicator" style="display: none; margin-top: 0.35rem;">
+            <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+            <span id="bk1-autosave-text">Draf tersimpan otomatis</span>
+          </div>
         </div>
       </div>
 
@@ -345,7 +349,12 @@ END"></textarea>
         </section>
 
         <!-- Submit Button (Hidden on print) -->
-        <div class="doc-actions no-print">
+        <div class="doc-actions no-print" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <div id="bk1-autosave-footer-pill" class="m3-autosave-indicator" style="display: none;">
+            <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+            <span id="bk1-autosave-footer-text">Draf tersimpan di perangkat</span>
+          </div>
+
           {isFormLocked ? (
             <button id="submit-lkpd-btn" class="btn btn-secondary btn-lg btn-disabled" type="button" disabled title={`Nilai sudah mencapai KKM ${KKM_THRESHOLD}, pengumpulan ulang tidak diperlukan`}>
               ✓ Tugas Tuntas KKM — Pengumpulan Ulang Tidak Diperlukan
@@ -388,10 +397,14 @@ END"></textarea>
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ existingSubmission, isPastDeadline, isFormLocked, kkmThreshold: KKM_THRESHOLD }}>
+<script is:inline define:vars={{ existingSubmission, isPastDeadline, isFormLocked, kkmThreshold: KKM_THRESHOLD, userId: user.id }}>
   document.addEventListener('DOMContentLoaded', () => {
     const printBtn = document.getElementById('print-lkpd-btn');
     const form = document.getElementById('lkpd-form');
+    const autosaveIndicator = document.getElementById('bk1-autosave-indicator');
+    const autosaveText = document.getElementById('bk1-autosave-text');
+    const autosaveFooterPill = document.getElementById('bk1-autosave-footer-pill');
+    const autosaveFooterText = document.getElementById('bk1-autosave-footer-text');
 
     // Anti-Paste & Anti-Drop Protection for all LKPD answer inputs & textareas
     const lkpdFields = document.querySelectorAll('#lkpd-form input, #lkpd-form textarea');
@@ -405,9 +418,105 @@ END"></textarea>
         e.preventDefault();
         return false;
       });
+      field.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+          e.preventDefault();
+          alert('⚠️ Shortcut Paste Dinonaktifkan! Siswa diwajibkan mengetik hasil analisis LKPD secara langsung.');
+          return false;
+        }
+      });
     });
 
-    // Populate existing fields if available
+    // --- AUTOSAVE & PERSISTENCE HELPERS ---
+    const DRAFT_KEY = `lkpd_bk1_draft_${userId || 'u'}`;
+
+    function updateAutosaveIndicator(state, message) {
+      const elList = [
+        { pill: autosaveIndicator, text: autosaveText },
+        { pill: autosaveFooterPill, text: autosaveFooterText }
+      ];
+
+      elList.forEach(({ pill, text }) => {
+        if (!pill) return;
+        pill.style.display = 'inline-flex';
+        pill.className = `m3-autosave-indicator ${state}`;
+        if (text) {
+          if (message) {
+            text.textContent = message;
+          } else if (state === 'saved') {
+            text.textContent = 'Draf tersimpan di browser';
+          } else if (state === 'saving') {
+            text.textContent = 'Menyimpan draf...';
+          } else if (state === 'restored') {
+            text.textContent = 'Draf dipulihkan otomatis';
+          }
+        }
+      });
+    }
+
+    function getFormData() {
+      return {
+        caseStudyId: document.getElementById('case-study-select')?.value || 'kiosk',
+        teamName: document.getElementById('team-name')?.value || '',
+        decomposition: [
+          { mod: document.getElementById('deco-mod-1')?.value || '', func: document.getElementById('deco-func-1')?.value || '' },
+          { mod: document.getElementById('deco-mod-2')?.value || '', func: document.getElementById('deco-func-2')?.value || '' },
+          { mod: document.getElementById('deco-mod-3')?.value || '', func: document.getElementById('deco-func-3')?.value || '' },
+          { mod: document.getElementById('deco-mod-4')?.value || '', func: document.getElementById('deco-func-4')?.value || '' }
+        ],
+        pattern: [
+          { name: document.getElementById('patt-name-1')?.value || '', sol: document.getElementById('patt-sol-1')?.value || '' },
+          { name: document.getElementById('patt-name-2')?.value || '', sol: document.getElementById('patt-sol-2')?.value || '' }
+        ],
+        abstraction: {
+          kept: document.getElementById('abs-kept')?.value || '',
+          ignored: document.getElementById('abs-ignored')?.value || ''
+        },
+        algorithm: {
+          search: document.getElementById('alg-search')?.value || 'Linear Search',
+          sort: document.getElementById('alg-sort')?.value || 'Bubble Sort',
+          queue: document.getElementById('alg-queue-use')?.value || '',
+          stack: document.getElementById('alg-stack-use')?.value || '',
+          pseudocode: document.getElementById('alg-pseudocode')?.value || ''
+        },
+        saved_at: Date.now()
+      };
+    }
+
+    function saveDraft() {
+      if (isFormLocked) return;
+      try {
+        const data = getFormData();
+        const hasContent = data.teamName.trim() || 
+          data.decomposition.some(d => d.mod.trim() || d.func.trim()) ||
+          data.pattern.some(p => p.name.trim() || p.sol.trim()) ||
+          data.abstraction.kept.trim() || data.algorithm.pseudocode.trim();
+
+        if (hasContent) {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          updateAutosaveIndicator('saved', `Draf tersimpan otomatis (${timeStr})`);
+        }
+      } catch (err) {
+        console.warn('Error saving draft:', err);
+      }
+    }
+
+    function clearDraft() {
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch (err) {}
+    }
+
+    let saveTimeout = null;
+    function triggerAutoSave() {
+      if (isFormLocked) return;
+      updateAutosaveIndicator('saving', 'Menyimpan draf...');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveDraft, 300);
+    }
+
+    // Populate existing fields if available from Server
     if (existingSubmission) {
       try {
         const deco = JSON.parse(existingSubmission.decomposition_json || '[]');
@@ -434,6 +543,80 @@ END"></textarea>
         console.warn('Error parsing submission data:', err);
       }
     }
+
+    // Restore from Local Draft (if not locked and draft has data)
+    if (!isFormLocked) {
+      try {
+        const rawDraft = localStorage.getItem(DRAFT_KEY);
+        if (rawDraft) {
+          const draft = JSON.parse(rawDraft);
+          let restoredAny = false;
+
+          if (draft.teamName && !document.getElementById('team-name').value) {
+            document.getElementById('team-name').value = draft.teamName;
+            restoredAny = true;
+          }
+          if (draft.caseStudyId && !existingSubmission) {
+            document.getElementById('case-study-select').value = draft.caseStudyId;
+          }
+
+          if (Array.isArray(draft.decomposition)) {
+            draft.decomposition.forEach((d, idx) => {
+              const mEl = document.getElementById(`deco-mod-${idx + 1}`);
+              const fEl = document.getElementById(`deco-func-${idx + 1}`);
+              if (mEl && d.mod && (!mEl.value || !existingSubmission)) { mEl.value = d.mod; restoredAny = true; }
+              if (fEl && d.func && (!fEl.value || !existingSubmission)) { fEl.value = d.func; restoredAny = true; }
+            });
+          }
+
+          if (Array.isArray(draft.pattern)) {
+            draft.pattern.forEach((p, idx) => {
+              const nEl = document.getElementById(`patt-name-${idx + 1}`);
+              const sEl = document.getElementById(`patt-sol-${idx + 1}`);
+              if (nEl && p.name && (!nEl.value || !existingSubmission)) { nEl.value = p.name; restoredAny = true; }
+              if (sEl && p.sol && (!sEl.value || !existingSubmission)) { sEl.value = p.sol; restoredAny = true; }
+            });
+          }
+
+          if (draft.abstraction) {
+            const kEl = document.getElementById('abs-kept');
+            const iEl = document.getElementById('abs-ignored');
+            if (kEl && draft.abstraction.kept && (!kEl.value || !existingSubmission)) { kEl.value = draft.abstraction.kept; restoredAny = true; }
+            if (iEl && draft.abstraction.ignored && (!iEl.value || !existingSubmission)) { iEl.value = draft.abstraction.ignored; restoredAny = true; }
+          }
+
+          if (draft.algorithm) {
+            const sEl = document.getElementById('alg-search');
+            const oEl = document.getElementById('alg-sort');
+            const qEl = document.getElementById('alg-queue-use');
+            const tEl = document.getElementById('alg-stack-use');
+            const pEl = document.getElementById('alg-pseudocode');
+            if (sEl && draft.algorithm.search && (!sEl.value || !existingSubmission)) sEl.value = draft.algorithm.search;
+            if (oEl && draft.algorithm.sort && (!oEl.value || !existingSubmission)) oEl.value = draft.algorithm.sort;
+            if (qEl && draft.algorithm.queue && (!qEl.value || !existingSubmission)) { qEl.value = draft.algorithm.queue; restoredAny = true; }
+            if (tEl && draft.algorithm.stack && (!tEl.value || !existingSubmission)) { tEl.value = draft.algorithm.stack; restoredAny = true; }
+            if (pEl && draft.algorithm.pseudocode && (!pEl.value || !existingSubmission)) { pEl.value = draft.algorithm.pseudocode; restoredAny = true; }
+          }
+
+          if (restoredAny) {
+            updateAutosaveIndicator('restored', 'Draf dipulihkan otomatis');
+          } else if (existingSubmission) {
+            updateAutosaveIndicator('saved', 'Tersimpan di server');
+          }
+        } else if (existingSubmission) {
+          updateAutosaveIndicator('saved', 'Tersimpan di server');
+        }
+      } catch (e) {
+        console.warn('Error loading draft:', e);
+      }
+    }
+
+    // Attach autosave listeners to all inputs in the form
+    const allInputs = document.querySelectorAll('#lkpd-form input, #lkpd-form textarea, #lkpd-form select');
+    allInputs.forEach((el) => {
+      el.addEventListener('input', triggerAutoSave);
+      el.addEventListener('change', triggerAutoSave);
+    });
 
     printBtn?.addEventListener('click', () => {
       window.print();
@@ -501,6 +684,8 @@ END"></textarea>
 
         const data = await res.json();
         if (res.ok && data.success) {
+          clearDraft();
+          updateAutosaveIndicator('saved', 'Tugas berhasil terkirim');
           const modal = document.getElementById('submit-success-modal');
           const closeBtn = document.getElementById('success-modal-close-btn');
           if (modal) {

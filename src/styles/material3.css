@@ -513,3 +513,44 @@
   color: var(--m3-on-surface);
   font-weight: 600;
 }
+
+/* --------------------------------------------------------------------------
+   10. M3 AUTOSAVE & FORM PERSISTENCE INDICATOR
+   -------------------------------------------------------------------------- */
+.m3-autosave-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--m3-shape-full, 9999px);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background-color: var(--m3-surface-container, #f1edf3);
+  color: var(--m3-on-surface-variant, #44474f);
+  border: 1px solid var(--m3-outline-variant, #c4c6d0);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  user-select: none;
+}
+
+.m3-autosave-indicator .icon-xs {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.m3-autosave-indicator.saved {
+  background-color: var(--m3-success-container, #d1fadc);
+  color: var(--m3-on-success-container, #00210b);
+  border-color: rgba(27, 109, 57, 0.25);
+}
+
+.m3-autosave-indicator.saving {
+  background-color: var(--m3-primary-container, #d8e2ff);
+  color: var(--m3-on-primary-container, #001a41);
+  border-color: rgba(0, 90, 193, 0.25);
+}
+
+.m3-autosave-indicator.restored {
+  background-color: var(--m3-tertiary-container, #fbd7fc);
+  color: var(--m3-on-tertiary-container, #29132d);
+  border-color: rgba(113, 85, 115, 0.25);
+}

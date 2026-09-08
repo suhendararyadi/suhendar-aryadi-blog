@@ -299,8 +299,12 @@ const initialActiveCaseId = caseStudies[0].id;
           <div class="body-field-wrap">
             <div class="toolbar-hint">
               <span>✍️ Struktur: (1) Salam Formal &rarr; (2) Identitas &rarr; (3) Inti &rarr; (4) Penutup &amp; Signature</span>
-              <span class="anti-paste-badge">🔒 Anti-Paste Aktif (Wajib Ketik Langsung)</span>
+              <span class="anti-paste-badge">🔒 Anti-Paste Aktif</span>
               <span id="char-count" class="font-mono text-muted">0 karakter</span>
+              <div id="email-autosave-indicator" class="m3-autosave-indicator saved" style="display: none;">
+                <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+                <span id="email-autosave-text">Draf tersimpan di browser</span>
+              </div>
             </div>
             <textarea 
               id="input-body" 
@@ -360,7 +364,13 @@ const initialActiveCaseId = caseStudies[0].id;
 
           <!-- Action Footer -->
           <div class="form-footer">
-            <div id="submit-status-msg" class="status-msg"></div>
+            <div class="footer-status-group" style="display: flex; align-items: center; gap: 0.75rem;">
+              <div id="submit-status-msg" class="status-msg"></div>
+              <div id="email-autosave-footer-pill" class="m3-autosave-indicator" style="display: none;">
+                <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+                <span id="email-autosave-footer-text">Draf tersimpan</span>
+              </div>
+            </div>
             <button id="submit-email-btn" type="submit" class="btn btn-primary btn-md">
               <span id="submit-btn-text">🚀 Simpan &amp; Kirim Jawaban Kasus 1</span>
             </button>
@@ -435,7 +445,7 @@ const initialActiveCaseId = caseStudies[0].id;
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ caseStudiesData: caseStudies, initialSubmissions: submissionsMap, userClass: user.class_name || '10 RPL 3', userName: user.name }}>
+<script is:inline define:vars={{ caseStudiesData: caseStudies, initialSubmissions: submissionsMap, userClass: user.class_name || '10 RPL 3', userName: user.name, userId: user.id }}>
   document.addEventListener('DOMContentLoaded', () => {
     let activeCaseId = caseStudiesData[0].id;
     const clientSubmissions = { ...initialSubmissions };
@@ -464,6 +474,12 @@ const initialActiveCaseId = caseStudies[0].id;
     const caseFeedbackBox = document.getElementById('case-feedback-box');
     const caseFeedbackText = document.getElementById('case-feedback-text');
 
+    // Auto-Save Elements
+    const autosaveIndicator = document.getElementById('email-autosave-indicator');
+    const autosaveText = document.getElementById('email-autosave-text');
+    const autosaveFooterPill = document.getElementById('email-autosave-footer-pill');
+    const autosaveFooterText = document.getElementById('email-autosave-footer-text');
+
     // Inspector Elements
     const checkSubject = document.getElementById('check-subject');
     const checkSalutation = document.getElementById('check-salutation');
@@ -473,6 +489,81 @@ const initialActiveCaseId = caseStudies[0].id;
     const checkAttachment = document.getElementById('check-attachment');
 
     const bannedSlangs = ['gw', 'gue', 'lu', 'lo', 'klo', 'kalo', 'bgt', 'banget', 'gmn', 'gimana', 'tks', 'thx', 'thanks', 'makasih', 'mksih', 'oy', 'oi', 'gan', 'bro', 'sis', 'dgn', 'dg', 'yg', 'utk', 'pls', 'please', '^p$'];
+
+    // --- AUTOSAVE & PERSISTENCE HELPERS ---
+    const DRAFT_PREFIX = `lkpd_email_draft_${userId || 'u'}_`;
+
+    function updateAutosaveIndicator(state, message) {
+      const elList = [
+        { pill: autosaveIndicator, text: autosaveText },
+        { pill: autosaveFooterPill, text: autosaveFooterText }
+      ];
+
+      elList.forEach(({ pill, text }) => {
+        if (!pill) return;
+        pill.style.display = 'inline-flex';
+        pill.className = `m3-autosave-indicator ${state}`;
+        if (text) {
+          if (message) {
+            text.textContent = message;
+          } else if (state === 'saved') {
+            text.textContent = 'Draf tersimpan di browser';
+          } else if (state === 'saving') {
+            text.textContent = 'Menyimpan draf...';
+          } else if (state === 'restored') {
+            text.textContent = 'Draf dipulihkan otomatis';
+          }
+        }
+      });
+    }
+
+    function getLocalDraft(caseId) {
+      try {
+        const raw = localStorage.getItem(DRAFT_PREFIX + caseId);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function saveLocalDraft(caseId) {
+      try {
+        const currentData = {
+          recipient_to: toInput?.value || '',
+          recipient_cc: ccInput?.value || '',
+          subject_text: subjectInput?.value || '',
+          body_text: bodyInput?.value || '',
+          attachment_name: attNameInput?.value || '',
+          attachment_link: attLinkInput?.value || '',
+          saved_at: Date.now()
+        };
+
+        const hasContent = currentData.subject_text.trim() || currentData.body_text.trim() || currentData.attachment_name.trim();
+        if (hasContent) {
+          localStorage.setItem(DRAFT_PREFIX + caseId, JSON.stringify(currentData));
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          updateAutosaveIndicator('saved', `Draf tersimpan otomatis (${timeStr})`);
+        }
+      } catch (e) {
+        console.warn('Auto-save error:', e);
+      }
+    }
+
+    function clearLocalDraft(caseId) {
+      try {
+        localStorage.removeItem(DRAFT_PREFIX + caseId);
+      } catch (e) {}
+    }
+
+    let autosaveDebounce = null;
+    function triggerAutoSave() {
+      updateAutosaveIndicator('saving', 'Menyimpan draf...');
+      clearTimeout(autosaveDebounce);
+      autosaveDebounce = setTimeout(() => {
+        saveCurrentFormStateToMemory();
+        saveLocalDraft(activeCaseId);
+      }, 300);
+    }
 
     function saveCurrentFormStateToMemory() {
       if (!clientSubmissions[activeCaseId]) {
@@ -488,10 +579,12 @@ const initialActiveCaseId = caseStudies[0].id;
 
     function switchActiveCase(targetCaseId) {
       saveCurrentFormStateToMemory();
+      saveLocalDraft(activeCaseId);
       activeCaseId = targetCaseId;
 
       const currentCase = caseStudiesData.find(c => c.id === targetCaseId) || caseStudiesData[0];
       const savedData = clientSubmissions[targetCaseId];
+      const localDraft = getLocalDraft(targetCaseId);
 
       // Update Step Card UI
       stepButtons.forEach(btn => {
@@ -510,30 +603,71 @@ const initialActiveCaseId = caseStudies[0].id;
       if (briefCc) briefCc.textContent = currentCase.defaultCc || '(Tidak ada)';
       if (windowHeaderTitle) windowHeaderTitle.textContent = `Pesan Baru — Studi Kasus ${currentCase.caseNumber}`;
 
-      // Populate Form Fields
-      if (caseInput) caseInput.value = targetCaseId;
-      if (toInput) toInput.value = savedData?.recipient_to || currentCase.defaultTo;
-      if (ccInput) ccInput.value = savedData?.recipient_cc !== undefined ? savedData.recipient_cc : currentCase.defaultCc;
-      if (subjectInput) {
-        subjectInput.value = savedData?.subject_text || '';
-        subjectInput.placeholder = currentCase.suggestedSubject;
-      }
-      if (bodyInput) {
-        bodyInput.value = savedData?.body_text || '';
-        bodyInput.placeholder = currentCase.bodyPlaceholder;
-      }
-      if (attNameInput) {
-        attNameInput.value = savedData?.attachment_name || '';
-        attNameInput.placeholder = currentCase.attachmentPlaceholder;
-      }
-      if (attLinkInput) {
-        attLinkInput.value = savedData?.attachment_link || '';
-      }
-
       // Check grading & lock status
       const isGraded = savedData?.score !== null && savedData?.score !== undefined;
       const score = isGraded ? parseInt(savedData.score, 10) : null;
       const isPass = score !== null && score >= 75;
+
+      // Determine values to populate: Prioritize draft if active editing and not locked
+      let valTo = savedData?.recipient_to || currentCase.defaultTo;
+      let valCc = savedData?.recipient_cc !== undefined ? savedData.recipient_cc : currentCase.defaultCc;
+      let valSubject = savedData?.subject_text || '';
+      let valBody = savedData?.body_text || '';
+      let valAttName = savedData?.attachment_name || '';
+      let valAttLink = savedData?.attachment_link || '';
+      let isRestoredFromDraft = false;
+
+      if (!isPass && localDraft) {
+        if (localDraft.subject_text || localDraft.body_text || localDraft.attachment_name) {
+          valTo = localDraft.recipient_to || valTo;
+          valCc = localDraft.recipient_cc !== undefined ? localDraft.recipient_cc : valCc;
+          valSubject = localDraft.subject_text || valSubject;
+          valBody = localDraft.body_text || valBody;
+          valAttName = localDraft.attachment_name || valAttName;
+          valAttLink = localDraft.attachment_link || valAttLink;
+          isRestoredFromDraft = true;
+
+          // Sync into memory representation
+          clientSubmissions[targetCaseId] = {
+            ...(clientSubmissions[targetCaseId] || {}),
+            recipient_to: valTo,
+            recipient_cc: valCc,
+            subject_text: valSubject,
+            body_text: valBody,
+            attachment_name: valAttName,
+            attachment_link: valAttLink
+          };
+        }
+      }
+
+      // Populate Form Fields
+      if (caseInput) caseInput.value = targetCaseId;
+      if (toInput) toInput.value = valTo;
+      if (ccInput) ccInput.value = valCc;
+      if (subjectInput) {
+        subjectInput.value = valSubject;
+        subjectInput.placeholder = currentCase.suggestedSubject;
+      }
+      if (bodyInput) {
+        bodyInput.value = valBody;
+        bodyInput.placeholder = currentCase.bodyPlaceholder;
+      }
+      if (attNameInput) {
+        attNameInput.value = valAttName;
+        attNameInput.placeholder = currentCase.attachmentPlaceholder;
+      }
+      if (attLinkInput) {
+        attLinkInput.value = valAttLink;
+      }
+
+      if (isRestoredFromDraft) {
+        updateAutosaveIndicator('restored', 'Draf dipulihkan otomatis');
+      } else if (savedData?.id) {
+        updateAutosaveIndicator('saved', 'Tersimpan di server');
+      } else {
+        if (autosaveIndicator) autosaveIndicator.style.display = 'none';
+        if (autosaveFooterPill) autosaveFooterPill.style.display = 'none';
+      }
 
       if (isPass) {
         toInput.disabled = true;
@@ -671,6 +805,11 @@ const initialActiveCaseId = caseStudies[0].id;
     bodyInput?.addEventListener('input', runInspector);
     attNameInput?.addEventListener('input', runInspector);
 
+    [toInput, ccInput, subjectInput, bodyInput, attNameInput, attLinkInput].forEach(inp => {
+      inp?.addEventListener('input', triggerAutoSave);
+      inp?.addEventListener('change', triggerAutoSave);
+    });
+
     // Anti-Paste & Anti-Drop Protection: Siswa wajib mengetik langsung
     const formFields = document.querySelectorAll('#email-simulator-form input:not([readonly]), #email-simulator-form textarea');
     formFields.forEach((field) => {
@@ -735,6 +874,8 @@ const initialActiveCaseId = caseStudies[0].id;
         const data = await res.json();
 
         if (res.ok && data.success) {
+          clearLocalDraft(activeCaseId);
+          updateAutosaveIndicator('saved', 'Jawaban berhasil terkirim');
           clientSubmissions[activeCaseId] = {
             ...clientSubmissions[activeCaseId],
             ...payload,

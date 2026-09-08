@@ -182,6 +182,10 @@ if (existingSubmission) {
         <div class="doc-meta-right">
           <span>Pengampu: <strong>Suhendar Aryadi, S.Pd.,Gr.</strong></span>
           <span>Siswa Login: <strong>{user.name}</strong></span>
+          <div id="tik-autosave-indicator" class="m3-autosave-indicator" style="display: none; margin-top: 0.35rem;">
+            <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+            <span id="tik-autosave-text">Draf tersimpan otomatis</span>
+          </div>
         </div>
       </div>
 
@@ -284,7 +288,12 @@ if (existingSubmission) {
         </section>
 
         <!-- Form Actions -->
-        <div class="doc-actions no-print">
+        <div class="doc-actions no-print" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <div id="tik-autosave-footer-pill" class="m3-autosave-indicator" style="display: none;">
+            <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+            <span id="tik-autosave-footer-text">Draf tersimpan di perangkat</span>
+          </div>
+
           <button type="submit" id="submit-lkpd-btn" class={`btn btn-primary btn-lg ${isPastDeadline ? 'btn-disabled' : ''}`} disabled={isPastDeadline}>
             {isPastDeadline ? 'Pengumpulan Ditutup (Tenggat Berakhir)' : 'Kirim / Perbarui Tugas LKPD TIK'}
           </button>
@@ -315,7 +324,7 @@ if (existingSubmission) {
   </div>
 </MainLayout>
 
-<script is:inline>
+<script is:inline define:vars={{ existingSubmission, userId: user.id }}>
   document.addEventListener('DOMContentLoaded', () => {
     // Print Button
     const printBtn = document.getElementById('print-lkpd-btn');
@@ -326,6 +335,186 @@ if (existingSubmission) {
     // Form Submit
     const form = document.getElementById('lkpd-tik-form');
     const submitBtn = document.getElementById('submit-lkpd-btn');
+    const autosaveIndicator = document.getElementById('tik-autosave-indicator');
+    const autosaveText = document.getElementById('tik-autosave-text');
+    const autosaveFooterPill = document.getElementById('tik-autosave-footer-pill');
+    const autosaveFooterText = document.getElementById('tik-autosave-footer-text');
+
+    // Anti-Paste & Anti-Drop Protection
+    const formFields = document.querySelectorAll('#lkpd-tik-form input, #lkpd-tik-form textarea');
+    formFields.forEach((field) => {
+      field.addEventListener('paste', (e) => {
+        e.preventDefault();
+        alert('⚠️ Fitur Paste Dinonaktifkan! Siswa diwajibkan mengetik hasil analisis LKPD secara langsung untuk melatih pemahaman mendalam.');
+        return false;
+      });
+      field.addEventListener('drop', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      field.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+          e.preventDefault();
+          alert('⚠️ Shortcut Paste Dinonaktifkan! Siswa diwajibkan mengetik hasil analisis LKPD secara langsung.');
+          return false;
+        }
+      });
+    });
+
+    // --- AUTOSAVE & PERSISTENCE HELPERS ---
+    const DRAFT_KEY = `lkpd_tik_draft_${userId || 'u'}`;
+
+    function updateAutosaveIndicator(state, message) {
+      const elList = [
+        { pill: autosaveIndicator, text: autosaveText },
+        { pill: autosaveFooterPill, text: autosaveFooterText }
+      ];
+
+      elList.forEach(({ pill, text }) => {
+        if (!pill) return;
+        pill.style.display = 'inline-flex';
+        pill.className = `m3-autosave-indicator ${state}`;
+        if (text) {
+          if (message) {
+            text.textContent = message;
+          } else if (state === 'saved') {
+            text.textContent = 'Draf tersimpan di browser';
+          } else if (state === 'saving') {
+            text.textContent = 'Menyimpan draf...';
+          } else if (state === 'restored') {
+            text.textContent = 'Draf dipulihkan otomatis';
+          }
+        }
+      });
+    }
+
+    function getFormData() {
+      return {
+        caseStudyId: document.getElementById('case-study-select')?.value || 'cert_inv',
+        teamName: document.getElementById('team-name')?.value || '',
+        teamMembers: document.getElementById('team-members')?.value || '',
+        mailMerge: {
+          headers: document.getElementById('mail-merge-headers')?.value || '',
+          template: document.getElementById('mail-merge-template')?.value || '',
+          ole_workflow: document.getElementById('ole-workflow')?.value || ''
+        },
+        searchOperators: {
+          topic: document.getElementById('search-target-topic')?.value || '',
+          query: document.getElementById('search-query-string')?.value || '',
+          evaluation: document.getElementById('search-source-eval')?.value || ''
+        },
+        reflection: {
+          efficiency: document.getElementById('reflection-text')?.value || ''
+        },
+        saved_at: Date.now()
+      };
+    }
+
+    function saveDraft() {
+      try {
+        const data = getFormData();
+        const hasContent = data.teamName.trim() || 
+          data.mailMerge.ole_workflow.trim() || 
+          data.searchOperators.evaluation.trim() || 
+          data.reflection.efficiency.trim();
+
+        if (hasContent) {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          updateAutosaveIndicator('saved', `Draf tersimpan otomatis (${timeStr})`);
+        }
+      } catch (e) {
+        console.warn('Auto-save error:', e);
+      }
+    }
+
+    function clearDraft() {
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch (e) {}
+    }
+
+    let saveTimeout = null;
+    function triggerAutoSave() {
+      updateAutosaveIndicator('saving', 'Menyimpan draf...');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveDraft, 300);
+    }
+
+    // Restore from Local Draft
+    try {
+      const rawDraft = localStorage.getItem(DRAFT_KEY);
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft);
+        let restoredAny = false;
+
+        const teamEl = document.getElementById('team-name');
+        if (teamEl && draft.teamName && (!teamEl.value || !existingSubmission)) {
+          teamEl.value = draft.teamName;
+          restoredAny = true;
+        }
+
+        const membersEl = document.getElementById('team-members');
+        if (membersEl && draft.teamMembers && (!membersEl.value || !existingSubmission)) {
+          membersEl.value = draft.teamMembers;
+          restoredAny = true;
+        }
+
+        const caseSelect = document.getElementById('case-study-select');
+        if (caseSelect && draft.caseStudyId && !existingSubmission) {
+          caseSelect.value = draft.caseStudyId;
+        }
+
+        if (draft.mailMerge) {
+          const hEl = document.getElementById('mail-merge-headers');
+          const tEl = document.getElementById('mail-merge-template');
+          const oEl = document.getElementById('ole-workflow');
+          if (hEl && draft.mailMerge.headers && (!existingSubmission)) { hEl.value = draft.mailMerge.headers; }
+          if (tEl && draft.mailMerge.template && (!existingSubmission)) { tEl.value = draft.mailMerge.template; }
+          if (oEl && draft.mailMerge.ole_workflow && (!oEl.value || !existingSubmission)) {
+            oEl.value = draft.mailMerge.ole_workflow;
+            restoredAny = true;
+          }
+        }
+
+        if (draft.searchOperators) {
+          const topEl = document.getElementById('search-target-topic');
+          const qEl = document.getElementById('search-query-string');
+          const evEl = document.getElementById('search-source-eval');
+          if (topEl && draft.searchOperators.topic && (!topEl.value || !existingSubmission)) { topEl.value = draft.searchOperators.topic; restoredAny = true; }
+          if (qEl && draft.searchOperators.query && (!qEl.value || !existingSubmission)) { qEl.value = draft.searchOperators.query; restoredAny = true; }
+          if (evEl && draft.searchOperators.evaluation && (!evEl.value || !existingSubmission)) {
+            evEl.value = draft.searchOperators.evaluation;
+            restoredAny = true;
+          }
+        }
+
+        if (draft.reflection) {
+          const refEl = document.getElementById('reflection-text');
+          if (refEl && draft.reflection.efficiency && (!refEl.value || !existingSubmission)) {
+            refEl.value = draft.reflection.efficiency;
+            restoredAny = true;
+          }
+        }
+
+        if (restoredAny) {
+          updateAutosaveIndicator('restored', 'Draf dipulihkan otomatis');
+        } else if (existingSubmission) {
+          updateAutosaveIndicator('saved', 'Tersimpan di server');
+        }
+      } else if (existingSubmission) {
+        updateAutosaveIndicator('saved', 'Tersimpan di server');
+      }
+    } catch (e) {
+      console.warn('Draft load error:', e);
+    }
+
+    // Attach autosave listeners
+    formFields.forEach((el) => {
+      el.addEventListener('input', triggerAutoSave);
+      el.addEventListener('change', triggerAutoSave);
+    });
+    document.getElementById('case-study-select')?.addEventListener('change', triggerAutoSave);
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -365,6 +554,8 @@ if (existingSubmission) {
         });
         const data = await res.json();
         if (res.ok && data.success) {
+          clearDraft();
+          updateAutosaveIndicator('saved', 'Tugas berhasil terkirim');
           const modal = document.getElementById('submit-success-modal');
           const closeBtn = document.getElementById('success-modal-close-btn');
           if (modal) {

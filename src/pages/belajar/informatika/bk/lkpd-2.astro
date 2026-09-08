@@ -179,6 +179,10 @@ const flowchartPalette = [
         <div class="doc-meta-right">
           <span>Pengampu: <strong>Suhendar Aryadi, S.Pd.,Gr.</strong></span>
           <span>Siswa Login: <strong>{user.name}</strong></span>
+          <div id="bk2-autosave-indicator" class="m3-autosave-indicator" style="display: none; margin-top: 0.35rem;">
+            <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+            <span id="bk2-autosave-text">Draf tersimpan otomatis</span>
+          </div>
         </div>
       </div>
 
@@ -245,7 +249,12 @@ const flowchartPalette = [
           </div>
         </section>
 
-        <div class="doc-actions no-print">
+        <div class="doc-actions no-print" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <div id="bk2-autosave-footer-pill" class="m3-autosave-indicator" style="display: none;">
+            <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+            <span id="bk2-autosave-footer-text">Draf tersimpan di perangkat</span>
+          </div>
+
           {isPastDeadline && !existingSubmission ? (
             <button type="button" class="btn btn-secondary btn-lg btn-disabled" disabled>
               Pengumpulan Ditutup (Melewati Batas Waktu)
@@ -261,10 +270,14 @@ const flowchartPalette = [
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ existingFlowchartJson: existingSubmission?.flowchart_json || '[]' }}>
+<script is:inline define:vars={{ existingFlowchartJson: existingSubmission?.flowchart_json || '[]', existingSubmission, userId: user.id }}>
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('lkpd-form');
     const printBtn = document.getElementById('print-lkpd-btn');
+    const autosaveIndicator = document.getElementById('bk2-autosave-indicator');
+    const autosaveText = document.getElementById('bk2-autosave-text');
+    const autosaveFooterPill = document.getElementById('bk2-autosave-footer-pill');
+    const autosaveFooterText = document.getElementById('bk2-autosave-footer-text');
 
     const textareas = document.querySelectorAll('#lkpd-form textarea');
     textareas.forEach((ta) => {
@@ -273,7 +286,41 @@ const flowchartPalette = [
         e.preventDefault();
         return false;
       });
+      ta.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+          alert('Demi orisinalitas pemikiran kalian, shortcut Paste dinonaktifkan.');
+          e.preventDefault();
+          return false;
+        }
+      });
     });
+
+    // --- AUTOSAVE & PERSISTENCE HELPERS ---
+    const DRAFT_KEY = `lkpd_bk2_draft_${userId || 'u'}`;
+
+    function updateAutosaveIndicator(state, message) {
+      const elList = [
+        { pill: autosaveIndicator, text: autosaveText },
+        { pill: autosaveFooterPill, text: autosaveFooterText }
+      ];
+
+      elList.forEach(({ pill, text }) => {
+        if (!pill) return;
+        pill.style.display = 'inline-flex';
+        pill.className = `m3-autosave-indicator ${state}`;
+        if (text) {
+          if (message) {
+            text.textContent = message;
+          } else if (state === 'saved') {
+            text.textContent = 'Draf tersimpan di browser';
+          } else if (state === 'saving') {
+            text.textContent = 'Menyimpan draf...';
+          } else if (state === 'restored') {
+            text.textContent = 'Draf dipulihkan otomatis';
+          }
+        }
+      });
+    }
 
     const flowCanvas = document.getElementById('flow-canvas');
     const flowCanvasEmpty = document.getElementById('flow-canvas-empty');
@@ -286,6 +333,44 @@ const flowchartPalette = [
       flowItems = JSON.parse(existingFlowchartJson || '[]');
       if (!Array.isArray(flowItems)) flowItems = [];
     } catch (e) { flowItems = []; }
+
+    function saveDraft() {
+      try {
+        const teamName = document.getElementById('team-name')?.value || '';
+        const caseStudyId = document.getElementById('case-study-select')?.value || '';
+        const pseudocodeEl = document.getElementById('pseudocode-text');
+        const pseudocode = pseudocodeEl ? pseudocodeEl.value : '';
+
+        const hasContent = teamName.trim() || flowItems.length > 0 || pseudocode.trim();
+        if (hasContent) {
+          const draft = {
+            teamName,
+            caseStudyId,
+            flowItems,
+            pseudocode,
+            saved_at: Date.now()
+          };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          updateAutosaveIndicator('saved', `Draf tersimpan otomatis (${timeStr})`);
+        }
+      } catch (e) {
+        console.warn('Error saving draft:', e);
+      }
+    }
+
+    function clearDraft() {
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch (e) {}
+    }
+
+    let saveTimeout = null;
+    function triggerAutoSave() {
+      updateAutosaveIndicator('saving', 'Menyimpan draf...');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveDraft, 300);
+    }
 
     function renderFlowCanvas() {
       flowCanvas.innerHTML = '';
@@ -325,6 +410,7 @@ const flowchartPalette = [
           if (newText !== null) {
             flowItems[idx].text = newText.trim();
             renderFlowCanvas();
+            triggerAutoSave();
           }
         };
         shapeEl.addEventListener('click', openEditPrompt);
@@ -346,7 +432,11 @@ const flowchartPalette = [
         upBtn.innerHTML = '<span class="ctrl-icon">▲</span>';
         upBtn.disabled = idx === 0;
         upBtn.addEventListener('click', () => {
-          if (idx > 0) { [flowItems[idx - 1], flowItems[idx]] = [flowItems[idx], flowItems[idx - 1]]; renderFlowCanvas(); }
+          if (idx > 0) {
+            [flowItems[idx - 1], flowItems[idx]] = [flowItems[idx], flowItems[idx - 1]];
+            renderFlowCanvas();
+            triggerAutoSave();
+          }
         });
 
         const downBtn = document.createElement('button');
@@ -355,7 +445,11 @@ const flowchartPalette = [
         downBtn.innerHTML = '<span class="ctrl-icon">▼</span>';
         downBtn.disabled = idx === flowItems.length - 1;
         downBtn.addEventListener('click', () => {
-          if (idx < flowItems.length - 1) { [flowItems[idx + 1], flowItems[idx]] = [flowItems[idx], flowItems[idx + 1]]; renderFlowCanvas(); }
+          if (idx < flowItems.length - 1) {
+            [flowItems[idx + 1], flowItems[idx]] = [flowItems[idx], flowItems[idx + 1]];
+            renderFlowCanvas();
+            triggerAutoSave();
+          }
         });
 
         const delBtn = document.createElement('button');
@@ -363,7 +457,11 @@ const flowchartPalette = [
         delBtn.className = 'flow-ctrl-btn flow-ctrl-delete';
         delBtn.innerHTML = '<span class="ctrl-icon">✕</span>';
         delBtn.addEventListener('click', () => {
-          if (confirm('Hapus langkah ini?')) { flowItems.splice(idx, 1); renderFlowCanvas(); }
+          if (confirm('Hapus langkah ini?')) {
+            flowItems.splice(idx, 1);
+            renderFlowCanvas();
+            triggerAutoSave();
+          }
         });
 
         controls.appendChild(editBtn); controls.appendChild(upBtn); controls.appendChild(downBtn); controls.appendChild(delBtn);
@@ -380,6 +478,47 @@ const flowchartPalette = [
       flowDataInput.value = JSON.stringify(flowItems);
     }
 
+    // Restore from Local Draft
+    try {
+      const rawDraft = localStorage.getItem(DRAFT_KEY);
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft);
+        let restoredAny = false;
+
+        const teamNameEl = document.getElementById('team-name');
+        if (teamNameEl && draft.teamName && (!teamNameEl.value || !existingSubmission)) {
+          teamNameEl.value = draft.teamName;
+          restoredAny = true;
+        }
+
+        const caseSelect = document.getElementById('case-study-select');
+        if (caseSelect && draft.caseStudyId && !existingSubmission) {
+          caseSelect.value = draft.caseStudyId;
+        }
+
+        const pseudocodeEl = document.getElementById('pseudocode-text');
+        if (pseudocodeEl && draft.pseudocode && (!pseudocodeEl.value || !existingSubmission)) {
+          pseudocodeEl.value = draft.pseudocode;
+          restoredAny = true;
+        }
+
+        if (Array.isArray(draft.flowItems) && draft.flowItems.length > 0 && (flowItems.length === 0 || !existingSubmission)) {
+          flowItems = draft.flowItems;
+          restoredAny = true;
+        }
+
+        if (restoredAny) {
+          updateAutosaveIndicator('restored', 'Draf dipulihkan otomatis');
+        } else if (existingSubmission) {
+          updateAutosaveIndicator('saved', 'Tersimpan di server');
+        }
+      } else if (existingSubmission) {
+        updateAutosaveIndicator('saved', 'Tersimpan di server');
+      }
+    } catch (e) {
+      console.warn('Draft load error:', e);
+    }
+
     paletteBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         const shape = btn.getAttribute('data-shape');
@@ -388,10 +527,18 @@ const flowchartPalette = [
         if (text === null) return; // user cancelled
         flowItems.push({ shape, text: text.trim() || shapeLabels[shape] });
         renderFlowCanvas();
+        triggerAutoSave();
       });
     });
 
     renderFlowCanvas();
+
+    // Attach autosave listeners to text inputs
+    const textInputs = document.querySelectorAll('#lkpd-form input:not(#flowchart-data), #lkpd-form textarea, #lkpd-form select');
+    textInputs.forEach(el => {
+      el.addEventListener('input', triggerAutoSave);
+      el.addEventListener('change', triggerAutoSave);
+    });
 
     printBtn?.addEventListener('click', () => {
       window.print();
@@ -436,6 +583,8 @@ const flowchartPalette = [
 
         const data = await res.json();
         if (res.ok && data.success) {
+          clearDraft();
+          updateAutosaveIndicator('saved', 'Tugas berhasil terkirim');
           alert('Jawaban LKPD 2 berhasil disimpan dan dikirim.');
           window.location.reload();
         } else {

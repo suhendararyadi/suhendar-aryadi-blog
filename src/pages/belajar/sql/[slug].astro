@@ -308,6 +308,10 @@ const hintClue = generateHintClue(lesson.expected_sql);
                   </svg>
                   <span>Hint</span>
                 </button>
+                <div id="sql-autosave-indicator" class="m3-autosave-indicator" style="display: none;">
+                  <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+                  <span id="sql-autosave-text">Draf tersimpan</span>
+                </div>
               </div>
 
               <div class="primary-btns">
@@ -376,6 +380,7 @@ const hintClue = generateHintClue(lesson.expected_sql);
   hintClue: hintClue,
   initialCode: lesson.initial_code,
   lessonId: lesson.id,
+  lessonSlug: lesson.slug,
   evaluatorType: lesson.evaluator_type || 'data_match',
   nextSlug: nextLesson ? nextLesson.slug : null
 }}>
@@ -387,6 +392,57 @@ const hintClue = generateHintClue(lesson.expected_sql);
   const tableContainer = document.getElementById('output-table-container');
   const rowsCountEl = document.getElementById('rows-count');
   const evalStatus = document.getElementById('eval-status');
+  const autosaveIndicator = document.getElementById('sql-autosave-indicator');
+  const autosaveText = document.getElementById('sql-autosave-text');
+
+  // --- AUTOSAVE & PERSISTENCE HELPERS ---
+  const DRAFT_KEY = `sql_editor_draft_${lessonSlug || lessonId}`;
+
+  function updateAutosaveIndicator(state, message) {
+    if (!autosaveIndicator) return;
+    autosaveIndicator.style.display = 'inline-flex';
+    autosaveIndicator.className = `m3-autosave-indicator ${state}`;
+    if (autosaveText) {
+      if (message) {
+        autosaveText.textContent = message;
+      } else if (state === 'saved') {
+        autosaveText.textContent = 'Draf tersimpan';
+      } else if (state === 'restored') {
+        autosaveText.textContent = 'Draf dipulihkan';
+      }
+    }
+  }
+
+  // Restore draft if present from previous session
+  try {
+    const savedDraft = localStorage.getItem(DRAFT_KEY);
+    if (savedDraft && savedDraft.trim() && savedDraft !== initialCode) {
+      if (sqlInput) {
+        sqlInput.value = savedDraft;
+        updateAutosaveIndicator('restored', 'Draf dipulihkan');
+      }
+    }
+  } catch (e) {
+    console.warn('Error loading SQL draft:', e);
+  }
+
+  // Auto-save while typing
+  let saveTimeout = null;
+  sqlInput?.addEventListener('input', () => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      try {
+        if (sqlInput.value && sqlInput.value !== initialCode) {
+          localStorage.setItem(DRAFT_KEY, sqlInput.value);
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          updateAutosaveIndicator('saved', `Draf tersimpan (${timeStr})`);
+        } else {
+          localStorage.removeItem(DRAFT_KEY);
+          if (autosaveIndicator) autosaveIndicator.style.display = 'none';
+        }
+      } catch (e) {}
+    }, 250);
+  });
 
   // Anti-Paste & Anti-Copy-Paste Protection to enforce direct typing
   if (sqlInput) {
@@ -412,6 +468,8 @@ const hintClue = generateHintClue(lesson.expected_sql);
   resetBtn?.addEventListener('click', () => {
     if (!sqlInput) return;
     if (confirm('Kembalikan kode editor ke instruksi awal?')) {
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+      if (autosaveIndicator) autosaveIndicator.style.display = 'none';
       sqlInput.value = initialCode || '';
       if (evalStatus) evalStatus.style.display = 'none';
       if (tableContainer) {
@@ -502,6 +560,8 @@ const hintClue = generateHintClue(lesson.expected_sql);
         const isSchema = evaluatorType === 'schema_match';
 
         if (data.passed) {
+          try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+          if (autosaveIndicator) autosaveIndicator.style.display = 'none';
           evalStatus.className = 'eval-banner eval-success';
           let nextBtnHtml = '';
           if (nextSlug) {

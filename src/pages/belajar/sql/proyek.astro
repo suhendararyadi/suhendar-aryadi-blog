@@ -588,7 +588,13 @@ const isPass = score !== null && score >= KKM;
 
         <!-- Submit Button Footer -->
         <div class="form-submit-footer margin-top-lg">
-          <div id="submit-status-msg" class="status-msg"></div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <div id="submit-status-msg" class="status-msg"></div>
+            <div id="sql-project-autosave-pill" class="m3-autosave-indicator" style="display: none;">
+              <span class="material-symbols-rounded icon-xs">sync_saved_locally</span>
+              <span id="sql-project-autosave-text">Draf tersimpan di perangkat</span>
+            </div>
+          </div>
           <button 
             type="submit" 
             id="submit-project-btn" 
@@ -603,11 +609,139 @@ const isPass = score !== null && score >= KKM;
   </div>
 </MainLayout>
 
-<script is:inline define:vars={{ initialSubmission: submission }}>
+<script is:inline define:vars={{ initialSubmission: submission, isPass, userId: user.id }}>
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('sql-project-form');
     const submitBtn = document.getElementById('submit-project-btn');
     const statusMsg = document.getElementById('submit-status-msg');
+    const autosavePill = document.getElementById('sql-project-autosave-pill');
+    const autosaveText = document.getElementById('sql-project-autosave-text');
+
+    // --- AUTOSAVE & PERSISTENCE HELPERS ---
+    const DRAFT_KEY = `sql_project_draft_${userId || 'u'}`;
+
+    function updateAutosaveIndicator(state, message) {
+      if (!autosavePill) return;
+      autosavePill.style.display = 'inline-flex';
+      autosavePill.className = `m3-autosave-indicator ${state}`;
+      if (autosaveText) {
+        if (message) {
+          autosaveText.textContent = message;
+        } else if (state === 'saved') {
+          autosaveText.textContent = 'Draf tersimpan di browser';
+        } else if (state === 'saving') {
+          autosaveText.textContent = 'Menyimpan draf...';
+        } else if (state === 'restored') {
+          autosaveText.textContent = 'Draf dipulihkan otomatis';
+        }
+      }
+    }
+
+    function getFormData() {
+      return {
+        teamName: document.getElementById('input-team-name')?.value || '',
+        memberUserId: document.getElementById('select-member')?.value || '',
+        memberNameManual: document.getElementById('input-member-manual')?.value || '',
+        projectTitle: document.getElementById('input-project-title')?.value || '',
+        sqlScriptLink: document.getElementById('input-sql-link')?.value || '',
+        reportPdfLink: document.getElementById('input-report-link')?.value || '',
+        query1Text: document.getElementById('input-q1')?.value || '',
+        query2Text: document.getElementById('input-q2')?.value || '',
+        query3Text: document.getElementById('input-q3')?.value || '',
+        query4Text: document.getElementById('input-q4')?.value || '',
+        query5Text: document.getElementById('input-q5')?.value || '',
+        notes: document.getElementById('input-notes')?.value || '',
+        saved_at: Date.now()
+      };
+    }
+
+    function saveDraft() {
+      if (isPass) return;
+      try {
+        const data = getFormData();
+        const hasContent = data.teamName.trim() || 
+          data.projectTitle.trim() || 
+          data.query1Text.trim() || 
+          data.query2Text.trim() || 
+          data.query3Text.trim() || 
+          data.query4Text.trim() || 
+          data.query5Text.trim() || 
+          data.notes.trim();
+
+        if (hasContent) {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          updateAutosaveIndicator('saved', `Draf tersimpan otomatis (${timeStr})`);
+        }
+      } catch (err) {
+        console.warn('Auto-save error:', err);
+      }
+    }
+
+    function clearDraft() {
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch (e) {}
+    }
+
+    let saveTimeout = null;
+    function triggerAutoSave() {
+      if (isPass) return;
+      updateAutosaveIndicator('saving', 'Menyimpan draf...');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveDraft, 300);
+    }
+
+    // Restore from Local Draft
+    if (!isPass) {
+      try {
+        const rawDraft = localStorage.getItem(DRAFT_KEY);
+        if (rawDraft) {
+          const draft = JSON.parse(rawDraft);
+          let restoredAny = false;
+
+          const setVal = (id, val, onlyIfEmpty = true) => {
+            const el = document.getElementById(id);
+            if (el && val) {
+              if (!onlyIfEmpty || !el.value || !initialSubmission) {
+                el.value = val;
+                restoredAny = true;
+              }
+            }
+          };
+
+          setVal('input-team-name', draft.teamName);
+          setVal('select-member', draft.memberUserId);
+          setVal('input-member-manual', draft.memberNameManual);
+          setVal('input-project-title', draft.projectTitle);
+          setVal('input-sql-link', draft.sqlScriptLink);
+          setVal('input-report-link', draft.reportPdfLink);
+          setVal('input-q1', draft.query1Text);
+          setVal('input-q2', draft.query2Text);
+          setVal('input-q3', draft.query3Text);
+          setVal('input-q4', draft.query4Text);
+          setVal('input-q5', draft.query5Text);
+          setVal('input-notes', draft.notes);
+
+          if (restoredAny) {
+            updateAutosaveIndicator('restored', 'Draf dipulihkan otomatis');
+          } else if (initialSubmission) {
+            updateAutosaveIndicator('saved', 'Tersimpan di server');
+          }
+        } else if (initialSubmission) {
+          updateAutosaveIndicator('saved', 'Tersimpan di server');
+        }
+      } catch (e) {
+        console.warn('Draft load error:', e);
+      }
+    }
+
+    // Attach autosave listeners
+    const formFields = document.querySelectorAll('#sql-project-form input, #sql-project-form textarea, #sql-project-form select');
+    formFields.forEach((el) => {
+      el.addEventListener('input', triggerAutoSave);
+      el.addEventListener('change', triggerAutoSave);
+    });
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -663,6 +797,8 @@ const isPass = score !== null && score >= KKM;
         const data = await res.json();
 
         if (res.ok && data.success) {
+          clearDraft();
+          updateAutosaveIndicator('saved', 'Tugas berhasil terkirim');
           alert('✅ ' + data.message);
           window.location.reload();
         } else {
