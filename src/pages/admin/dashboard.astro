@@ -21,7 +21,7 @@ const totalLessonsCount = seedLessons.length || 40;
 
 if (isTeacherOrAdmin) {
   try {
-    // 1. Fetch all registered students, SQL completion metrics, & LKPD 1 and LKPD 2 scores
+    // 1. Fetch all registered students, SQL completion metrics, LKPD 1, LKPD 2, and LKPD Softskill scores
     const studentsRes = await query(
       `SELECT u.id, u.name, u.email, u.role, u.class_name, u.created_at,
               COUNT(DISTINCT up.id) as completed_count,
@@ -29,12 +29,24 @@ if (isTeacherOrAdmin) {
               MAX(lk1.score) as lkpd1_score,
               MAX(lk1.updated_at) as lkpd1_submitted_at,
               MAX(lk2.score) as lkpd2_score,
-              MAX(lk2.updated_at) as lkpd2_submitted_at
+              MAX(lk2.updated_at) as lkpd2_submitted_at,
+              lke.softskill_score as lkpd_softskill_score,
+              lke.softskill_count as lkpd_softskill_count,
+              lke.softskill_submitted_at as lkpd_softskill_submitted_at
        FROM users u
        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
        LEFT JOIN lkpd_submissions lk1 ON u.id = lk1.user_id
        LEFT JOIN lkpd_flowchart_submissions lk2 ON u.id = lk2.user_id
-       GROUP BY u.id, u.name, u.email, u.role, u.class_name, u.created_at
+       LEFT JOIN (
+         SELECT user_id,
+                ROUND(AVG(score)) as softskill_score,
+                COUNT(id) as softskill_count,
+                MAX(updated_at) as softskill_submitted_at
+         FROM lkpd_email_submissions
+         GROUP BY user_id
+       ) lke ON u.id = lke.user_id
+       GROUP BY u.id, u.name, u.email, u.role, u.class_name, u.created_at,
+                lke.softskill_score, lke.softskill_count, lke.softskill_submitted_at
        ORDER BY u.created_at DESC`
     );
 
@@ -44,6 +56,8 @@ if (isTeacherOrAdmin) {
         const percentage = Math.round((count / totalLessonsCount) * 100);
         const lkpd1Score = row.lkpd1_score !== null && row.lkpd1_score !== undefined ? parseInt(row.lkpd1_score, 10) : null;
         const lkpd2Score = row.lkpd2_score !== null && row.lkpd2_score !== undefined ? parseInt(row.lkpd2_score, 10) : null;
+        const lkpdSoftskillScore = row.lkpd_softskill_score !== null && row.lkpd_softskill_score !== undefined ? parseInt(row.lkpd_softskill_score, 10) : null;
+        const lkpdSoftskillCount = row.lkpd_softskill_count !== null && row.lkpd_softskill_count !== undefined ? parseInt(row.lkpd_softskill_count, 10) : 0;
 
         let rankTitle = 'SQL Novice';
         let badgeClass = 'badge-novice';
@@ -64,6 +78,9 @@ if (isTeacherOrAdmin) {
           percentage,
           lkpd1_score: lkpd1Score,
           lkpd2_score: lkpd2Score,
+          lkpd_softskill_score: lkpdSoftskillScore,
+          lkpd_softskill_count: lkpdSoftskillCount,
+          lkpd_softskill_submitted_at: row.lkpd_softskill_submitted_at,
           rankTitle,
           badgeClass
         };
@@ -79,6 +96,7 @@ if (isTeacherOrAdmin) {
 const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount / totalStudentsCount).toFixed(1) : '0';
 const totalLkpd1Graded = students.filter((s) => s.lkpd1_score !== null).length;
 const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
+const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_score !== null).length;
 ---
 
 <MainLayout 
@@ -113,7 +131,7 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
               </div>
               <h1 class="admin-title">Dashboard Rekap Nilai Siswa</h1>
               <p class="admin-sub">
-                Selamat datang, <strong>Pak {user.name}</strong>. Pantau progres belajar seluruh siswa, rekap nilai LKPD 1 &amp; LKPD 2, dan unduh data rekap nilai untuk Raport.
+                Selamat datang, <strong>Pak {user.name}</strong>. Pantau progres belajar seluruh siswa, rekap nilai LKPD 1, LKPD 2 &amp; LKPD Softskill (Etika Email), dan unduh data rekap nilai untuk Raport.
               </p>
             </div>
             <div class="header-cta">
@@ -150,6 +168,10 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
           <div class="stat-card glass-card">
             <span class="stat-value">{totalLkpd2Graded}</span>
             <span class="stat-label">Nilai LKPD 2 (Algoritma)</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-value">{totalLkpdSoftskillGraded}</span>
+            <span class="stat-label">Nilai LKPD Softskill</span>
           </div>
           <div class="stat-card glass-card">
             <span class="stat-value">{avgCompletionsPerStudent} <span class="stat-unit">modul/siswa</span></span>
@@ -218,6 +240,7 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
                   <th class="text-center">Modul SQL</th>
                   <th class="text-center">LKPD 1 (BK)</th>
                   <th class="text-center">LKPD 2 (Algoritma)</th>
+                  <th class="text-center">LKPD Softskill</th>
                   <th class="text-center">Peringkat Rank</th>
                   <th class="text-center">Terdaftar pada</th>
                   <th class="text-center">Aksi</th>
@@ -266,6 +289,17 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
                           {item.lkpd2_score} / 100
                         </span>
                       ) : item.lkpd2_submitted_at ? (
+                        <span class="badge badge-amber font-mono">Belum Dinilai</span>
+                      ) : (
+                        <span class="badge badge-muted font-mono">-</span>
+                      )}
+                    </td>
+                    <td class="text-center">
+                      {item.lkpd_softskill_score !== null && item.lkpd_softskill_score !== undefined ? (
+                        <span class={`badge ${item.lkpd_softskill_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`} title={item.lkpd_softskill_count ? `${item.lkpd_softskill_count} Studi Kasus Dinilai` : undefined}>
+                          {item.lkpd_softskill_score} / 100
+                        </span>
+                      ) : item.lkpd_softskill_submitted_at ? (
                         <span class="badge badge-amber font-mono">Belum Dinilai</span>
                       ) : (
                         <span class="badge badge-muted font-mono">-</span>
@@ -427,7 +461,7 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
 
       // UTF-8 BOM for Excel compatibility
       let csv = '\uFEFF';
-      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase SQL,Nilai LKPD 1 (BK),Nilai LKPD 2 (Algoritma),Peringkat Rank,Tanggal Terdaftar\n';
+      csv += 'No,Nama Siswa,Kelas (RPL),Email,Role,Modul Selesai,Total Modul,Persentase SQL,Nilai LKPD 1 (BK),Nilai LKPD 2 (Algoritma),Nilai LKPD Softskill,Peringkat Rank,Tanggal Terdaftar\n';
 
       filtered.forEach((s, idx) => {
         const name = `"${(s.name || '').replace(/"/g, '""')}"`;
@@ -438,10 +472,11 @@ const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
         const pct = `${s.percentage || 0}%`;
         const lkpd1Val = s.lkpd1_score !== null && s.lkpd1_score !== undefined ? s.lkpd1_score : (s.lkpd1_submitted_at ? 'Belum Dinilai' : '-');
         const lkpd2Val = s.lkpd2_score !== null && s.lkpd2_score !== undefined ? s.lkpd2_score : (s.lkpd2_submitted_at ? 'Belum Dinilai' : '-');
+        const lkpdSoftskillVal = s.lkpd_softskill_score !== null && s.lkpd_softskill_score !== undefined ? s.lkpd_softskill_score : (s.lkpd_softskill_submitted_at ? 'Belum Dinilai' : '-');
         const rank = `"${s.rankTitle || ''}"`;
         const date = new Date(s.created_at).toLocaleDateString('id-ID');
 
-        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${lkpd1Val},${lkpd2Val},${rank},${date}\n`;
+        csv += `${idx + 1},${name},${className},${email},${role},${completed},${totalLessonsCount},${pct},${lkpd1Val},${lkpd2Val},${lkpdSoftskillVal},${rank},${date}\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
