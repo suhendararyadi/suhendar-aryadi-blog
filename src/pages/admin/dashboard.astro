@@ -31,8 +31,9 @@ if (isTeacherOrAdmin) {
               MAX(lk2.score) as lkpd2_score,
               MAX(lk2.updated_at) as lkpd2_submitted_at,
               lke.softskill_score as lkpd_softskill_score,
-              lke.softskill_count as lkpd_softskill_count,
-              lke.softskill_submitted_at as lkpd_softskill_submitted_at
+              lke.distinct_cases as lkpd_softskill_count,
+              lke.softskill_submitted_at as lkpd_softskill_submitted_at,
+              lke.all_graded as lkpd_softskill_all_graded
        FROM users u
        LEFT JOIN user_progress up ON u.id = up.user_id AND up.status = 'completed'
        LEFT JOIN lkpd_submissions lk1 ON u.id = lk1.user_id
@@ -40,13 +41,14 @@ if (isTeacherOrAdmin) {
        LEFT JOIN (
          SELECT user_id,
                 ROUND(AVG(score)) as softskill_score,
-                COUNT(id) as softskill_count,
-                MAX(updated_at) as softskill_submitted_at
+                COUNT(DISTINCT case_study_id) as distinct_cases,
+                MAX(updated_at) as softskill_submitted_at,
+                BOOL_AND(score IS NOT NULL) as all_graded
          FROM lkpd_email_submissions
          GROUP BY user_id
        ) lke ON u.id = lke.user_id
        GROUP BY u.id, u.name, u.email, u.role, u.class_name, u.created_at,
-                lke.softskill_score, lke.softskill_count, lke.softskill_submitted_at
+                lke.softskill_score, lke.distinct_cases, lke.softskill_submitted_at, lke.all_graded
        ORDER BY u.created_at DESC`
     );
 
@@ -56,8 +58,14 @@ if (isTeacherOrAdmin) {
         const percentage = Math.round((count / totalLessonsCount) * 100);
         const lkpd1Score = row.lkpd1_score !== null && row.lkpd1_score !== undefined ? parseInt(row.lkpd1_score, 10) : null;
         const lkpd2Score = row.lkpd2_score !== null && row.lkpd2_score !== undefined ? parseInt(row.lkpd2_score, 10) : null;
-        const lkpdSoftskillScore = row.lkpd_softskill_score !== null && row.lkpd_softskill_score !== undefined ? parseInt(row.lkpd_softskill_score, 10) : null;
+
+        // LKPD Softskill must complete all 3 case studies to have a final grade
         const lkpdSoftskillCount = row.lkpd_softskill_count !== null && row.lkpd_softskill_count !== undefined ? parseInt(row.lkpd_softskill_count, 10) : 0;
+        const isSoftskillComplete = lkpdSoftskillCount >= 3;
+        const lkpdSoftskillScore = isSoftskillComplete && row.lkpd_softskill_score !== null && row.lkpd_softskill_score !== undefined
+          ? parseInt(row.lkpd_softskill_score, 10)
+          : null;
+        const isSoftskillAllGraded = Boolean(row.lkpd_softskill_all_graded);
 
         let rankTitle = 'SQL Novice';
         let badgeClass = 'badge-novice';
@@ -80,6 +88,8 @@ if (isTeacherOrAdmin) {
           lkpd2_score: lkpd2Score,
           lkpd_softskill_score: lkpdSoftskillScore,
           lkpd_softskill_count: lkpdSoftskillCount,
+          lkpd_softskill_is_complete: isSoftskillComplete,
+          lkpd_softskill_all_graded: isSoftskillAllGraded,
           lkpd_softskill_submitted_at: row.lkpd_softskill_submitted_at,
           rankTitle,
           badgeClass
@@ -96,7 +106,7 @@ if (isTeacherOrAdmin) {
 const avgCompletionsPerStudent = totalStudentsCount > 0 ? (totalCompletionsCount / totalStudentsCount).toFixed(1) : '0';
 const totalLkpd1Graded = students.filter((s) => s.lkpd1_score !== null).length;
 const totalLkpd2Graded = students.filter((s) => s.lkpd2_score !== null).length;
-const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_score !== null).length;
+const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_is_complete && s.lkpd_softskill_score !== null).length;
 ---
 
 <MainLayout 
@@ -275,7 +285,7 @@ const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_score !
                     <td class="text-center">
                       {item.lkpd1_score !== null && item.lkpd1_score !== undefined ? (
                         <span class={`badge ${item.lkpd1_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`}>
-                          {item.lkpd1_score} / 100
+                          {item.lkpd1_score}
                         </span>
                       ) : item.lkpd1_submitted_at ? (
                         <span class="badge badge-amber font-mono">Belum Dinilai</span>
@@ -286,7 +296,7 @@ const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_score !
                     <td class="text-center">
                       {item.lkpd2_score !== null && item.lkpd2_score !== undefined ? (
                         <span class={`badge ${item.lkpd2_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`}>
-                          {item.lkpd2_score} / 100
+                          {item.lkpd2_score}
                         </span>
                       ) : item.lkpd2_submitted_at ? (
                         <span class="badge badge-amber font-mono">Belum Dinilai</span>
@@ -296,8 +306,12 @@ const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_score !
                     </td>
                     <td class="text-center">
                       {item.lkpd_softskill_score !== null && item.lkpd_softskill_score !== undefined ? (
-                        <span class={`badge ${item.lkpd_softskill_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`} title={item.lkpd_softskill_count ? `${item.lkpd_softskill_count} Studi Kasus Dinilai` : undefined}>
-                          {item.lkpd_softskill_score} / 100
+                        <span class={`badge ${item.lkpd_softskill_score >= 75 ? 'badge-green' : 'badge-amber'} font-mono`} title="3 dari 3 Studi Kasus Selesai">
+                          {item.lkpd_softskill_score}
+                        </span>
+                      ) : item.lkpd_softskill_count > 0 && !item.lkpd_softskill_is_complete ? (
+                        <span class="badge badge-amber font-mono" title={`Baru mengumpulkan ${item.lkpd_softskill_count} dari 3 studi kasus (belum lengkap)`}>
+                          Belum Lengkap ({item.lkpd_softskill_count}/3)
                         </span>
                       ) : item.lkpd_softskill_submitted_at ? (
                         <span class="badge badge-amber font-mono">Belum Dinilai</span>
@@ -472,7 +486,11 @@ const totalLkpdSoftskillGraded = students.filter((s) => s.lkpd_softskill_score !
         const pct = `${s.percentage || 0}%`;
         const lkpd1Val = s.lkpd1_score !== null && s.lkpd1_score !== undefined ? s.lkpd1_score : (s.lkpd1_submitted_at ? 'Belum Dinilai' : '-');
         const lkpd2Val = s.lkpd2_score !== null && s.lkpd2_score !== undefined ? s.lkpd2_score : (s.lkpd2_submitted_at ? 'Belum Dinilai' : '-');
-        const lkpdSoftskillVal = s.lkpd_softskill_score !== null && s.lkpd_softskill_score !== undefined ? s.lkpd_softskill_score : (s.lkpd_softskill_submitted_at ? 'Belum Dinilai' : '-');
+        const lkpdSoftskillVal = s.lkpd_softskill_score !== null && s.lkpd_softskill_score !== undefined 
+          ? s.lkpd_softskill_score 
+          : (s.lkpd_softskill_count > 0 && !s.lkpd_softskill_is_complete 
+              ? `Belum Lengkap (${s.lkpd_softskill_count}/3)` 
+              : (s.lkpd_softskill_submitted_at ? 'Belum Dinilai' : '-'));
         const rank = `"${s.rankTitle || ''}"`;
         const date = new Date(s.created_at).toLocaleDateString('id-ID');
 
