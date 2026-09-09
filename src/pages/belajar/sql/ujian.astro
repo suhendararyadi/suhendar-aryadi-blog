@@ -393,6 +393,29 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
             </div>
           </aside>
         </div>
+
+        <!-- Mobile Sticky Bottom Action Bar (Ergonomic thumb controls on phones) -->
+        <nav class="m3-mobile-bottom-bar" id="mobile-bottom-bar" aria-label="Navigasi Soal Ponsel">
+          <button type="button" id="btn-mobile-prev-q" class="m3-mobile-nav-btn" aria-label="Soal Sebelumnya">
+            <span class="material-symbols-rounded">arrow_back</span>
+            <span class="mobile-nav-label">Sebelumnya</span>
+          </button>
+
+          <button type="button" id="btn-mobile-palette-trigger" class="m3-mobile-nav-btn palette-trigger" aria-label="Daftar Soal">
+            <span class="material-symbols-rounded">grid_view</span>
+            <span class="mobile-nav-label font-mono" id="mobile-bottom-indicator">1 / 30</span>
+          </button>
+
+          <button type="button" id="btn-mobile-doubt-trigger" class="m3-mobile-nav-btn doubt-trigger" aria-label="Tandai Ragu-ragu">
+            <span class="material-symbols-rounded" id="mobile-doubt-icon">bookmark_border</span>
+            <span class="mobile-nav-label" id="mobile-doubt-label">Ragu</span>
+          </button>
+
+          <button type="button" id="btn-mobile-next-q" class="m3-mobile-nav-btn primary" aria-label="Soal Berikutnya">
+            <span class="mobile-nav-label" id="mobile-next-label">Berikutnya</span>
+            <span class="material-symbols-rounded" id="mobile-next-icon">arrow_forward</span>
+          </button>
+        </nav>
       </div>
 
       {/* =========================================================
@@ -612,8 +635,12 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
       ========================================================= */}
   <div id="mobile-palette-modal" class="m3-modal-overlay m3-mobile-drawer-overlay" style="display: none;">
     <div class="m3-card m3-mobile-drawer-card">
+      <div class="m3-drawer-drag-handle" aria-hidden="true"></div>
       <div class="m3-drawer-header">
-        <h3 class="m3-title-medium">Daftar Nomor Soal (30)</h3>
+        <div class="m3-drawer-title-wrap">
+          <span class="material-symbols-rounded text-primary">grid_view</span>
+          <h3 class="m3-title-medium">Daftar 30 Nomor Soal</h3>
+        </div>
         <button type="button" id="btn-close-mobile-palette" class="m3-btn-icon" aria-label="Tutup">
           <span class="material-symbols-rounded">close</span>
         </button>
@@ -623,8 +650,14 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
         <div class="m3-legend-item"><span class="m3-legend-box m3-box-doubt"></span> Ragu-ragu</div>
         <div class="m3-legend-item"><span class="m3-legend-box m3-box-unanswered"></span> Belum diisi</div>
       </div>
-      <div class="m3-palette-grid margin-top-sm" id="mobile-palette-grid">
+      <div class="m3-palette-grid m3-palette-grid-mobile margin-top-sm" id="mobile-palette-grid">
         <!-- Rendered via JS -->
+      </div>
+      <div class="m3-drawer-footer margin-top-md">
+        <button type="button" id="btn-mobile-drawer-submit" class="m3-btn m3-btn-filled m3-btn-success w-100">
+          <span class="material-symbols-rounded icon-sm">check_circle</span>
+          <span>Selesai &amp; Kumpulkan Ujian</span>
+        </button>
       </div>
     </div>
   </div>
@@ -722,12 +755,23 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   const resultIntegrityVal = document.getElementById('result-integrity-val');
   const resultIntegrityStatus = document.getElementById('result-integrity-status');
 
-  // Mobile Palette Drawer
+  // Mobile Palette Drawer & Bottom Bar
   const btnMobilePaletteToggle = document.getElementById('btn-mobile-palette-toggle');
   const mobilePaletteModal = document.getElementById('mobile-palette-modal');
   const btnCloseMobilePalette = document.getElementById('btn-close-mobile-palette');
   const mobilePaletteGrid = document.getElementById('mobile-palette-grid');
   const mobilePaletteBadge = document.getElementById('mobile-palette-badge');
+  const btnMobileDrawerSubmit = document.getElementById('btn-mobile-drawer-submit');
+
+  const btnMobilePrevQ = document.getElementById('btn-mobile-prev-q') as HTMLButtonElement | null;
+  const btnMobileNextQ = document.getElementById('btn-mobile-next-q') as HTMLButtonElement | null;
+  const btnMobilePaletteTrigger = document.getElementById('btn-mobile-palette-trigger');
+  const btnMobileDoubtTrigger = document.getElementById('btn-mobile-doubt-trigger');
+  const mobileBottomIndicator = document.getElementById('mobile-bottom-indicator');
+  const mobileDoubtIcon = document.getElementById('mobile-doubt-icon');
+  const mobileDoubtLabel = document.getElementById('mobile-doubt-label');
+  const mobileNextLabel = document.getElementById('mobile-next-label');
+  const mobileNextIcon = document.getElementById('mobile-next-icon');
 
   // Storage key
   const storageKey = currentUser ? `sql_exam_answers_${currentUser.id}` : 'sql_exam_answers_guest';
@@ -746,6 +790,18 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     btnViolation1Confirm?.addEventListener('click', acknowledgeViolation1);
     btnDisqualifiedViewResult?.addEventListener('click', () => {
       if (modalDisqualified) modalDisqualified.style.display = 'none';
+    });
+
+    // Mobile Bottom Bar Navigation
+    btnMobilePrevQ?.addEventListener('click', () => navigateQuestion(currentQIndex - 1));
+    btnMobileNextQ?.addEventListener('click', () => navigateQuestion(currentQIndex + 1));
+    btnMobilePaletteTrigger?.addEventListener('click', () => {
+      if (mobilePaletteModal) mobilePaletteModal.style.display = 'flex';
+    });
+    btnMobileDoubtTrigger?.addEventListener('click', toggleDoubt);
+    btnMobileDrawerSubmit?.addEventListener('click', () => {
+      if (mobilePaletteModal) mobilePaletteModal.style.display = 'none';
+      openConfirmModal();
     });
 
     // Mobile Drawer
@@ -1102,6 +1158,38 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
       }
     }
 
+    // Mobile Bottom Bar updates
+    if (mobileBottomIndicator) {
+      mobileBottomIndicator.textContent = `${currentQIndex + 1} / ${examQuestions.length}`;
+    }
+    if (btnMobilePrevQ) {
+      btnMobilePrevQ.disabled = currentQIndex === 0;
+    }
+    if (btnMobileNextQ && mobileNextLabel && mobileNextIcon) {
+      if (currentQIndex === examQuestions.length - 1) {
+        mobileNextLabel.textContent = 'Selesai';
+        mobileNextIcon.textContent = 'check';
+        btnMobileNextQ.classList.add('finish');
+      } else {
+        mobileNextLabel.textContent = 'Berikutnya';
+        mobileNextIcon.textContent = 'arrow_forward';
+        btnMobileNextQ.classList.remove('finish');
+      }
+    }
+    if (btnMobileDoubtTrigger && mobileDoubtIcon && mobileDoubtLabel) {
+      const isDoubt = Boolean(userDoubt[q.id]);
+      btnMobileDoubtTrigger.setAttribute('aria-pressed', isDoubt ? 'true' : 'false');
+      if (isDoubt) {
+        btnMobileDoubtTrigger.classList.add('active');
+        mobileDoubtIcon.textContent = 'bookmark';
+        mobileDoubtLabel.textContent = 'Ditandai';
+      } else {
+        btnMobileDoubtTrigger.classList.remove('active');
+        mobileDoubtIcon.textContent = 'bookmark_border';
+        mobileDoubtLabel.textContent = 'Ragu';
+      }
+    }
+
     // Render 5 Options
     if (optionsContainer) {
       optionsContainer.innerHTML = '';
@@ -1146,6 +1234,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   };
 
   const toggleDoubt = () => {
+    if (isLocked) return;
     const q = examQuestions[currentQIndex];
     if (!q) return;
     userDoubt[q.id] = !userDoubt[q.id];
@@ -1154,6 +1243,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   };
 
   const navigateQuestion = (newIndex: number) => {
+    if (isLocked) return;
     if (newIndex < 0) return;
     if (newIndex >= examQuestions.length) {
       openConfirmModal();
@@ -2007,5 +2097,347 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   .m3-btn-error {
     background-color: var(--m3-error) !important;
     color: var(--m3-on-error, #ffffff) !important;
+  }
+
+  /* =========================================================================
+     MOBILE-FIRST RESPONSIVE OPTIMIZATIONS & THUMB-FRIENDLY CONTROLS
+     ========================================================================= */
+
+  /* Input zoom prevention on iOS Safari */
+  #input-token {
+    font-size: 16px !important;
+  }
+
+  /* App Bar Actions */
+  .m3-app-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Mobile Bottom Navigation Bar */
+  .m3-mobile-bottom-bar {
+    display: none;
+  }
+
+  @media (max-width: 991px) {
+    #screen-exam {
+      padding-bottom: 5.5rem;
+    }
+    .m3-palette-card {
+      display: none;
+    }
+    .m3-question-footer {
+      display: none;
+    }
+    .m3-cbt-layout {
+      grid-template-columns: 1fr;
+    }
+    .m3-mobile-bottom-bar {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--m3-surface-container-highest, #282a2f);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--m3-outline-variant);
+      padding: 0.5rem 0.75rem max(0.5rem, env(safe-area-inset-bottom));
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
+    }
+  }
+
+  .m3-mobile-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.35rem 0.25rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--m3-on-surface-variant);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .m3-mobile-nav-btn .material-symbols-rounded {
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+  .m3-mobile-nav-btn .mobile-nav-label {
+    margin-top: 2px;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+  .m3-mobile-nav-btn:active {
+    transform: scale(0.95);
+    background-color: var(--m3-surface-container-high);
+  }
+  .m3-mobile-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .m3-mobile-nav-btn.palette-trigger {
+    background-color: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline-variant);
+  }
+  .m3-mobile-nav-btn.doubt-trigger.active {
+    color: #f59e0b;
+    background-color: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+  .m3-mobile-nav-btn.primary {
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
+    flex: 1.35;
+    border-radius: 14px;
+    flex-direction: row;
+    gap: 0.35rem;
+  }
+  .m3-mobile-nav-btn.primary .mobile-nav-label {
+    font-size: 0.825rem;
+    margin-top: 0;
+  }
+  .m3-mobile-nav-btn.primary:active {
+    filter: brightness(0.9);
+  }
+  .m3-mobile-nav-btn.primary.finish {
+    background-color: var(--m3-success, #10b981);
+    color: #ffffff;
+  }
+
+  /* Bottom Sheet Palette Drawer */
+  .m3-mobile-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+  .m3-mobile-drawer-card {
+    background-color: var(--m3-surface-container-high);
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    border: 1px solid var(--m3-outline-variant);
+    border-bottom: none;
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+    animation: slideUpDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideUpDrawer {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .m3-drawer-drag-handle {
+    width: 40px;
+    height: 4px;
+    background-color: var(--m3-outline-variant);
+    border-radius: 9999px;
+    margin: 0 auto 0.75rem;
+  }
+  .m3-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--m3-outline-variant);
+  }
+  .m3-drawer-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .m3-palette-grid-mobile {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+  }
+  .m3-palette-grid-mobile .m3-palette-btn {
+    min-height: 44px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: 12px;
+  }
+  .m3-drawer-footer {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--m3-outline-variant);
+  }
+
+  /* Responsive Adjustments for Tablets and Phones */
+  @media (max-width: 768px) {
+    .m3-exam-page {
+      padding: 0.75rem 0.65rem 2rem;
+    }
+    .m3-top-app-bar {
+      position: sticky;
+      top: 0.5rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 16px;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .m3-app-bar-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      width: 100%;
+    }
+    .m3-participant-tag {
+      max-width: 130px;
+    }
+    .m3-app-bar-title {
+      font-size: 0.825rem;
+      max-width: 95px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .m3-security-pill {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.7rem;
+      gap: 0.2rem;
+    }
+    .m3-timer-container {
+      padding: 0.25rem 0.5rem;
+      gap: 0.25rem;
+    }
+    .m3-timer-text {
+      font-size: 1rem;
+    }
+    .m3-app-bar-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 0.5rem;
+    }
+    .m3-app-bar-actions .m3-btn {
+      flex: 1;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.8rem;
+      min-height: 42px;
+      justify-content: center;
+    }
+    .m3-question-card {
+      padding: 1.15rem 0.95rem;
+      border-radius: 20px;
+    }
+    .m3-question-title {
+      font-size: 1.05rem;
+      line-height: 1.55;
+    }
+    .m3-option-card {
+      padding: 0.75rem 0.85rem;
+      border-radius: 12px;
+      gap: 0.75rem;
+      min-height: 50px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .m3-option-card:active {
+      transform: scale(0.985);
+      background-color: var(--m3-surface-container-high);
+    }
+    .m3-option-radio {
+      width: 20px;
+      height: 20px;
+      margin-top: 0.15rem;
+    }
+    .m3-option-content {
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .m3-result-card {
+      padding: 1.5rem 1rem;
+      border-radius: 20px;
+    }
+    .m3-score-number {
+      font-size: clamp(3rem, 12vw, 4.5rem);
+    }
+    .m3-lockout-countdown {
+      font-size: clamp(2.75rem, 10vw, 3.75rem);
+    }
+    .m3-modal-card {
+      padding: 1.25rem 1rem;
+      border-radius: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .m3-specs-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+    .m3-spec-card {
+      padding: 0.75rem 0.65rem;
+      gap: 0.5rem;
+      flex-direction: column;
+      align-items: flex-start;
+      border-radius: 14px;
+    }
+    .m3-spec-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+    }
+    .m3-spec-icon-wrap .material-symbols-rounded {
+      font-size: 1.25rem;
+    }
+    .m3-spec-info .m3-title-medium {
+      font-size: 0.95rem;
+      line-height: 1.25;
+    }
+    .m3-spec-info .m3-body-small {
+      font-size: 0.685rem;
+      line-height: 1.3;
+    }
+    .m3-token-field-row {
+      flex-direction: column;
+    }
+    .m3-token-field-row input {
+      min-width: 100%;
+      width: 100%;
+      font-size: 16px !important;
+    }
+    .m3-token-field-row button {
+      width: 100%;
+      min-height: 48px;
+    }
+    .m3-result-metrics-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+    .m3-metric-box {
+      padding: 0.75rem 0.5rem;
+      border-radius: 12px;
+    }
+    .m3-metric-box .metric-val {
+      font-size: 1.15rem;
+    }
+    .m3-metric-box .m3-label-small {
+      font-size: 0.7rem;
+    }
   }
 </style>
