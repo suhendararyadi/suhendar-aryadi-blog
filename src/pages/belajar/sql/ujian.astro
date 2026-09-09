@@ -26,13 +26,16 @@ if (user) {
   }
 }
 
-// Prepare questions for frontend securely (NEVER leak correctAnswer and explanation to client)
+const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin' || (user?.email && user.email.toLowerCase().includes('suhendar'));
+
+// Prepare questions for frontend securely (NEVER leak correctAnswer and explanation to regular students)
 const initialExamQuestions = sqlExamQuestions.map((q) => ({
   id: q.id,
   category: q.category,
   question: q.question,
   codeSnippet: q.codeSnippet || null,
-  options: q.options
+  options: q.options,
+  ...(isTeacherOrAdmin ? { correctAnswer: q.correctAnswer, explanation: q.explanation } : {})
 }));
 ---
 
@@ -40,6 +43,13 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   title="Ujian Evaluasi Resmi SQL & Basis Data Relasional (CBT 30 Soal) | SMK RPL"
   description="Ujian evaluasi resmi kompetensi Basis Data Relasional dan SQL standar SMK RPL dengan 30 soal pilihan ganda 5 opsi, durasi 60 menit, pengawasan keamanan tinggi (Anti-Cheat 3 Tahap, Layar Penuh, dan Kunci 5 Menit)."
 >
+  <!-- Immediate Data Injection for Client Engine Before Render -->
+  <script is:inline define:vars={{ initialExamQuestions, user, isTeacherOrAdmin }}>
+    window.__EXAM_QUESTIONS__ = initialExamQuestions;
+    window.__CURRENT_USER__ = user;
+    window.__IS_TEACHER_OR_ADMIN__ = Boolean(isTeacherOrAdmin);
+  </script>
+
   <div class="m3-exam-page">
     <div class="m3-exam-container">
       <!-- M3 Breadcrumb -->
@@ -160,7 +170,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
                 </div>
               </div>
             </div>
-          ) : pastSubmission ? (
+          ) : (pastSubmission && !isTeacherOrAdmin) ? (
             /* Student Has Already Completed The Exam (Single Attempt View) */
             <div class="m3-card m3-card-outlined m3-already-submitted-card margin-top-md">
               <div class="m3-sub-status-header">
@@ -224,50 +234,90 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
               </div>
             </div>
           ) : (
-            /* Token Input Form for Active Student */
-            <div class="m3-card m3-card-outlined m3-participant-card margin-top-md">
-              <div class="m3-participant-header">
-                <div class="m3-avatar">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div class="m3-participant-text">
-                  <span class="m3-label-small text-primary">PESERTA UJIAN TERDAFTAR</span>
-                  <h3 class="m3-title-medium">{user.name}</h3>
-                  <span class="m3-body-small font-mono text-muted">{user.email}</span>
-                </div>
-              </div>
-
-              <!-- Token Input Form -->
-              <form id="token-form" class="m3-token-form margin-top-md">
-                <div class="m3-token-group">
-                  <label for="input-token" class="m3-label-large">
-                    Masukkan Token Ujian Resmi:
-                  </label>
-                  <div class="m3-token-field-row">
-                    <input
-                      type="text"
-                      id="input-token"
-                      name="token"
-                      placeholder="Contoh: UJIAN-SQL-2026"
-                      class="m3-text-field font-mono"
-                      maxlength="30"
-                      required
-                      autocomplete="off"
-                    />
-                    <button type="submit" id="btn-start-exam" class="m3-btn m3-btn-filled m3-btn-lg">
-                      <span class="material-symbols-rounded icon-sm">fullscreen</span>
-                      <span>Mulai Ujian Layar Penuh &rarr;</span>
+            /* Active Participant View with Admin Hub if Teacher */
+            <>
+              {isTeacherOrAdmin && (
+                <div class="m3-card m3-card-outlined m3-admin-hub-card margin-top-md">
+                  <div class="m3-admin-hub-header">
+                    <div class="m3-admin-hub-icon">
+                      <span class="material-symbols-rounded">admin_panel_settings</span>
+                    </div>
+                    <div class="m3-admin-hub-info">
+                      <span class="m3-chip m3-chip-tonal-primary m3-chip-compact">AKSES KHUSUS GURU &amp; ADMINISTRATOR</span>
+                      <h3 class="m3-title-medium margin-top-2xs">Mode Pengujian &amp; Telaah Soal Ujian (CBT 30 Soal)</h3>
+                      <p class="m3-body-small text-secondary">
+                        Sebagai Guru Pengampu / Admin, Anda dapat mencoba seluruh 30 butir soal secara langsung tanpa batasan pengerjaan, bebas dari penguncian anti-cheat, serta dapat membuka kunci jawaban resmi untuk memeriksa akurasi butir soal.
+                      </p>
+                      {pastSubmission && (
+                        <div class="m3-helper-box margin-top-xs">
+                          <span class="material-symbols-rounded icon-xs text-primary">history</span>
+                          <span>Sesi pengujian terakhir Anda tersimpan dengan skor: <strong>{pastSubmission.score}/100</strong> ({pastSubmission.correct_answers}/30 benar).</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div class="m3-admin-hub-actions margin-top-md">
+                    <button type="button" id="btn-admin-direct-start" class="m3-btn m3-btn-filled m3-btn-primary">
+                      <span class="material-symbols-rounded icon-sm">play_arrow</span>
+                      <span>Mulai Uji Coba Ujian (Bypass Token &amp; Anti-Cheat) &rarr;</span>
                     </button>
-                  </div>
-                  <div id="token-error" class="m3-alert m3-alert-error" style="display: none;"></div>
-                  <div class="m3-helper-box">
-                    <span>
-                      Token resmi diberikan oleh Guru Pengampu di ruang ujian (Token default: <strong class="font-mono text-primary">UJIAN-SQL-2026</strong> atau <strong class="font-mono text-primary">EVALUASI-SQL</strong>).
-                    </span>
+                    {pastSubmission && (
+                      <button type="button" id="btn-admin-reset-past" class="m3-btn m3-btn-outlined m3-btn-error">
+                        <span class="material-symbols-rounded icon-sm">restart_alt</span>
+                        <span>Reset Riwayat Uji Coba Saya</span>
+                      </button>
+                    )}
                   </div>
                 </div>
-              </form>
-            </div>
+              )}
+
+              <div class="m3-card m3-card-outlined m3-participant-card margin-top-md">
+                <div class="m3-participant-header">
+                  <div class="m3-avatar">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div class="m3-participant-text">
+                    <span class="m3-label-small text-primary">
+                      {isTeacherOrAdmin ? 'GURU PENGAMPU / ADMIN' : 'PESERTA UJIAN TERDAFTAR'}
+                    </span>
+                    <h3 class="m3-title-medium">{user.name}</h3>
+                    <span class="m3-body-small font-mono text-muted">{user.email}</span>
+                  </div>
+                </div>
+
+                <!-- Token Input Form -->
+                <form id="token-form" class="m3-token-form margin-top-md">
+                  <div class="m3-token-group">
+                    <label for="input-token" class="m3-label-large">
+                      Masukkan Token Ujian Resmi:
+                    </label>
+                    <div class="m3-token-field-row">
+                      <input
+                        type="text"
+                        id="input-token"
+                        name="token"
+                        value={isTeacherOrAdmin ? 'UJIAN-SQL-2026' : ''}
+                        placeholder="Contoh: UJIAN-SQL-2026"
+                        class="m3-text-field font-mono"
+                        maxlength="30"
+                        required
+                        autocomplete="off"
+                      />
+                      <button type="submit" id="btn-start-exam" class="m3-btn m3-btn-filled m3-btn-lg">
+                        <span class="material-symbols-rounded icon-sm">fullscreen</span>
+                        <span>Mulai Ujian Layar Penuh &rarr;</span>
+                      </button>
+                    </div>
+                    <div id="token-error" class="m3-alert m3-alert-error" style="display: none;"></div>
+                    <div class="m3-helper-box">
+                      <span>
+                        Token resmi diberikan oleh Guru Pengampu di ruang ujian (Token default: <strong class="font-mono text-primary">UJIAN-SQL-2026</strong> atau <strong class="font-mono text-primary">EVALUASI-SQL</strong>).
+                      </span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -319,6 +369,12 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
               <div class="m3-chip-row">
                 <span class="m3-chip m3-chip-tonal-primary" id="question-num-badge">SOAL NO. 1 DARI 30</span>
                 <span class="m3-chip m3-chip-tonal-secondary" id="question-category-badge">KONSEP BASIS DATA</span>
+                {isTeacherOrAdmin && (
+                  <button type="button" id="btn-toggle-admin-key" class="m3-chip m3-chip-tonal-tertiary" title="Buka Kunci Guru">
+                    <span class="material-symbols-rounded icon-xs">key</span>
+                    <span id="admin-key-btn-text">Kunci Guru: OFF</span>
+                  </button>
+                )}
               </div>
               <button type="button" id="btn-toggle-doubt" class="m3-chip-filter" aria-pressed="false">
                 <span class="m3-chip-checkbox"></span>
@@ -340,6 +396,15 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
               <!-- 5 Options Form -->
               <div class="m3-options-group margin-top-md" id="options-container">
                 <!-- Rendered dynamically via JS -->
+              </div>
+
+              <!-- Admin Teacher Explanation & Key Box (Visible only when showAdminKey is active) -->
+              <div id="admin-explanation-box" class="m3-admin-explanation-box margin-top-md" style="display: none;">
+                <div class="m3-admin-explanation-header">
+                  <span class="material-symbols-rounded icon-sm text-primary">lightbulb</span>
+                  <strong class="m3-label-large">Kunci Guru &amp; Pembahasan Soal:</strong>
+                </div>
+                <p class="m3-body-medium margin-top-2xs" id="admin-explanation-text"></p>
               </div>
             </div>
 
@@ -663,12 +728,6 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   </div>
 </MainLayout>
 
-<!-- Embed Questions Data for Client Script (Questions & Options Only, No Answers) -->
-<script is:inline define:vars={{ initialExamQuestions, user }}>
-  window.__EXAM_QUESTIONS__ = initialExamQuestions;
-  window.__CURRENT_USER__ = user;
-</script>
-
 <script>
   // =========================================================================
   // CLIENT-SIDE HIGH-SECURITY EXAM & ANTI-CHEAT ENGINE
@@ -676,8 +735,15 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   const TOTAL_DURATION_SECS = 60 * 60; // 60 Minutes (3,600 Seconds)
   const LOCKOUT_DURATION_SECS = 5 * 60; // 5 Minutes (300 Seconds)
 
-  const examQuestions: any[] = (window as any).__EXAM_QUESTIONS__ || [];
-  const currentUser: any = (window as any).__CURRENT_USER__ || null;
+  const getExamQuestions = (): any[] => {
+    return (window as any).__EXAM_QUESTIONS__ || [];
+  };
+  const getCurrentUser = (): any => {
+    return (window as any).__CURRENT_USER__ || null;
+  };
+  const getIsTeacherOrAdmin = (): boolean => {
+    return Boolean((window as any).__IS_TEACHER_OR_ADMIN__);
+  };
 
   let activeToken = '';
   let currentQIndex = 0;
@@ -686,6 +752,10 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   let timerInterval: any = null;
   let secondsRemaining = TOTAL_DURATION_SECS;
   let examStartTime: number | null = null;
+
+  // Admin / Teacher Test Mode
+  let isAdminMode = getIsTeacherOrAdmin();
+  let showAdminKey = false;
 
   // Anti-Cheat State
   let isExamActive = false;
@@ -706,6 +776,14 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   const inputToken = document.getElementById('input-token') as HTMLInputElement | null;
   const btnStartExam = document.getElementById('btn-start-exam') as HTMLButtonElement | null;
   const tokenError = document.getElementById('token-error');
+
+  // Admin Hub Elements
+  const btnAdminDirectStart = document.getElementById('btn-admin-direct-start');
+  const btnAdminResetPast = document.getElementById('btn-admin-reset-past');
+  const btnToggleAdminKey = document.getElementById('btn-toggle-admin-key');
+  const adminKeyBtnText = document.getElementById('admin-key-btn-text');
+  const adminExplanationBox = document.getElementById('admin-explanation-box');
+  const adminExplanationText = document.getElementById('admin-explanation-text');
 
   // CBT Elements
   const cbtTimer = document.getElementById('cbt-timer');
@@ -774,12 +852,47 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   const mobileNextIcon = document.getElementById('mobile-next-icon');
 
   // Storage key
-  const storageKey = currentUser ? `sql_exam_answers_${currentUser.id}` : 'sql_exam_answers_guest';
+  const userObj = getCurrentUser();
+  const storageKey = userObj ? `sql_exam_answers_${userObj.id}` : 'sql_exam_answers_guest';
 
   // =========================================================================
   // 1. INITIALIZATION & EVENT LISTENERS
   // =========================================================================
   const init = () => {
+    // Admin Direct Start & Reset Listeners
+    btnAdminDirectStart?.addEventListener('click', () => {
+      activeToken = 'ADMIN-TRY';
+      isAdminMode = true;
+      startCbtExam();
+    });
+
+    btnAdminResetPast?.addEventListener('click', async () => {
+      if (!confirm('Reset riwayat uji coba Anda di server? Nilai sebelumnya akan dihapus sehingga Anda dapat menguji coba kembali lembar baru.')) return;
+      try {
+        const res = await fetch('/api/sql/ujian/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          try {
+            sessionStorage.removeItem(storageKey);
+          } catch (e) {}
+          window.location.reload();
+        } else {
+          alert(data.error || 'Gagal mereset sesi.');
+        }
+      } catch (e) {
+        alert('Terjadi kendala jaringan saat menghubungi server.');
+      }
+    });
+
+    btnToggleAdminKey?.addEventListener('click', () => {
+      showAdminKey = !showAdminKey;
+      if (adminKeyBtnText) {
+        adminKeyBtnText.textContent = showAdminKey ? 'Kunci Guru: ON' : 'Kunci Guru: OFF';
+      }
+      btnToggleAdminKey?.classList.toggle('active', showAdminKey);
+      renderCurrentQuestion();
+    });
+
     tokenForm?.addEventListener('submit', handleTokenSubmit);
     btnPrevQ?.addEventListener('click', () => navigateQuestion(currentQIndex - 1));
     btnNextQ?.addEventListener('click', () => navigateQuestion(currentQIndex + 1));
@@ -906,6 +1019,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     examStartTime = Date.now();
     secondsRemaining = TOTAL_DURATION_SECS;
 
+    updateSecurityPill();
     renderPalette();
     renderCurrentQuestion();
     startExamTimer();
@@ -917,7 +1031,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   const setupAntiCheatListeners = () => {
     // 1. Visibility Change (Tab Switch or Minimize)
     document.addEventListener('visibilitychange', () => {
-      if (!isExamActive || isSubmitting) return;
+      if (isAdminMode || !isExamActive || isSubmitting) return;
       if (document.visibilityState === 'hidden') {
         triggerViolation('Meninggalkan tab ujian atau meminimalkan browser');
       }
@@ -925,13 +1039,13 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
     // 2. Window Blur (Switching Apps, DevTools, or Clicking Outside)
     window.addEventListener('blur', () => {
-      if (!isExamActive || isSubmitting) return;
+      if (isAdminMode || !isExamActive || isSubmitting) return;
       triggerViolation('Berpindah fokus ke aplikasi atau jendela lain');
     });
 
     // 3. Fullscreen Exit
     document.addEventListener('fullscreenchange', () => {
-      if (!isExamActive || isSubmitting) return;
+      if (isAdminMode || !isExamActive || isSubmitting) return;
       if (!document.fullscreenElement) {
         triggerViolation('Keluar dari mode layar penuh (fullscreen)');
       }
@@ -939,14 +1053,14 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
     // 4. Context Menu (Right Click) Block
     window.addEventListener('contextmenu', (e) => {
-      if (isExamActive && !isSubmitting) {
+      if (!isAdminMode && isExamActive && !isSubmitting) {
         e.preventDefault();
       }
     });
 
     // 5. Clipboard Restriction (Copy, Cut, Paste)
     const blockClipboard = (e: ClipboardEvent) => {
-      if (isExamActive && !isSubmitting) {
+      if (!isAdminMode && isExamActive && !isSubmitting) {
         e.preventDefault();
       }
     };
@@ -956,7 +1070,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
     // 6. Block Dangerous Shortcuts (F12, Inspect, Print, Save)
     window.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (!isExamActive || isSubmitting) return;
+      if (isAdminMode || !isExamActive || isSubmitting) return;
 
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
@@ -981,6 +1095,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   };
 
   const triggerViolation = (reason: string) => {
+    if (isAdminMode) return;
     if (!isExamActive || isSubmitting || violationCooldown) return;
 
     violationCooldown = true;
@@ -1012,6 +1127,13 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
   const updateSecurityPill = () => {
     if (!securityStatusPill || !securityIcon || !securityText) return;
+
+    if (isAdminMode) {
+      securityStatusPill.className = 'm3-security-pill status-safe';
+      securityIcon.textContent = 'admin_panel_settings';
+      securityText.textContent = 'Mode Guru (Bypass Keamanan)';
+      return;
+    }
 
     if (violationCount === 0) {
       securityStatusPill.className = 'm3-security-pill status-safe';
@@ -1115,14 +1237,15 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   // 6. QUESTION RENDERING & NAVIGATION
   // =========================================================================
   const renderCurrentQuestion = () => {
-    if (!examQuestions || examQuestions.length === 0) return;
-    const q = examQuestions[currentQIndex];
+    const questions = getExamQuestions();
+    if (!questions || questions.length === 0) return;
+    const q = questions[currentQIndex];
     if (!q) return;
 
-    if (qNumBadge) qNumBadge.textContent = `SOAL NO. ${currentQIndex + 1} DARI ${examQuestions.length}`;
+    if (qNumBadge) qNumBadge.textContent = `SOAL NO. ${currentQIndex + 1} DARI ${questions.length}`;
     if (qCatBadge) qCatBadge.textContent = (q.category || 'BASIS DATA').toUpperCase();
-    if (navIndicatorText) navIndicatorText.textContent = `${currentQIndex + 1} dari ${examQuestions.length} Soal`;
-    if (mobilePaletteBadge) mobilePaletteBadge.textContent = `${currentQIndex + 1}/${examQuestions.length}`;
+    if (navIndicatorText) navIndicatorText.textContent = `${currentQIndex + 1} dari ${questions.length} Soal`;
+    if (mobilePaletteBadge) mobilePaletteBadge.textContent = `${currentQIndex + 1}/${questions.length}`;
 
     if (qText) qText.textContent = q.question;
 
@@ -1132,6 +1255,18 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
         qCodeWrap.style.display = 'block';
       } else {
         qCodeWrap.style.display = 'none';
+      }
+    }
+
+    // Admin Teacher Explanation & Key Box
+    if (isAdminMode && showAdminKey && q.explanation) {
+      if (adminExplanationBox && adminExplanationText) {
+        adminExplanationText.textContent = q.explanation;
+        adminExplanationBox.style.display = 'block';
+      }
+    } else {
+      if (adminExplanationBox) {
+        adminExplanationBox.style.display = 'none';
       }
     }
 
@@ -1151,7 +1286,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     // Prev / Next button states
     if (btnPrevQ) (btnPrevQ as HTMLButtonElement).disabled = currentQIndex === 0;
     if (btnNextQ) {
-      if (currentQIndex === examQuestions.length - 1) {
+      if (currentQIndex === questions.length - 1) {
         btnNextQ.innerHTML = '<span class="material-symbols-rounded icon-sm">check</span> Tinjau &amp; Selesai';
       } else {
         btnNextQ.innerHTML = 'Soal Berikutnya &rarr;';
@@ -1160,13 +1295,13 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
     // Mobile Bottom Bar updates
     if (mobileBottomIndicator) {
-      mobileBottomIndicator.textContent = `${currentQIndex + 1} / ${examQuestions.length}`;
+      mobileBottomIndicator.textContent = `${currentQIndex + 1} / ${questions.length}`;
     }
     if (btnMobilePrevQ) {
       btnMobilePrevQ.disabled = currentQIndex === 0;
     }
     if (btnMobileNextQ && mobileNextLabel && mobileNextIcon) {
-      if (currentQIndex === examQuestions.length - 1) {
+      if (currentQIndex === questions.length - 1) {
         mobileNextLabel.textContent = 'Selesai';
         mobileNextIcon.textContent = 'check';
         btnMobileNextQ.classList.add('finish');
@@ -1190,29 +1325,44 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
       }
     }
 
-    // Render 5 Options
+    // Render 5 Options as interactive labels with radio input
     if (optionsContainer) {
       optionsContainer.innerHTML = '';
       const selected = userAnswers[q.id] || null;
 
       q.options.forEach((opt: { key: string; text: string }) => {
         const isSelected = selected === opt.key;
-        const optCard = document.createElement('div');
-        optCard.className = `m3-option-card ${isSelected ? 'selected' : ''}`;
+        const isCorrectKey = isAdminMode && showAdminKey && q.correctAnswer === opt.key;
+
+        const optCard = document.createElement('label');
+        optCard.className = `m3-option-card ${isSelected ? 'selected' : ''} ${isCorrectKey ? 'admin-correct' : ''}`;
         optCard.setAttribute('data-key', opt.key);
 
         optCard.innerHTML = `
+          <input
+            type="radio"
+            name="q_${q.id}"
+            value="${opt.key}"
+            ${isSelected ? 'checked' : ''}
+            class="m3-option-radio-hidden"
+          />
           <div class="m3-option-radio ${isSelected ? 'checked' : ''}">
             <span class="m3-option-radio-dot"></span>
           </div>
           <div class="m3-option-content">
-            <span class="m3-option-key font-mono">${opt.key}.</span>
+            <div class="m3-option-header-row">
+              <span class="m3-option-key font-mono">${opt.key}.</span>
+              ${isCorrectKey ? '<span class="m3-chip-correct font-mono">✓ KUNCI RESMI</span>' : ''}
+            </div>
             <span class="m3-option-text">${opt.text}</span>
           </div>
         `;
 
-        optCard.addEventListener('click', () => {
-          if (isLocked) return;
+        optCard.addEventListener('click', (e) => {
+          if (isLocked && !isAdminMode) {
+            e.preventDefault();
+            return;
+          }
           selectAnswer(q.id, opt.key);
         });
 
@@ -1224,18 +1374,33 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   };
 
   const selectAnswer = (questionId: number, optionKey: string) => {
+    if (isLocked && !isAdminMode) return;
     userAnswers[questionId] = optionKey;
     try {
       sessionStorage.setItem(storageKey, JSON.stringify(userAnswers));
     } catch (e) {}
 
-    renderCurrentQuestion();
+    // In-place UI update without destroying container DOM
+    if (optionsContainer) {
+      const cards = optionsContainer.querySelectorAll<HTMLElement>('.m3-option-card');
+      cards.forEach((card) => {
+        const key = card.getAttribute('data-key');
+        const isSelected = key === optionKey;
+        card.classList.toggle('selected', isSelected);
+        const radio = card.querySelector('.m3-option-radio');
+        if (radio) radio.classList.toggle('checked', isSelected);
+        const radioInput = card.querySelector<HTMLInputElement>('input[type="radio"]');
+        if (radioInput) radioInput.checked = isSelected;
+      });
+    }
+
     renderPalette();
   };
 
   const toggleDoubt = () => {
-    if (isLocked) return;
-    const q = examQuestions[currentQIndex];
+    if (isLocked && !isAdminMode) return;
+    const questions = getExamQuestions();
+    const q = questions[currentQIndex];
     if (!q) return;
     userDoubt[q.id] = !userDoubt[q.id];
     renderCurrentQuestion();
@@ -1243,9 +1408,10 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   };
 
   const navigateQuestion = (newIndex: number) => {
-    if (isLocked) return;
+    if (isLocked && !isAdminMode) return;
+    const questions = getExamQuestions();
     if (newIndex < 0) return;
-    if (newIndex >= examQuestions.length) {
+    if (newIndex >= questions.length) {
       openConfirmModal();
       return;
     }
@@ -1257,11 +1423,12 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   // 7. QUESTION PALETTE GRID
   // =========================================================================
   const renderPalette = () => {
+    const questions = getExamQuestions();
     const renderTo = (container: HTMLElement | null) => {
       if (!container) return;
       container.innerHTML = '';
 
-      examQuestions.forEach((q: any, idx: number) => {
+      questions.forEach((q: any, idx: number) => {
         const isAnswered = Boolean(userAnswers[q.id]);
         const isDoubt = Boolean(userDoubt[q.id]);
         const isCurrent = idx === currentQIndex;
@@ -1277,7 +1444,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
         btn.textContent = String(idx + 1);
 
         btn.addEventListener('click', () => {
-          if (isLocked) return;
+          if (isLocked && !isAdminMode) return;
           currentQIndex = idx;
           renderCurrentQuestion();
           if (mobilePaletteModal) mobilePaletteModal.style.display = 'none';
@@ -1294,7 +1461,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     const answeredCount = Object.keys(userAnswers).length;
     const doubtCount = Object.values(userDoubt).filter(Boolean).length;
 
-    if (summaryAnsweredCount) summaryAnsweredCount.textContent = `${answeredCount} / ${examQuestions.length}`;
+    if (summaryAnsweredCount) summaryAnsweredCount.textContent = `${answeredCount} / ${questions.length}`;
     if (summaryDoubtCount) summaryDoubtCount.textContent = String(doubtCount);
   };
 
@@ -1313,9 +1480,10 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   // 8. SUBMIT EXAM ANSWERS (SERVER-SIDE GRADING)
   // =========================================================================
   const openConfirmModal = () => {
-    if (isLocked) return;
+    if (isLocked && !isAdminMode) return;
+    const questions = getExamQuestions();
     const answeredCount = Object.keys(userAnswers).length;
-    const total = examQuestions.length;
+    const total = questions.length;
     const unansweredCount = total - answeredCount;
     const doubtCount = Object.values(userDoubt).filter(Boolean).length;
 
@@ -1568,6 +1736,44 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     gap: 0.5rem;
     font-size: 0.875rem;
     line-height: 1.5;
+  }
+
+  /* Admin Test Hub Card */
+  .m3-admin-hub-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+    border: 1.5px solid var(--m3-primary);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+  }
+  .m3-admin-hub-header {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .m3-admin-hub-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .m3-admin-hub-info {
+    flex: 1;
+  }
+  .m3-chip-compact {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    font-weight: 700;
+  }
+  .m3-admin-hub-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
   }
 
   /* Single Attempt / Already Submitted Card */
@@ -1844,9 +2050,50 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     font-size: 0.95rem;
     line-height: 1.5;
   }
-  .m3-option-key {
+  .m3-option-radio-hidden {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    margin: 0;
+  }
+  .m3-option-header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .m3-chip-correct {
+    font-size: 0.7rem;
     font-weight: 700;
+    color: #065f46;
+    background-color: #a7f3d0;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .m3-option-card.admin-correct {
+    border-color: #10b981 !important;
+    background-color: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  /* Admin Explanation Box */
+  .m3-admin-explanation-box {
+    background-color: var(--m3-surface-container-high);
+    border-left: 4px solid var(--m3-primary);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+  }
+  .m3-admin-explanation-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--m3-primary);
+  }
+  #btn-toggle-admin-key.active {
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
   }
 
   /* Footer Controls */
