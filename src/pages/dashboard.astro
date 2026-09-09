@@ -135,12 +135,30 @@ try {
   console.warn('Could not fetch SQL tryout submission:', err);
 }
 
+// Fetch SQL Official Exam Submissions
+let sqlExamSubmission: any = null;
+try {
+  const examRes = await query(
+    `SELECT score, correct_answers, total_questions, duration_seconds, violation_count, is_disqualified, created_at 
+     FROM sql_exam_submissions 
+     WHERE user_id = $1 
+     ORDER BY created_at DESC 
+     LIMIT 1`,
+    [user.id]
+  );
+  if (examRes.rows && examRes.rows.length > 0) {
+    sqlExamSubmission = examRes.rows[0];
+  }
+} catch (err) {
+  console.warn('Could not fetch SQL exam submission:', err);
+}
+
 // Auto-sync existing student progress to course_enrollments
 try {
   if (bkSubmission || flowchartSubmission || tikSubmission) {
     await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'informatika') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
-  if (completedModules.length > 0 || sqlTryoutSubmission) {
+  if (completedModules.length > 0 || sqlTryoutSubmission || sqlExamSubmission) {
     await query(`INSERT INTO course_enrollments (user_id, course_id) VALUES ($1, 'rpl_web_sql') ON CONFLICT (user_id, course_id) DO NOTHING`, [user.id]);
   }
 } catch (err) {
@@ -345,17 +363,33 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
         </p>
       </div>
 
-      <!-- KPI 3: Try Out CBT Score -->
+      <!-- KPI 3: Official Exam / Try Out CBT Score -->
       <div class="m3-card m3-card-elevated kpi-card">
         <div class="kpi-top">
-          <span class="kpi-label">Hasil Try Out CBT SQL</span>
-          <span class="material-symbols-rounded icon-md text-m3-tertiary">quiz</span>
+          <span class="kpi-label">{sqlExamSubmission ? 'Evaluasi Resmi SQL' : 'Hasil Try Out CBT SQL'}</span>
+          <span class={`material-symbols-rounded icon-md ${sqlExamSubmission ? 'text-error' : 'text-m3-tertiary'}`}>
+            {sqlExamSubmission ? 'shield' : 'quiz'}
+          </span>
         </div>
-        <div class="kpi-value" style={sqlTryoutSubmission ? (sqlTryoutSubmission.score >= 75 ? 'color: var(--m3-success);' : 'color: var(--m3-warning);') : 'color: var(--m3-outline);'}>
-          {sqlTryoutSubmission ? `${sqlTryoutSubmission.score} / 100` : 'Belum Ujian'}
+        <div class="kpi-value" style={
+          sqlExamSubmission 
+            ? (sqlExamSubmission.is_disqualified ? 'color: var(--m3-error);' : sqlExamSubmission.score >= 75 ? 'color: var(--m3-success);' : 'color: var(--m3-warning);')
+            : sqlTryoutSubmission 
+              ? (sqlTryoutSubmission.score >= 75 ? 'color: var(--m3-success);' : 'color: var(--m3-warning);') 
+              : 'color: var(--m3-outline);'
+        }>
+          {sqlExamSubmission 
+            ? (sqlExamSubmission.is_disqualified ? 'Diskualifikasi' : `${sqlExamSubmission.score} / 100`)
+            : sqlTryoutSubmission 
+              ? `${sqlTryoutSubmission.score} / 100` 
+              : 'Belum Ujian'}
         </div>
         <p class="kpi-caption text-m3-muted">
-          {sqlTryoutSubmission ? `Benar ${sqlTryoutSubmission.correct_answers}/${sqlTryoutSubmission.total_questions} (${sqlTryoutSubmission.score >= 75 ? 'Tuntas' : 'Remedial'})` : '25 butir soal evaluasi'}
+          {sqlExamSubmission 
+            ? `Benar ${sqlExamSubmission.correct_answers}/${sqlExamSubmission.total_questions} (${sqlExamSubmission.is_disqualified ? 'Pelanggaran' : sqlExamSubmission.score >= 75 ? 'Tuntas KKM' : 'Remedial'})`
+            : sqlTryoutSubmission 
+              ? `Benar ${sqlTryoutSubmission.correct_answers}/${sqlTryoutSubmission.total_questions} (${sqlTryoutSubmission.score >= 75 ? 'Tuntas' : 'Remedial'})` 
+              : '30 butir soal evaluasi resmi'}
         </p>
       </div>
     </div>
@@ -488,17 +522,35 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
           </div>
         </div>
 
+        <!-- Official CBT Exam Box -->
+        <div class="cbt-tryout-box cbt-exam-box">
+          <div class="cbt-box-content">
+            <div class="cbt-box-header">
+              <span class="material-symbols-rounded icon-md text-error">shield</span>
+              <div>
+                <strong class="cbt-title">Ujian Evaluasi Resmi SQL</strong>
+                <p class="cbt-desc text-m3-muted">30 Soal • Anti-Cheat 3 Tahap • Kunci 5 Mnt</p>
+              </div>
+            </div>
+            <a href="/belajar/sql/ujian" class="m3-btn m3-btn-filled m3-btn-error btn-sm">
+              <span>{sqlExamSubmission ? 'Lihat Nilai' : 'Mulai Ujian'}</span>
+              <span class="material-symbols-rounded icon-sm">{sqlExamSubmission ? 'visibility' : 'play_arrow'}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Try Out CBT Box -->
         <div class="cbt-tryout-box">
           <div class="cbt-box-content">
             <div class="cbt-box-header">
               <span class="material-symbols-rounded icon-md text-m3-primary">quiz</span>
               <div>
                 <strong class="cbt-title">Try Out CBT SQL</strong>
-                <p class="cbt-desc text-m3-muted">25 Butir Soal • Evaluasi Instan</p>
+                <p class="cbt-desc text-m3-muted">25 Butir Soal • Simulasi Mandiri</p>
               </div>
             </div>
-            <a href="/belajar/sql/tryout" class="m3-btn m3-btn-filled btn-sm">
-              <span>{sqlTryoutSubmission ? 'Review Soal' : 'Mulai Ujian'}</span>
+            <a href="/belajar/sql/tryout" class="m3-btn m3-btn-tonal btn-sm">
+              <span>{sqlTryoutSubmission ? 'Review Soal' : 'Mulai Try Out'}</span>
               <span class="material-symbols-rounded icon-sm">play_arrow</span>
             </a>
           </div>
@@ -1247,6 +1299,11 @@ const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (us
     border-radius: 12px;
     padding: 0.75rem 1rem;
     margin-top: 0.85rem;
+  }
+
+  .cbt-exam-box {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(245, 158, 11, 0.03) 100%);
   }
 
   .cbt-box-content {

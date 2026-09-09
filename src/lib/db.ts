@@ -181,6 +181,22 @@ const CREATE_TABLES_PG = `
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS sql_exam_submissions (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    token_used VARCHAR(50) NOT NULL,
+    total_questions INT NOT NULL,
+    correct_answers INT NOT NULL,
+    score INT NOT NULL,
+    duration_seconds INT DEFAULT 0,
+    answers_json TEXT DEFAULT '{}',
+    violation_count INT DEFAULT 0,
+    is_disqualified BOOLEAN DEFAULT FALSE,
+    disqualification_reason TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS course_enrollments (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
@@ -211,6 +227,10 @@ const CREATE_TABLES_PG = `
 
   INSERT INTO course_enrollments (user_id, course_id)
   SELECT DISTINCT user_id, 'sql' FROM sql_tryout_submissions
+  ON CONFLICT (user_id, course_id) DO NOTHING;
+
+  INSERT INTO course_enrollments (user_id, course_id)
+  SELECT DISTINCT user_id, 'sql' FROM sql_exam_submissions
   ON CONFLICT (user_id, course_id) DO NOTHING;
 `;
 

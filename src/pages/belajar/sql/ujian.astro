@@ -1,0 +1,2011 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { query } from '../../../lib/db';
+import { sqlExamQuestions } from '../../../data/sqlExamQuestions';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+let pastSubmission: any = null;
+if (user) {
+  try {
+    const res = await query(
+      `SELECT id, token_used, total_questions, correct_answers, score, duration_seconds, violation_count, is_disqualified, disqualification_reason, created_at 
+       FROM sql_exam_submissions 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [user.id]
+    );
+    if (res.rows && res.rows.length > 0) {
+      pastSubmission = res.rows[0];
+    }
+  } catch (e) {
+    console.warn('Could not fetch past exam submission:', e);
+  }
+}
+
+// Prepare questions for frontend securely (NEVER leak correctAnswer and explanation to client)
+const initialExamQuestions = sqlExamQuestions.map((q) => ({
+  id: q.id,
+  category: q.category,
+  question: q.question,
+  codeSnippet: q.codeSnippet || null,
+  options: q.options
+}));
+---
+
+<MainLayout
+  title="Ujian Evaluasi Resmi SQL & Basis Data Relasional (CBT 30 Soal) | SMK RPL"
+  description="Ujian evaluasi resmi kompetensi Basis Data Relasional dan SQL standar SMK RPL dengan 30 soal pilihan ganda 5 opsi, durasi 60 menit, pengawasan keamanan tinggi (Anti-Cheat 3 Tahap, Layar Penuh, dan Kunci 5 Menit)."
+>
+  <div class="m3-exam-page">
+    <div class="m3-exam-container">
+      <!-- M3 Breadcrumb -->
+      <nav class="m3-breadcrumb">
+        <a href="/">Beranda</a>
+        <span class="m3-breadcrumb-sep">/</span>
+        <a href="/belajar/sql">Belajar SQL</a>
+        <span class="m3-breadcrumb-sep">/</span>
+        <span class="m3-breadcrumb-current">Ujian Evaluasi Resmi (CBT)</span>
+      </nav>
+
+      {/* =========================================================
+          SCREEN 1: TOKEN GATE & BRIEFING (High-Security Exam Gate)
+          ========================================================= */}
+      <div id="screen-gate" class="m3-screen active">
+        <div class="m3-card m3-card-elevated m3-gate-card">
+          <div class="m3-chip-row">
+            <span class="m3-chip m3-chip-error-tonal">
+              <span class="material-symbols-rounded icon-xs">security</span>
+              PENGAWASAN KEAMANAN TINGGI
+            </span>
+            <span class="m3-chip m3-chip-tonal-primary">30 SOAL EVALUASI AKHIR</span>
+            <span class="m3-chip m3-chip-tonal-secondary">STANDAR SMK RPL</span>
+          </div>
+
+          <h1 class="m3-title-large margin-top-xs">Ujian Evaluasi Resmi: SQL &amp; Basis Data Relasional</h1>
+          <p class="m3-body-large text-secondary">
+            Asesmen sumatif resmi untuk menguji penguasaan konsep relasional, DDL, DML, Agregasi, JOIN multi-tabel, Subquery, Normalisasi 1NF-3NF, dan Transaksi ACID. Ujian ini diawasi secara digital dengan sistem deteksi kecurangan otomatis.
+          </p>
+
+          <!-- M3 Info Specs Cards -->
+          <div class="m3-specs-grid margin-top-md">
+            <div class="m3-card m3-card-outlined m3-spec-card">
+              <div class="m3-spec-icon-wrap bg-primary-container">
+                <span class="material-symbols-rounded text-primary">format_list_numbered</span>
+              </div>
+              <div class="m3-spec-info">
+                <span class="m3-label-small">Jumlah Soal</span>
+                <strong class="m3-title-medium">30 Pilihan Ganda</strong>
+                <span class="m3-body-small text-secondary">5 Opsi Jawaban (A, B, C, D, E)</span>
+              </div>
+            </div>
+
+            <div class="m3-card m3-card-outlined m3-spec-card">
+              <div class="m3-spec-icon-wrap bg-secondary-container">
+                <span class="material-symbols-rounded text-secondary">timer</span>
+              </div>
+              <div class="m3-spec-info">
+                <span class="m3-label-small">Durasi Pengerjaan</span>
+                <strong class="m3-title-medium">60 Menit</strong>
+                <span class="m3-body-small text-secondary">Hitung Mundur 3.600 Detik</span>
+              </div>
+            </div>
+
+            <div class="m3-card m3-card-outlined m3-spec-card">
+              <div class="m3-spec-icon-wrap bg-tertiary-container">
+                <span class="material-symbols-rounded text-tertiary">grade</span>
+              </div>
+              <div class="m3-spec-info">
+                <span class="m3-label-small">Standar KKM</span>
+                <strong class="m3-title-medium">Nilai 75 / 100</strong>
+                <span class="m3-body-small text-secondary">Minimal 23 Jawaban Benar</span>
+              </div>
+            </div>
+
+            <div class="m3-card m3-card-outlined m3-spec-card">
+              <div class="m3-spec-icon-wrap bg-error-container">
+                <span class="material-symbols-rounded text-error">gavel</span>
+              </div>
+              <div class="m3-spec-info">
+                <span class="m3-label-small">Aturan Anti-Cheat</span>
+                <strong class="m3-title-medium">3-Stage Lockout</strong>
+                <span class="m3-body-small text-secondary">Wajib Layar Penuh &amp; Kunci 5 Mnt</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Policy Notice Card -->
+          <div class="m3-security-rules-box margin-top-md">
+            <div class="m3-rules-header">
+              <span class="material-symbols-rounded text-error">shield</span>
+              <h3 class="m3-title-small text-error">Protokol Keamanan &amp; Tata Tertib Ujian Digital:</h3>
+            </div>
+            <ul class="m3-rules-list">
+              <li>
+                <strong>Wajib Mode Layar Penuh (Fullscreen)</strong>: Ujian hanya dapat dikerjakan dalam mode fullscreen peramban.
+              </li>
+              <li>
+                <strong>Pelanggaran Ke-1 (Peringatan Keras)</strong>: Pindah tab, membuka jendela lain, atau meminimalkan browser akan memicu peringatan resmi dari sistem.
+              </li>
+              <li>
+                <strong>Pelanggaran Ke-2 (Layar Terkunci 5 Menit)</strong>: Pindah layar untuk kedua kalinya akan <strong>MENGUNCI LAYAR UJIAN SELAMA 5 MENIT (300 detik)</strong>. Timer waktu ujian 60 menit tetap berjalan di latar belakang tanpa kompensasi!
+              </li>
+              <li>
+                <strong>Pelanggaran Ke-3 (Diskualifikasi Langsung)</strong>: Pelanggaran ketiga akan menghentikan ujian seketika, dan jawaban Anda otomatis dikirim dengan status <strong>DISKUALIFIKASI KECURANGAN</strong>.
+              </li>
+              <li>
+                <strong>Satu Kali Pengerjaan (Single Attempt)</strong>: Setelah lembar ujian dikirim, Anda tidak dapat mengulang ujian kembali.
+              </li>
+            </ul>
+          </div>
+
+          {/* User Auth Gate Check */}
+          {!user ? (
+            <div class="m3-banner m3-banner-error margin-top-md">
+              <div class="m3-banner-body">
+                <h4 class="m3-title-small text-error">Akun Siswa Diperlukan</h4>
+                <p class="m3-body-medium text-secondary">
+                  Anda wajib masuk ke akun siswa resmi terlebih dahulu agar nilai ujian evaluasi dapat diaudit dan dicatat ke buku nilai guru.
+                </p>
+                <div class="m3-banner-actions margin-top-sm">
+                  <a href="/login?redirect=/belajar/sql/ujian" class="m3-btn m3-btn-filled">
+                    Masuk Akun Siswa &rarr;
+                  </a>
+                  <a href="/register?redirect=/belajar/sql/ujian" class="m3-btn m3-btn-outlined">
+                    Daftar Akun Baru
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : pastSubmission ? (
+            /* Student Has Already Completed The Exam (Single Attempt View) */
+            <div class="m3-card m3-card-outlined m3-already-submitted-card margin-top-md">
+              <div class="m3-sub-status-header">
+                <div class={`m3-status-icon-circle ${pastSubmission.is_disqualified ? 'status-disqualified' : pastSubmission.score >= 75 ? 'status-passed' : 'status-failed'}`}>
+                  <span class="material-symbols-rounded">
+                    {pastSubmission.is_disqualified ? 'cancel' : pastSubmission.score >= 75 ? 'verified' : 'pending_actions'}
+                  </span>
+                </div>
+                <div>
+                  <span class="m3-label-small text-secondary">STATUS EVALUASI RESMI</span>
+                  <h3 class="m3-title-medium">Anda Sudah Menyelesaikan Ujian Ini</h3>
+                  <span class="m3-body-small text-muted">
+                    Dikerjakan pada {new Date(pastSubmission.created_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}
+                  </span>
+                </div>
+              </div>
+
+              <div class="m3-result-metrics-grid margin-top-md">
+                <div class="m3-metric-box">
+                  <span class="m3-label-small">Skor Akhir</span>
+                  <strong class={`metric-val ${pastSubmission.is_disqualified ? 'text-error' : pastSubmission.score >= 75 ? 'text-success' : 'text-warning'}`}>
+                    {pastSubmission.score} / 100
+                  </strong>
+                </div>
+                <div class="m3-metric-box">
+                  <span class="m3-label-small">Jawaban Benar</span>
+                  <strong class="metric-val">{pastSubmission.correct_answers} / {pastSubmission.total_questions}</strong>
+                </div>
+                <div class="m3-metric-box">
+                  <span class="m3-label-small">Durasi Ujian</span>
+                  <strong class="metric-val">
+                    {Math.floor((pastSubmission.duration_seconds || 0) / 60)}m {(pastSubmission.duration_seconds || 0) % 60}s
+                  </strong>
+                </div>
+                <div class="m3-metric-box">
+                  <span class="m3-label-small">Audit Integritas</span>
+                  <strong class={`metric-val ${pastSubmission.violation_count > 0 ? 'text-error' : 'text-success'}`}>
+                    {pastSubmission.is_disqualified 
+                      ? 'DISKUALIFIKASI' 
+                      : pastSubmission.violation_count === 0 
+                        ? 'Jujur (0 Pelanggaran)' 
+                        : `${pastSubmission.violation_count} Pelanggaran`}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="m3-helper-box margin-top-md">
+                <span class="material-symbols-rounded icon-sm text-secondary">info</span>
+                <span>
+                  Ujian evaluasi resmi bersifat <strong>sekali tempuh (single attempt)</strong>. Nilai di atas telah tersimpan permanen di basis data sekolah. Hubungi Guru Pengampu jika Anda memerlukan sesi remedial khusus.
+                </span>
+              </div>
+
+              <div class="m3-action-row margin-top-md">
+                <a href="/dashboard" class="m3-btn m3-btn-filled">
+                  Ke Dashboard Siswa &rarr;
+                </a>
+                <a href="/belajar/sql/tryout" class="m3-btn m3-btn-tonal">
+                  Buka Try Out Latihan
+                </a>
+              </div>
+            </div>
+          ) : (
+            /* Token Input Form for Active Student */
+            <div class="m3-card m3-card-outlined m3-participant-card margin-top-md">
+              <div class="m3-participant-header">
+                <div class="m3-avatar">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="m3-participant-text">
+                  <span class="m3-label-small text-primary">PESERTA UJIAN TERDAFTAR</span>
+                  <h3 class="m3-title-medium">{user.name}</h3>
+                  <span class="m3-body-small font-mono text-muted">{user.email}</span>
+                </div>
+              </div>
+
+              <!-- Token Input Form -->
+              <form id="token-form" class="m3-token-form margin-top-md">
+                <div class="m3-token-group">
+                  <label for="input-token" class="m3-label-large">
+                    Masukkan Token Ujian Resmi:
+                  </label>
+                  <div class="m3-token-field-row">
+                    <input
+                      type="text"
+                      id="input-token"
+                      name="token"
+                      placeholder="Contoh: UJIAN-SQL-2026"
+                      class="m3-text-field font-mono"
+                      maxlength="30"
+                      required
+                      autocomplete="off"
+                    />
+                    <button type="submit" id="btn-start-exam" class="m3-btn m3-btn-filled m3-btn-lg">
+                      <span class="material-symbols-rounded icon-sm">fullscreen</span>
+                      <span>Mulai Ujian Layar Penuh &rarr;</span>
+                    </button>
+                  </div>
+                  <div id="token-error" class="m3-alert m3-alert-error" style="display: none;"></div>
+                  <div class="m3-helper-box">
+                    <span>
+                      Token resmi diberikan oleh Guru Pengampu di ruang ujian (Token default: <strong class="font-mono text-primary">UJIAN-SQL-2026</strong> atau <strong class="font-mono text-primary">EVALUASI-SQL</strong>).
+                    </span>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* =========================================================
+          SCREEN 2: HIGH-SECURITY CBT EXAMINATION ARENA
+          ========================================================= */}
+      <div id="screen-cbt" class="m3-screen" style="display: none;">
+        <!-- M3 Top App Bar with Live Security Status -->
+        <header class="m3-top-app-bar">
+          <div class="m3-app-bar-top-row">
+            <div class="m3-app-bar-leading">
+              <span class="m3-badge-tonal">EVALUASI RESMI</span>
+              <span class="material-symbols-rounded icon-sm text-secondary">person</span>
+              <span class="m3-title-small m3-app-bar-title" id="cbt-user-name">{user?.name || 'Peserta Siswa'}</span>
+            </div>
+
+            <!-- Security & Violation Badge -->
+            <div class="m3-security-pill" id="security-status-pill">
+              <span class="material-symbols-rounded icon-xs" id="security-icon">verified_user</span>
+              <span id="security-text">Status: Aman (0/3)</span>
+            </div>
+
+            <!-- Main Countdown Timer -->
+            <div class="m3-timer-container">
+              <span class="material-symbols-rounded icon-sm timer-icon">timer</span>
+              <span class="m3-label-small timer-label text-secondary">Sisa:</span>
+              <span class="m3-title-medium font-mono m3-timer-text" id="cbt-timer">60:00</span>
+            </div>
+          </div>
+
+          <div class="m3-app-bar-actions">
+            <button type="button" id="btn-mobile-palette-toggle" class="m3-btn m3-btn-tonal m3-mobile-only" title="Daftar Nomor Soal">
+              <span class="material-symbols-rounded icon-sm">grid_view</span>
+              <span>Daftar Soal (<span id="mobile-palette-badge">1/30</span>)</span>
+            </button>
+            <button type="button" id="btn-submit-exam" class="m3-btn m3-btn-filled m3-btn-success" title="Selesai &amp; Kumpulkan">
+              <span class="material-symbols-rounded icon-sm">check_circle</span>
+              <span class="m3-btn-label">Selesai Ujian</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main CBT Layout Grid -->
+        <div class="m3-cbt-layout margin-top-md">
+          <!-- Area Soal Aktif (Kiri) -->
+          <main class="m3-card m3-card-elevated m3-question-card">
+            <div class="m3-question-header">
+              <div class="m3-chip-row">
+                <span class="m3-chip m3-chip-tonal-primary" id="question-num-badge">SOAL NO. 1 DARI 30</span>
+                <span class="m3-chip m3-chip-tonal-secondary" id="question-category-badge">KONSEP BASIS DATA</span>
+              </div>
+              <button type="button" id="btn-toggle-doubt" class="m3-chip-filter" aria-pressed="false">
+                <span class="m3-chip-checkbox"></span>
+                <span id="doubt-btn-text">Ragu-Ragu</span>
+              </button>
+            </div>
+
+            <!-- Question Body -->
+            <div class="m3-question-content margin-top-md">
+              <h2 class="m3-title-large m3-question-title" id="question-text">Memuat pertanyaan...</h2>
+              
+              <div id="question-code-wrap" class="m3-code-container margin-top-sm" style="display: none;">
+                <div class="m3-code-header">
+                  <span class="m3-label-small font-mono">SKENARIO / KODE SQL:</span>
+                </div>
+                <pre class="m3-code-block font-mono"><code id="question-code"></code></pre>
+              </div>
+
+              <!-- 5 Options Form -->
+              <div class="m3-options-group margin-top-md" id="options-container">
+                <!-- Rendered dynamically via JS -->
+              </div>
+            </div>
+
+            <!-- Bottom Navigation Controls -->
+            <footer class="m3-question-footer margin-top-lg">
+              <button type="button" id="btn-prev-q" class="m3-btn m3-btn-outlined">
+                &larr; Soal Sebelumnya
+              </button>
+              <span class="m3-label-medium text-secondary" id="nav-indicator-text">1 dari 30 Soal</span>
+              <button type="button" id="btn-next-q" class="m3-btn m3-btn-filled">
+                Soal Berikutnya &rarr;
+              </button>
+            </footer>
+          </main>
+
+          <!-- Sidebar Navigation Palette (Kanan) -->
+          <aside class="m3-card m3-card-elevated m3-palette-card">
+            <div class="m3-palette-header">
+              <h3 class="m3-title-medium">Navigasi 30 Nomor Soal</h3>
+              <span class="m3-body-small text-secondary">Klik nomor untuk berpindah soal langsung</span>
+            </div>
+
+            <!-- Status Legend -->
+            <div class="m3-palette-legend">
+              <div class="m3-legend-item"><span class="m3-legend-box m3-box-answered"></span> Terjawab</div>
+              <div class="m3-legend-item"><span class="m3-legend-box m3-box-doubt"></span> Ragu-ragu</div>
+              <div class="m3-legend-item"><span class="m3-legend-box m3-box-unanswered"></span> Belum diisi</div>
+            </div>
+
+            <!-- 30 Question Number Buttons Grid -->
+            <div class="m3-palette-grid margin-top-sm" id="palette-grid">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Palette Summary Statistics -->
+            <div class="m3-palette-summary margin-top-md" id="palette-summary">
+              <div class="m3-summary-item">
+                <span class="m3-body-small text-secondary">Terjawab:</span>
+                <strong id="summary-answered-count">0 / 30</strong>
+              </div>
+              <div class="m3-summary-item">
+                <span class="m3-body-small text-secondary">Ragu-ragu:</span>
+                <strong id="summary-doubt-count" class="text-warning">0</strong>
+              </div>
+            </div>
+
+            <!-- High Security Watermark -->
+            <div class="m3-security-watermark margin-top-md">
+              <span class="material-symbols-rounded icon-xs text-secondary">lock</span>
+              <span class="m3-label-small text-secondary">Protokol Keamanan Aktif</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      {/* =========================================================
+          SCREEN 3: EVALUATION RESULT & AUDIT SUMMARY
+          ========================================================= */}
+      <div id="screen-result" class="m3-screen" style="display: none;">
+        <div class="m3-card m3-card-elevated m3-result-card">
+          <!-- Header Banner Status -->
+          <div class="m3-result-header text-center">
+            <div class="m3-result-badge-wrap">
+              <span class="m3-chip m3-chip-tonal-primary" id="result-status-badge">HASIL EVALUASI RESMI</span>
+            </div>
+            
+            <div class="m3-score-display margin-top-sm">
+              <span class="m3-score-number" id="result-score">0</span>
+              <span class="m3-score-total">/ 100</span>
+            </div>
+
+            <h2 class="m3-title-large margin-top-xs" id="result-heading">Memproses Hasil Ujian...</h2>
+            <p class="m3-body-medium text-secondary" id="result-desc">
+              Jawaban Anda telah berhasil dinilai oleh sistem evaluasi sekolah.
+            </p>
+          </div>
+
+          <!-- Result Metrics Grid -->
+          <div class="m3-result-metrics-grid margin-top-lg">
+            <div class="m3-metric-box">
+              <span class="m3-label-small">Jawaban Benar</span>
+              <strong class="metric-val text-success" id="result-correct-count">0</strong>
+              <span class="m3-body-small text-secondary">dari 30 Butir Soal</span>
+            </div>
+
+            <div class="m3-metric-box">
+              <span class="m3-label-small">Jawaban Salah / Kosong</span>
+              <strong class="metric-val text-error" id="result-wrong-count">0</strong>
+              <span class="m3-body-small text-secondary">Perlu Remedial</span>
+            </div>
+
+            <div class="m3-metric-box">
+              <span class="m3-label-small">Durasi Waktu</span>
+              <strong class="metric-val" id="result-duration">00m 00s</strong>
+              <span class="m3-body-small text-secondary">Alokasi: 60 Menit</span>
+            </div>
+
+            <div class="m3-metric-box">
+              <span class="m3-label-small">Audit Integritas Ujian</span>
+              <strong class="metric-val" id="result-integrity-val">0 Pelanggaran</strong>
+              <span class="m3-body-small text-secondary" id="result-integrity-status">Tervalidasi Jujur</span>
+            </div>
+          </div>
+
+          <!-- Answer Key Confidentiality Box (As Requested by Teacher) -->
+          <div class="m3-confidentiality-box margin-top-lg">
+            <div class="m3-confidentiality-header">
+              <span class="material-symbols-rounded text-primary">lock_clock</span>
+              <h4 class="m3-title-small text-primary">Kerahasiaan Kunci Jawaban &amp; Pembahasan:</h4>
+            </div>
+            <p class="m3-body-medium text-secondary margin-top-xs">
+              Sesuai standar operasional asesmen resmi, lembar kunci jawaban dan analisis pembahasan soal ujian evaluasi ini <strong>dirahasiakan</strong> demi menjaga integritas serta objektivitas ujian bagi seluruh peserta. Nilai dan rekaman integritas Anda telah dikirimkan secara otomatis ke daftar rekapitulasi nilai Guru Pengampu.
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="m3-result-actions margin-top-lg text-center">
+            <a href="/dashboard" class="m3-btn m3-btn-filled m3-btn-lg">
+              <span class="material-symbols-rounded icon-sm">dashboard</span>
+              <span>Kembali ke Dashboard Siswa</span>
+            </a>
+            <a href="/belajar/sql" class="m3-btn m3-btn-outlined m3-btn-lg">
+              <span>Katalog Modul Belajar SQL</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {/* =========================================================
+      MODAL 1: SUBMISSION CONFIRMATION DIALOG
+      ========================================================= */}
+  <div id="confirm-modal" class="m3-modal-overlay" style="display: none;" role="dialog" aria-modal="true">
+    <div class="m3-card m3-card-elevated m3-modal-card">
+      <div class="m3-modal-header">
+        <span class="material-symbols-rounded icon-md text-primary">help</span>
+        <h3 class="m3-title-medium">Kumpulkan Lembar Ujian?</h3>
+      </div>
+      
+      <div class="m3-modal-body margin-top-sm">
+        <p class="m3-body-medium text-secondary" id="modal-summary-text">
+          Anda telah menjawab 0 dari 30 soal.
+        </p>
+        <div id="modal-unanswered-warning" class="m3-alert m3-alert-warning margin-top-xs" style="display: none;">
+          <strong>Perhatian:</strong> Masih terdapat soal yang belum diisi atau ditandai ragu-ragu.
+        </div>
+        <p class="m3-body-small text-muted margin-top-xs">
+          Setelah dikumpulkan, lembar ujian resmi akan dinilai secara otomatis dan tidak dapat diubah kembali.
+        </p>
+      </div>
+
+      <div class="m3-modal-footer margin-top-md">
+        <button type="button" id="btn-modal-cancel" class="m3-btn m3-btn-text">
+          Lanjutkan Mengerjakan
+        </button>
+        <button type="button" id="btn-modal-confirm" class="m3-btn m3-btn-filled m3-btn-success">
+          Ya, Kumpulkan Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* =========================================================
+      MODAL 2: ANTI-CHEAT STAGE 1 (WARNING MODAL)
+      ========================================================= */}
+  <div id="modal-violation-1" class="m3-modal-overlay m3-modal-alert-overlay" style="display: none;" role="dialog" aria-modal="true">
+    <div class="m3-card m3-card-elevated m3-modal-card m3-border-warning">
+      <div class="m3-modal-header">
+        <div class="m3-modal-icon-wrap bg-warning-container">
+          <span class="material-symbols-rounded icon-lg text-warning">warning</span>
+        </div>
+        <div>
+          <span class="m3-label-small text-warning font-bold">PERINGATAN RESMI KEAMANAN</span>
+          <h3 class="m3-title-medium text-warning">Pelanggaran Layar Terdeteksi (1 dari 3)</h3>
+        </div>
+      </div>
+
+      <div class="m3-modal-body margin-top-sm">
+        <p class="m3-body-medium">
+          Anda terdeteksi <strong>berpindah tab, meminimalkan peramban, atau keluar dari mode layar penuh</strong>.
+        </p>
+        <div class="m3-alert m3-alert-warning margin-top-xs">
+          <strong>Peringatan Tegas:</strong> Jika Anda melakukan pelanggaran 1 kali lagi, <strong>LAYAR UJIAN ANDA AKAN TERKUNCI SELAMA 5 MENIT</strong> dan waktu ujian utama tetap berjalan!
+        </div>
+      </div>
+
+      <div class="m3-modal-footer margin-top-md">
+        <button type="button" id="btn-violation-1-confirm" class="m3-btn m3-btn-filled m3-btn-warning w-100">
+          <span class="material-symbols-rounded icon-sm">fullscreen</span>
+          <span>Saya Mengerti, Kembali ke Layar Penuh</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* =========================================================
+      MODAL 3: ANTI-CHEAT STAGE 2 (5-MINUTE LOCKOUT MODAL)
+      ========================================================= */}
+  <div id="modal-lockout" class="m3-modal-overlay m3-modal-lockout-overlay" style="display: none;" role="dialog" aria-modal="true">
+    <div class="m3-card m3-card-elevated m3-modal-card m3-lockout-card">
+      <div class="m3-lockout-icon-pulse">
+        <span class="material-symbols-rounded icon-xl text-error">lock_clock</span>
+      </div>
+
+      <span class="m3-label-small text-error font-bold">PELANGGARAN KEDUA (2 DARI 3)</span>
+      <h3 class="m3-title-large text-error margin-top-xs">Akses Soal Terkunci Sementara</h3>
+      
+      <p class="m3-body-medium text-secondary margin-top-xs">
+        Anda kembali meninggalkan layar ujian. Sesuai regulasi sistem, akses lembar soal dikunci selama 5 menit.
+      </p>
+
+      <!-- Giant Lockout Countdown Timer -->
+      <div class="m3-lockout-timer-wrap margin-top-md">
+        <span class="m3-label-small text-muted">SISA WAKTU TERKUNCI:</span>
+        <div class="m3-lockout-countdown font-mono" id="lockout-countdown-display">05:00</div>
+      </div>
+
+      <div class="m3-alert m3-alert-error margin-top-md text-left">
+        <strong>PERINGATAN KRUSIAL:</strong>
+        <ul class="margin-top-2xs pl-3">
+          <li>Waktu ujian utama 60 menit <strong>TETAP BERKURANG</strong> di latar belakang.</li>
+          <li>Jika Anda melakukan <strong>1 pelanggaran lagi</strong> setelah kunci ini terbuka, ujian akan <strong>SEKETIKA DIHENTIKAN DAN DI-SUBMIT DENGAN STATUS DISKUALIFIKASI KECURANGAN</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="m3-lockout-footer margin-top-md">
+        <span class="m3-body-small text-muted">
+          Tombol pengerjaan akan otomatis aktif kembali saat hitung mundur 5 menit berakhir. Tetaplah di halaman ini!
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {/* =========================================================
+      MODAL 4: ANTI-CHEAT STAGE 3 (DISQUALIFIED AUTO-SUBMIT MODAL)
+      ========================================================= */}
+  <div id="modal-disqualified" class="m3-modal-overlay m3-modal-alert-overlay" style="display: none;" role="dialog" aria-modal="true">
+    <div class="m3-card m3-card-elevated m3-modal-card m3-border-error">
+      <div class="m3-modal-header">
+        <div class="m3-modal-icon-wrap bg-error-container">
+          <span class="material-symbols-rounded icon-lg text-error">block</span>
+        </div>
+        <div>
+          <span class="m3-label-small text-error font-bold">BATAS PELANGGARAN TERLAMPAUI (3/3)</span>
+          <h3 class="m3-title-medium text-error">Ujian Dihentikan &amp; Terdiskualifikasi</h3>
+        </div>
+      </div>
+
+      <div class="m3-modal-body margin-top-sm">
+        <p class="m3-body-medium text-secondary">
+          Anda telah melakukan 3 kali pelanggaran keamanan layar. Ujian evaluasi Anda telah dihentikan oleh sistem pengawas otomatis.
+        </p>
+        <div class="m3-alert m3-alert-error margin-top-xs">
+          Seluruh jawaban yang telah Anda isi telah dikirimkan ke server guru dengan catatan <strong>TERDISKUALIFIKASI KECURANGAN</strong>.
+        </div>
+      </div>
+
+      <div class="m3-modal-footer margin-top-md">
+        <button type="button" id="btn-disqualified-view-result" class="m3-btn m3-btn-filled m3-btn-error w-100">
+          Lihat Lembar Laporan Nilai &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* =========================================================
+      MOBILE PALETTE DRAWER
+      ========================================================= */}
+  <div id="mobile-palette-modal" class="m3-modal-overlay m3-mobile-drawer-overlay" style="display: none;">
+    <div class="m3-card m3-mobile-drawer-card">
+      <div class="m3-drawer-header">
+        <h3 class="m3-title-medium">Daftar Nomor Soal (30)</h3>
+        <button type="button" id="btn-close-mobile-palette" class="m3-btn-icon" aria-label="Tutup">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <div class="m3-palette-legend margin-top-xs">
+        <div class="m3-legend-item"><span class="m3-legend-box m3-box-answered"></span> Terjawab</div>
+        <div class="m3-legend-item"><span class="m3-legend-box m3-box-doubt"></span> Ragu-ragu</div>
+        <div class="m3-legend-item"><span class="m3-legend-box m3-box-unanswered"></span> Belum diisi</div>
+      </div>
+      <div class="m3-palette-grid margin-top-sm" id="mobile-palette-grid">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<!-- Embed Questions Data for Client Script (Questions & Options Only, No Answers) -->
+<script is:inline define:vars={{ initialExamQuestions, user }}>
+  window.__EXAM_QUESTIONS__ = initialExamQuestions;
+  window.__CURRENT_USER__ = user;
+</script>
+
+<script>
+  // =========================================================================
+  // CLIENT-SIDE HIGH-SECURITY EXAM & ANTI-CHEAT ENGINE
+  // =========================================================================
+  const TOTAL_DURATION_SECS = 60 * 60; // 60 Minutes (3,600 Seconds)
+  const LOCKOUT_DURATION_SECS = 5 * 60; // 5 Minutes (300 Seconds)
+
+  const examQuestions: any[] = (window as any).__EXAM_QUESTIONS__ || [];
+  const currentUser: any = (window as any).__CURRENT_USER__ || null;
+
+  let activeToken = '';
+  let currentQIndex = 0;
+  let userAnswers: Record<number, string> = {};
+  let userDoubt: Record<number, boolean> = {};
+  let timerInterval: any = null;
+  let secondsRemaining = TOTAL_DURATION_SECS;
+  let examStartTime: number | null = null;
+
+  // Anti-Cheat State
+  let isExamActive = false;
+  let isSubmitting = false;
+  let violationCount = 0;
+  let isLocked = false;
+  let lockoutRemaining = LOCKOUT_DURATION_SECS;
+  let lockoutInterval: any = null;
+  let violationCooldown = false;
+
+  // DOM Elements
+  const screenGate = document.getElementById('screen-gate');
+  const screenCbt = document.getElementById('screen-cbt');
+  const screenResult = document.getElementById('screen-result');
+
+  // Token Gate Elements
+  const tokenForm = document.getElementById('token-form');
+  const inputToken = document.getElementById('input-token') as HTMLInputElement | null;
+  const btnStartExam = document.getElementById('btn-start-exam') as HTMLButtonElement | null;
+  const tokenError = document.getElementById('token-error');
+
+  // CBT Elements
+  const cbtTimer = document.getElementById('cbt-timer');
+  const securityStatusPill = document.getElementById('security-status-pill');
+  const securityIcon = document.getElementById('security-icon');
+  const securityText = document.getElementById('security-text');
+  const btnSubmitExam = document.getElementById('btn-submit-exam');
+  const qNumBadge = document.getElementById('question-num-badge');
+  const qCatBadge = document.getElementById('question-category-badge');
+  const btnToggleDoubt = document.getElementById('btn-toggle-doubt');
+  const doubtBtnText = document.getElementById('doubt-btn-text');
+  const qText = document.getElementById('question-text');
+  const qCodeWrap = document.getElementById('question-code-wrap');
+  const qCode = document.getElementById('question-code');
+  const optionsContainer = document.getElementById('options-container');
+  const btnPrevQ = document.getElementById('btn-prev-q');
+  const btnNextQ = document.getElementById('btn-next-q');
+  const navIndicatorText = document.getElementById('nav-indicator-text');
+  const paletteGrid = document.getElementById('palette-grid');
+  const summaryAnsweredCount = document.getElementById('summary-answered-count');
+  const summaryDoubtCount = document.getElementById('summary-doubt-count');
+
+  // Modals
+  const confirmModal = document.getElementById('confirm-modal');
+  const btnModalCancel = document.getElementById('btn-modal-cancel');
+  const btnModalConfirm = document.getElementById('btn-modal-confirm');
+  const modalSummaryText = document.getElementById('modal-summary-text');
+  const modalUnansweredWarn = document.getElementById('modal-unanswered-warning');
+
+  const modalViolation1 = document.getElementById('modal-violation-1');
+  const btnViolation1Confirm = document.getElementById('btn-violation-1-confirm');
+
+  const modalLockout = document.getElementById('modal-lockout');
+  const lockoutCountdownDisplay = document.getElementById('lockout-countdown-display');
+
+  const modalDisqualified = document.getElementById('modal-disqualified');
+  const btnDisqualifiedViewResult = document.getElementById('btn-disqualified-view-result');
+
+  // Result Elements
+  const resultScore = document.getElementById('result-score');
+  const resultStatusBadge = document.getElementById('result-status-badge');
+  const resultHeading = document.getElementById('result-heading');
+  const resultDesc = document.getElementById('result-desc');
+  const resultCorrectCount = document.getElementById('result-correct-count');
+  const resultWrongCount = document.getElementById('result-wrong-count');
+  const resultDuration = document.getElementById('result-duration');
+  const resultIntegrityVal = document.getElementById('result-integrity-val');
+  const resultIntegrityStatus = document.getElementById('result-integrity-status');
+
+  // Mobile Palette Drawer
+  const btnMobilePaletteToggle = document.getElementById('btn-mobile-palette-toggle');
+  const mobilePaletteModal = document.getElementById('mobile-palette-modal');
+  const btnCloseMobilePalette = document.getElementById('btn-close-mobile-palette');
+  const mobilePaletteGrid = document.getElementById('mobile-palette-grid');
+  const mobilePaletteBadge = document.getElementById('mobile-palette-badge');
+
+  // Storage key
+  const storageKey = currentUser ? `sql_exam_answers_${currentUser.id}` : 'sql_exam_answers_guest';
+
+  // =========================================================================
+  // 1. INITIALIZATION & EVENT LISTENERS
+  // =========================================================================
+  const init = () => {
+    tokenForm?.addEventListener('submit', handleTokenSubmit);
+    btnPrevQ?.addEventListener('click', () => navigateQuestion(currentQIndex - 1));
+    btnNextQ?.addEventListener('click', () => navigateQuestion(currentQIndex + 1));
+    btnToggleDoubt?.addEventListener('click', toggleDoubt);
+    btnSubmitExam?.addEventListener('click', openConfirmModal);
+    btnModalCancel?.addEventListener('click', closeConfirmModal);
+    btnModalConfirm?.addEventListener('click', () => submitExamAnswers(false, ''));
+    btnViolation1Confirm?.addEventListener('click', acknowledgeViolation1);
+    btnDisqualifiedViewResult?.addEventListener('click', () => {
+      if (modalDisqualified) modalDisqualified.style.display = 'none';
+    });
+
+    // Mobile Drawer
+    btnMobilePaletteToggle?.addEventListener('click', () => {
+      if (mobilePaletteModal) mobilePaletteModal.style.display = 'flex';
+    });
+    btnCloseMobilePalette?.addEventListener('click', () => {
+      if (mobilePaletteModal) mobilePaletteModal.style.display = 'none';
+    });
+    mobilePaletteModal?.addEventListener('click', (e) => {
+      if (e.target === mobilePaletteModal) mobilePaletteModal.style.display = 'none';
+    });
+
+    // Attach Anti-Cheat Listeners
+    setupAntiCheatListeners();
+  };
+
+  // =========================================================================
+  // 2. TOKEN VERIFICATION & FULLSCREEN START
+  // =========================================================================
+  const handleTokenSubmit = async (e: Event) => {
+    e.preventDefault();
+    if (!inputToken) return;
+
+    const token = inputToken.value.trim().toUpperCase();
+    if (!token) return;
+
+    if (btnStartExam) {
+      btnStartExam.disabled = true;
+      btnStartExam.innerHTML = '<span class="material-symbols-rounded icon-sm spinning">sync</span> Memverifikasi Token...';
+    }
+    if (tokenError) tokenError.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/sql/ujian/verify-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        if (tokenError) {
+          tokenError.textContent = data.error || 'Token ujian tidak valid.';
+          tokenError.style.display = 'block';
+        }
+        if (btnStartExam) {
+          btnStartExam.disabled = false;
+          btnStartExam.innerHTML = '<span class="material-symbols-rounded icon-sm">fullscreen</span> Mulai Ujian Layar Penuh &rarr;';
+        }
+        return;
+      }
+
+      activeToken = token;
+      
+      // Request Fullscreen on user gesture
+      try {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        } else if ((document.documentElement as any).webkitRequestFullscreen) {
+          await (document.documentElement as any).webkitRequestFullscreen();
+        }
+      } catch (fsErr) {
+        console.warn('Fullscreen request bypassed or denied:', fsErr);
+      }
+
+      startCbtExam();
+    } catch (err) {
+      if (tokenError) {
+        tokenError.textContent = 'Gagal menghubungi server pengawas ujian.';
+        tokenError.style.display = 'block';
+      }
+      if (btnStartExam) {
+        btnStartExam.disabled = false;
+        btnStartExam.innerHTML = '<span class="material-symbols-rounded icon-sm">fullscreen</span> Mulai Ujian Layar Penuh &rarr;';
+      }
+    }
+  };
+
+  // =========================================================================
+  // 3. START CBT SESSION
+  // =========================================================================
+  const startCbtExam = () => {
+    // Restore any draft answers
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        userAnswers = JSON.parse(saved) || {};
+      }
+    } catch (e) {
+      console.warn('Could not read session answers:', e);
+    }
+
+    if (screenGate) screenGate.style.display = 'none';
+    if (screenCbt) screenCbt.style.display = 'block';
+    if (screenResult) screenResult.style.display = 'none';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    isExamActive = true;
+    examStartTime = Date.now();
+    secondsRemaining = TOTAL_DURATION_SECS;
+
+    renderPalette();
+    renderCurrentQuestion();
+    startExamTimer();
+  };
+
+  // =========================================================================
+  // 4. ANTI-CHEAT LISTENERS & VIOLATION HANDLER
+  // =========================================================================
+  const setupAntiCheatListeners = () => {
+    // 1. Visibility Change (Tab Switch or Minimize)
+    document.addEventListener('visibilitychange', () => {
+      if (!isExamActive || isSubmitting) return;
+      if (document.visibilityState === 'hidden') {
+        triggerViolation('Meninggalkan tab ujian atau meminimalkan browser');
+      }
+    });
+
+    // 2. Window Blur (Switching Apps, DevTools, or Clicking Outside)
+    window.addEventListener('blur', () => {
+      if (!isExamActive || isSubmitting) return;
+      triggerViolation('Berpindah fokus ke aplikasi atau jendela lain');
+    });
+
+    // 3. Fullscreen Exit
+    document.addEventListener('fullscreenchange', () => {
+      if (!isExamActive || isSubmitting) return;
+      if (!document.fullscreenElement) {
+        triggerViolation('Keluar dari mode layar penuh (fullscreen)');
+      }
+    });
+
+    // 4. Context Menu (Right Click) Block
+    window.addEventListener('contextmenu', (e) => {
+      if (isExamActive && !isSubmitting) {
+        e.preventDefault();
+      }
+    });
+
+    // 5. Clipboard Restriction (Copy, Cut, Paste)
+    const blockClipboard = (e: ClipboardEvent) => {
+      if (isExamActive && !isSubmitting) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('copy', blockClipboard);
+    window.addEventListener('cut', blockClipboard);
+    window.addEventListener('paste', blockClipboard);
+
+    // 6. Block Dangerous Shortcuts (F12, Inspect, Print, Save)
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (!isExamActive || isSubmitting) return;
+
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+
+      if (
+        e.key === 'F12' ||
+        (isCtrlOrMeta && (key === 'u' || key === 's' || key === 'p')) ||
+        (isCtrlOrMeta && e.shiftKey && (key === 'i' || key === 'j' || key === 'c'))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
+    // 7. Prevent accidental navigation away
+    window.addEventListener('beforeunload', (e) => {
+      if (isExamActive && !isSubmitting) {
+        e.preventDefault();
+        (e as any).returnValue = 'Ujian evaluasi sedang berlangsung!';
+      }
+    });
+  };
+
+  const triggerViolation = (reason: string) => {
+    if (!isExamActive || isSubmitting || violationCooldown) return;
+
+    violationCooldown = true;
+    setTimeout(() => {
+      violationCooldown = false;
+    }, 2500); // 2.5s cooldown to prevent double-firing from blur + visibility
+
+    violationCount++;
+    updateSecurityPill();
+
+    console.warn(`[Anti-Cheat Violation #${violationCount}]: ${reason}`);
+
+    if (violationCount === 1) {
+      // Stage 1: Peringatan Keras (Modal 1)
+      if (modalViolation1) modalViolation1.style.display = 'flex';
+    } else if (violationCount === 2) {
+      // Stage 2: Kunci Layar 5 Menit (300 Detik)
+      if (modalViolation1) modalViolation1.style.display = 'none';
+      start5MinuteLockout();
+    } else if (violationCount >= 3) {
+      // Stage 3: Auto-Submit & Diskualifikasi Langsung
+      if (modalViolation1) modalViolation1.style.display = 'none';
+      if (modalLockout) modalLockout.style.display = 'none';
+      if (modalDisqualified) modalDisqualified.style.display = 'flex';
+      
+      submitExamAnswers(true, `Diskualifikasi otomatis sistem: Mencapai 3 kali pelanggaran keamanan layar (${reason})`);
+    }
+  };
+
+  const updateSecurityPill = () => {
+    if (!securityStatusPill || !securityIcon || !securityText) return;
+
+    if (violationCount === 0) {
+      securityStatusPill.className = 'm3-security-pill status-safe';
+      securityIcon.textContent = 'verified_user';
+      securityText.textContent = 'Status: Aman (0/3)';
+    } else if (violationCount === 1) {
+      securityStatusPill.className = 'm3-security-pill status-warn';
+      securityIcon.textContent = 'warning';
+      securityText.textContent = 'Peringatan 1/3 Terdeteksi';
+    } else if (violationCount === 2) {
+      securityStatusPill.className = 'm3-security-pill status-locked';
+      securityIcon.textContent = 'lock_clock';
+      securityText.textContent = 'TERKUNCI 5 MENIT (2/3)';
+    } else {
+      securityStatusPill.className = 'm3-security-pill status-disqualified';
+      securityIcon.textContent = 'block';
+      securityText.textContent = 'TERDISKUALIFIKASI (3/3)';
+    }
+  };
+
+  const acknowledgeViolation1 = async () => {
+    if (modalViolation1) modalViolation1.style.display = 'none';
+    // Re-enforce fullscreen
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      }
+    } catch (e) {
+      console.warn('Could not re-enter fullscreen:', e);
+    }
+  };
+
+  const start5MinuteLockout = () => {
+    isLocked = true;
+    lockoutRemaining = LOCKOUT_DURATION_SECS;
+
+    if (modalLockout) modalLockout.style.display = 'flex';
+    updateLockoutDisplay();
+
+    if (lockoutInterval) clearInterval(lockoutInterval);
+
+    lockoutInterval = window.setInterval(() => {
+      lockoutRemaining--;
+      updateLockoutDisplay();
+
+      if (lockoutRemaining <= 0) {
+        clearInterval(lockoutInterval);
+        isLocked = false;
+        if (modalLockout) modalLockout.style.display = 'none';
+
+        // Re-enforce fullscreen
+        try {
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          }
+        } catch (e) {}
+      }
+    }, 1000);
+  };
+
+  const updateLockoutDisplay = () => {
+    if (!lockoutCountdownDisplay) return;
+    const mins = Math.floor(lockoutRemaining / 60);
+    const secs = lockoutRemaining % 60;
+    lockoutCountdownDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  // =========================================================================
+  // 5. EXAM COUNTDOWN TIMER
+  // =========================================================================
+  const startExamTimer = () => {
+    if (timerInterval) clearInterval(timerInterval);
+
+    timerInterval = window.setInterval(() => {
+      secondsRemaining--;
+      renderTimer();
+
+      if (secondsRemaining <= 0) {
+        clearInterval(timerInterval);
+        submitExamAnswers(false, 'Waktu pengerjaan ujian 60 menit telah habis');
+      }
+    }, 1000);
+  };
+
+  const renderTimer = () => {
+    if (!cbtTimer) return;
+    const mins = Math.floor(secondsRemaining / 60);
+    const secs = secondsRemaining % 60;
+    cbtTimer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+    if (secondsRemaining <= 300) {
+      cbtTimer.classList.add('timer-danger');
+    } else {
+      cbtTimer.classList.remove('timer-danger');
+    }
+  };
+
+  // =========================================================================
+  // 6. QUESTION RENDERING & NAVIGATION
+  // =========================================================================
+  const renderCurrentQuestion = () => {
+    if (!examQuestions || examQuestions.length === 0) return;
+    const q = examQuestions[currentQIndex];
+    if (!q) return;
+
+    if (qNumBadge) qNumBadge.textContent = `SOAL NO. ${currentQIndex + 1} DARI ${examQuestions.length}`;
+    if (qCatBadge) qCatBadge.textContent = (q.category || 'BASIS DATA').toUpperCase();
+    if (navIndicatorText) navIndicatorText.textContent = `${currentQIndex + 1} dari ${examQuestions.length} Soal`;
+    if (mobilePaletteBadge) mobilePaletteBadge.textContent = `${currentQIndex + 1}/${examQuestions.length}`;
+
+    if (qText) qText.textContent = q.question;
+
+    if (qCodeWrap && qCode) {
+      if (q.codeSnippet) {
+        qCode.textContent = q.codeSnippet;
+        qCodeWrap.style.display = 'block';
+      } else {
+        qCodeWrap.style.display = 'none';
+      }
+    }
+
+    // Doubt button status
+    if (btnToggleDoubt && doubtBtnText) {
+      const isDoubt = Boolean(userDoubt[q.id]);
+      btnToggleDoubt.setAttribute('aria-pressed', isDoubt ? 'true' : 'false');
+      if (isDoubt) {
+        btnToggleDoubt.classList.add('active');
+        doubtBtnText.textContent = 'Ragu-Ragu (Ditandai)';
+      } else {
+        btnToggleDoubt.classList.remove('active');
+        doubtBtnText.textContent = 'Ragu-Ragu';
+      }
+    }
+
+    // Prev / Next button states
+    if (btnPrevQ) (btnPrevQ as HTMLButtonElement).disabled = currentQIndex === 0;
+    if (btnNextQ) {
+      if (currentQIndex === examQuestions.length - 1) {
+        btnNextQ.innerHTML = '<span class="material-symbols-rounded icon-sm">check</span> Tinjau &amp; Selesai';
+      } else {
+        btnNextQ.innerHTML = 'Soal Berikutnya &rarr;';
+      }
+    }
+
+    // Render 5 Options
+    if (optionsContainer) {
+      optionsContainer.innerHTML = '';
+      const selected = userAnswers[q.id] || null;
+
+      q.options.forEach((opt: { key: string; text: string }) => {
+        const isSelected = selected === opt.key;
+        const optCard = document.createElement('div');
+        optCard.className = `m3-option-card ${isSelected ? 'selected' : ''}`;
+        optCard.setAttribute('data-key', opt.key);
+
+        optCard.innerHTML = `
+          <div class="m3-option-radio ${isSelected ? 'checked' : ''}">
+            <span class="m3-option-radio-dot"></span>
+          </div>
+          <div class="m3-option-content">
+            <span class="m3-option-key font-mono">${opt.key}.</span>
+            <span class="m3-option-text">${opt.text}</span>
+          </div>
+        `;
+
+        optCard.addEventListener('click', () => {
+          if (isLocked) return;
+          selectAnswer(q.id, opt.key);
+        });
+
+        optionsContainer.appendChild(optCard);
+      });
+    }
+
+    updatePaletteActiveState();
+  };
+
+  const selectAnswer = (questionId: number, optionKey: string) => {
+    userAnswers[questionId] = optionKey;
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(userAnswers));
+    } catch (e) {}
+
+    renderCurrentQuestion();
+    renderPalette();
+  };
+
+  const toggleDoubt = () => {
+    const q = examQuestions[currentQIndex];
+    if (!q) return;
+    userDoubt[q.id] = !userDoubt[q.id];
+    renderCurrentQuestion();
+    renderPalette();
+  };
+
+  const navigateQuestion = (newIndex: number) => {
+    if (newIndex < 0) return;
+    if (newIndex >= examQuestions.length) {
+      openConfirmModal();
+      return;
+    }
+    currentQIndex = newIndex;
+    renderCurrentQuestion();
+  };
+
+  // =========================================================================
+  // 7. QUESTION PALETTE GRID
+  // =========================================================================
+  const renderPalette = () => {
+    const renderTo = (container: HTMLElement | null) => {
+      if (!container) return;
+      container.innerHTML = '';
+
+      examQuestions.forEach((q: any, idx: number) => {
+        const isAnswered = Boolean(userAnswers[q.id]);
+        const isDoubt = Boolean(userDoubt[q.id]);
+        const isCurrent = idx === currentQIndex;
+
+        let statusClass = 'm3-box-unanswered';
+        if (isDoubt) statusClass = 'm3-box-doubt';
+        else if (isAnswered) statusClass = 'm3-box-answered';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `m3-palette-btn ${statusClass} ${isCurrent ? 'current' : ''}`;
+        btn.setAttribute('data-index', String(idx));
+        btn.textContent = String(idx + 1);
+
+        btn.addEventListener('click', () => {
+          if (isLocked) return;
+          currentQIndex = idx;
+          renderCurrentQuestion();
+          if (mobilePaletteModal) mobilePaletteModal.style.display = 'none';
+        });
+
+        container.appendChild(btn);
+      });
+    };
+
+    renderTo(paletteGrid);
+    renderTo(mobilePaletteGrid);
+
+    // Update Summary counts
+    const answeredCount = Object.keys(userAnswers).length;
+    const doubtCount = Object.values(userDoubt).filter(Boolean).length;
+
+    if (summaryAnsweredCount) summaryAnsweredCount.textContent = `${answeredCount} / ${examQuestions.length}`;
+    if (summaryDoubtCount) summaryDoubtCount.textContent = String(doubtCount);
+  };
+
+  const updatePaletteActiveState = () => {
+    document.querySelectorAll('.m3-palette-btn').forEach((btn) => {
+      const idx = Number(btn.getAttribute('data-index'));
+      if (idx === currentQIndex) {
+        btn.classList.add('current');
+      } else {
+        btn.classList.remove('current');
+      }
+    });
+  };
+
+  // =========================================================================
+  // 8. SUBMIT EXAM ANSWERS (SERVER-SIDE GRADING)
+  // =========================================================================
+  const openConfirmModal = () => {
+    if (isLocked) return;
+    const answeredCount = Object.keys(userAnswers).length;
+    const total = examQuestions.length;
+    const unansweredCount = total - answeredCount;
+    const doubtCount = Object.values(userDoubt).filter(Boolean).length;
+
+    if (modalSummaryText) {
+      modalSummaryText.innerHTML = `Anda telah menjawab <strong>${answeredCount}</strong> dari total <strong>${total}</strong> soal evaluasi resmi.`;
+    }
+
+    if (modalUnansweredWarn) {
+      if (unansweredCount > 0 || doubtCount > 0) {
+        modalUnansweredWarn.style.display = 'block';
+        modalUnansweredWarn.innerHTML = `<strong>Perhatian:</strong> Masih terdapat <strong>${unansweredCount} soal belum diisi</strong> dan <strong>${doubtCount} soal ragu-ragu</strong>.`;
+      } else {
+        modalUnansweredWarn.style.display = 'none';
+      }
+    }
+
+    if (confirmModal) confirmModal.style.display = 'flex';
+  };
+
+  const closeConfirmModal = () => {
+    if (confirmModal) confirmModal.style.display = 'none';
+  };
+
+  const submitExamAnswers = async (isDisqualified = false, disqualificationReason = '') => {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    closeConfirmModal();
+
+    if (timerInterval) clearInterval(timerInterval);
+    if (lockoutInterval) clearInterval(lockoutInterval);
+
+    // Exit fullscreen cleanly
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (e) {}
+
+    const durationSeconds = examStartTime ? Math.round((Date.now() - examStartTime) / 1000) : 0;
+
+    // Show loading state
+    if (screenCbt) screenCbt.style.display = 'none';
+    if (screenResult) screenResult.style.display = 'block';
+    if (resultHeading) resultHeading.textContent = 'Memproses & Mengamankan Nilai Evaluasi...';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const res = await fetch('/api/sql/ujian/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: activeToken,
+          answers: userAnswers,
+          durationSeconds,
+          violationCount,
+          isDisqualified,
+          disqualificationReason
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        if (resultHeading) resultHeading.textContent = 'Gagal Mengirim Hasil Ujian';
+        if (resultDesc) resultDesc.textContent = data.error || 'Terjadi kesalahan pada server saat mencatat nilai Anda.';
+        return;
+      }
+
+      // Clear local session storage
+      try {
+        sessionStorage.removeItem(storageKey);
+      } catch (e) {}
+
+      isExamActive = false;
+
+      // Render Result Screen
+      renderResultScreen(data);
+    } catch (err) {
+      console.error('Error submitting exam:', err);
+      if (resultHeading) resultHeading.textContent = 'Gangguan Koneksi Server';
+      if (resultDesc) resultDesc.textContent = 'Jawaban Anda telah tersimpan secara lokal. Silakan hubungi Guru Pengampu untuk memverifikasi nilai Anda.';
+    }
+  };
+
+  const renderResultScreen = (data: any) => {
+    if (resultScore) resultScore.textContent = String(data.score);
+    if (resultCorrectCount) resultCorrectCount.textContent = String(data.correctCount);
+    if (resultWrongCount) resultWrongCount.textContent = String(data.wrongCount);
+
+    const mins = Math.floor((data.durationSeconds || 0) / 60);
+    const secs = (data.durationSeconds || 0) % 60;
+    if (resultDuration) resultDuration.textContent = `${mins}m ${secs}s`;
+
+    if (resultIntegrityVal && resultIntegrityStatus) {
+      if (data.isDisqualified) {
+        resultIntegrityVal.textContent = 'DISKUALIFIKASI';
+        resultIntegrityVal.className = 'metric-val text-error';
+        resultIntegrityStatus.textContent = data.disqualificationReason || 'Melanggar batas keamanan';
+      } else if (data.violationCount === 0) {
+        resultIntegrityVal.textContent = '0 Pelanggaran';
+        resultIntegrityVal.className = 'metric-val text-success';
+        resultIntegrityStatus.textContent = 'Tervalidasi Jujur';
+      } else {
+        resultIntegrityVal.textContent = `${data.violationCount} Pelanggaran`;
+        resultIntegrityVal.className = 'metric-val text-warning';
+        resultIntegrityStatus.textContent = 'Peringatan Tercatat';
+      }
+    }
+
+    if (resultStatusBadge && resultHeading && resultDesc) {
+      if (data.isDisqualified) {
+        resultStatusBadge.className = 'm3-chip m3-chip-tonal-error';
+        resultStatusBadge.textContent = 'TERDISKUALIFIKASI';
+        resultHeading.textContent = 'Ujian Dibatalkan Akibat Pelanggaran Keamanan';
+        resultDesc.textContent = 'Sistem mencatat adanya aktivitas mencurigakan yang melampaui toleransi batas keamanan ujian sekolah.';
+      } else if (data.isPassed) {
+        resultStatusBadge.className = 'm3-chip m3-chip-tonal-success';
+        resultStatusBadge.textContent = 'TUNTAS EVALUASI RESMI';
+        resultHeading.textContent = 'Selamat! Anda Berhasil Lulus Standar KKM';
+        resultDesc.textContent = `Anda telah melampaui nilai KKM 75 dengan perolehan skor ${data.score}/100. Penguasaan materi Basis Data Relasional Anda sangat baik.`;
+      } else {
+        resultStatusBadge.className = 'm3-chip m3-chip-tonal-warning';
+        resultStatusBadge.textContent = 'BELUM TUNTAS KKM';
+        resultHeading.textContent = 'Hasil Evaluasi Memerlukan Remedial';
+        resultDesc.textContent = `Nilai akhir Anda (${data.score}/100) belum mencapai ambang batas KKM 75. Silakan pelajari kembali modul dan konsultasikan jadwal remedial dengan Guru.`;
+      }
+    }
+  };
+
+  // Launch on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>
+
+<style>
+  /* =========================================================================
+     MATERIAL 3 STYLING: HIGH-SECURITY SQL EXAM WORKSPACE
+     ========================================================================= */
+  .m3-exam-page {
+    min-height: 100vh;
+    padding: 1.5rem 1rem 3rem;
+    background-color: var(--m3-surface);
+    color: var(--m3-on-surface);
+  }
+
+  .m3-exam-container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* Breadcrumb */
+  .m3-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--m3-outline);
+    margin-bottom: 1.25rem;
+  }
+  .m3-breadcrumb a {
+    color: var(--m3-primary);
+    text-decoration: none;
+  }
+  .m3-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+  .m3-breadcrumb-current {
+    color: var(--m3-on-surface);
+    font-weight: 500;
+  }
+
+  /* Chips */
+  .m3-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .m3-chip-error-tonal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background-color: var(--m3-error-container);
+    color: var(--m3-on-error-container);
+  }
+
+  /* Specs Grid */
+  .m3-specs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .m3-spec-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background-color: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 16px;
+  }
+  .m3-spec-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .bg-primary-container { background-color: var(--m3-primary-container); }
+  .bg-secondary-container { background-color: var(--m3-secondary-container); }
+  .bg-tertiary-container { background-color: var(--m3-tertiary-container); }
+  .bg-error-container { background-color: var(--m3-error-container); }
+  .bg-warning-container { background-color: #fef3c7; }
+
+  .m3-spec-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  /* Security Rules Box */
+  .m3-security-rules-box {
+    background-color: var(--m3-surface-container);
+    border-left: 4px solid var(--m3-error);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+  .m3-rules-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .m3-rules-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  /* Single Attempt / Already Submitted Card */
+  .m3-already-submitted-card {
+    padding: 1.5rem;
+    border-radius: 20px;
+    background-color: var(--m3-surface-container-low);
+  }
+  .m3-sub-status-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .m3-status-icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .m3-status-icon-circle.status-passed {
+    background-color: var(--m3-primary-container);
+    color: var(--m3-primary);
+  }
+  .m3-status-icon-circle.status-failed {
+    background-color: #fef3c7;
+    color: #b45309;
+  }
+  .m3-status-icon-circle.status-disqualified {
+    background-color: var(--m3-error-container);
+    color: var(--m3-error);
+  }
+
+  /* Participant & Token Box */
+  .m3-participant-card {
+    padding: 1.5rem;
+    border-radius: 20px;
+    background-color: var(--m3-surface-container-low);
+  }
+  .m3-participant-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .m3-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .m3-token-field-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .m3-token-field-row input {
+    flex: 1;
+    min-width: 240px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--m3-outline);
+    border-radius: 12px;
+    background-color: var(--m3-surface);
+    color: var(--m3-on-surface);
+  }
+
+  /* CBT Top App Bar */
+  .m3-top-app-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background-color: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 20px;
+    padding: 1rem 1.5rem;
+    position: sticky;
+    top: 1rem;
+    z-index: 50;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  @media (min-width: 768px) {
+    .m3-top-app-bar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+  .m3-app-bar-top-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .m3-badge-tonal {
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background-color: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
+  }
+
+  /* Security Pill */
+  .m3-security-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .m3-security-pill.status-safe {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+  .m3-security-pill.status-warn {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  .m3-security-pill.status-locked {
+    background-color: #fee2e2;
+    color: #991b1b;
+    animation: pulseLock 1.5s infinite;
+  }
+  .m3-security-pill.status-disqualified {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+  @keyframes pulseLock {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.03); }
+  }
+
+  /* Timer */
+  .m3-timer-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background-color: var(--m3-surface-container-high);
+    padding: 0.35rem 0.85rem;
+    border-radius: 12px;
+    border: 1px solid var(--m3-outline-variant);
+  }
+  .m3-timer-text {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--m3-on-surface);
+  }
+  .m3-timer-text.timer-danger {
+    color: var(--m3-error);
+    animation: pulseTimer 1s infinite;
+  }
+  @keyframes pulseTimer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* CBT Main Layout */
+  .m3-cbt-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 992px) {
+    .m3-cbt-layout {
+      grid-template-columns: 1fr 340px;
+    }
+  }
+
+  /* Question Card */
+  .m3-question-card {
+    padding: 1.5rem 1.75rem;
+    border-radius: 24px;
+    background-color: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
+  }
+  .m3-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--m3-outline-variant);
+    padding-bottom: 0.75rem;
+  }
+  .m3-question-title {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    font-weight: 600;
+  }
+
+  /* Code Block */
+  .m3-code-container {
+    border-radius: 12px;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    overflow: hidden;
+  }
+  .m3-code-header {
+    background-color: #1e293b;
+    padding: 0.4rem 0.85rem;
+    color: #94a3b8;
+    font-size: 0.75rem;
+  }
+  .m3-code-block {
+    padding: 0.85rem 1rem;
+    margin: 0;
+    color: #38bdf8;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  /* Options Form */
+  .m3-options-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .m3-option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.85rem 1.25rem;
+    border: 1.5px solid var(--m3-outline-variant);
+    border-radius: 14px;
+    background-color: var(--m3-surface);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .m3-option-card:hover {
+    border-color: var(--m3-primary);
+    background-color: var(--m3-surface-container-high);
+  }
+  .m3-option-card.selected {
+    border-color: var(--m3-primary);
+    background-color: var(--m3-primary-container);
+  }
+  .m3-option-radio {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--m3-outline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+  }
+  .m3-option-radio.checked {
+    border-color: var(--m3-primary);
+  }
+  .m3-option-radio-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: transparent;
+  }
+  .m3-option-radio.checked .m3-option-radio-dot {
+    background-color: var(--m3-primary);
+  }
+  .m3-option-content {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .m3-option-key {
+    font-weight: 700;
+    color: var(--m3-primary);
+  }
+
+  /* Footer Controls */
+  .m3-question-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--m3-outline-variant);
+    padding-top: 1.25rem;
+  }
+
+  /* Palette Sidebar */
+  .m3-palette-card {
+    padding: 1.25rem;
+    border-radius: 24px;
+    background-color: var(--m3-surface-container-low);
+    border: 1px solid var(--m3-outline-variant);
+    height: fit-content;
+  }
+  .m3-palette-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .m3-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .m3-legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .m3-box-answered { background-color: var(--m3-primary); }
+  .m3-box-doubt { background-color: #f59e0b; }
+  .m3-box-unanswered { background-color: var(--m3-outline-variant); }
+
+  .m3-palette-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+  }
+  .m3-palette-btn {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease;
+  }
+  .m3-palette-btn:hover {
+    transform: scale(1.05);
+  }
+  .m3-palette-btn.m3-box-answered {
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
+  }
+  .m3-palette-btn.m3-box-doubt {
+    background-color: #f59e0b;
+    color: #ffffff;
+  }
+  .m3-palette-btn.m3-box-unanswered {
+    background-color: var(--m3-surface-container-high);
+    color: var(--m3-on-surface);
+    border-color: var(--m3-outline-variant);
+  }
+  .m3-palette-btn.current {
+    outline: 2.5px solid var(--m3-primary);
+    outline-offset: 2px;
+  }
+
+  .m3-palette-summary {
+    border-top: 1px solid var(--m3-outline-variant);
+    padding-top: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .m3-security-watermark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    opacity: 0.7;
+    font-size: 0.75rem;
+  }
+
+  /* Modals */
+  .m3-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+  }
+  .m3-modal-card {
+    background-color: var(--m3-surface-container-high);
+    border-radius: 24px;
+    padding: 1.75rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+  }
+  .m3-border-warning {
+    border: 2px solid #f59e0b;
+  }
+  .m3-border-error {
+    border: 2px solid var(--m3-error);
+  }
+  .m3-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .m3-modal-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .m3-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* 5-Minute Lockout Modal Specifics */
+  .m3-lockout-card {
+    text-align: center;
+    border: 3px solid var(--m3-error);
+    background: linear-gradient(180deg, var(--m3-surface-container-high) 0%, var(--m3-surface-container) 100%);
+  }
+  .m3-lockout-icon-pulse {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: var(--m3-error-container);
+    color: var(--m3-error);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    animation: iconPulse 2s infinite;
+  }
+  @keyframes iconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  .m3-lockout-countdown {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--m3-error);
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+
+  /* Result Screen */
+  .m3-result-card {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    border-radius: 28px;
+    background-color: var(--m3-surface-container-low);
+  }
+  .m3-score-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  .m3-score-number {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--m3-primary);
+    line-height: 1;
+  }
+  .m3-score-total {
+    font-size: 1.5rem;
+    color: var(--m3-outline);
+  }
+  .m3-result-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .m3-metric-box {
+    background-color: var(--m3-surface-container);
+    padding: 1rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+  }
+  .metric-val {
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .m3-confidentiality-box {
+    background-color: var(--m3-surface-container);
+    border: 1px dashed var(--m3-primary);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+  }
+  .m3-confidentiality-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Helper Classes */
+  .w-100 { width: 100%; }
+  .text-center { text-align: center; }
+  .text-left { text-align: left; }
+  .text-success { color: var(--m3-success, #10b981); }
+  .text-warning { color: #f59e0b; }
+  .text-error { color: var(--m3-error, #ef4444); }
+  .text-muted { opacity: 0.7; }
+  .margin-top-2xs { margin-top: 0.25rem; }
+  .margin-top-xs { margin-top: 0.5rem; }
+  .margin-top-sm { margin-top: 0.75rem; }
+  .margin-top-md { margin-top: 1.25rem; }
+  .margin-top-lg { margin-top: 1.75rem; }
+  .spinning { animation: spin 1s linear infinite; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  .m3-mobile-only { display: inline-flex; }
+  @media (min-width: 992px) {
+    .m3-mobile-only { display: none; }
+  }
+
+  .m3-btn-warning {
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+  }
+  .m3-btn-error {
+    background-color: var(--m3-error) !important;
+    color: var(--m3-on-error, #ffffff) !important;
+  }
+</style>

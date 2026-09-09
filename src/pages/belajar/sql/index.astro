@@ -219,6 +219,36 @@ const pathGroups = LEARNING_PATHS.map((path) => {
       </div>
     </div>
 
+    <!-- High-Security Official CBT Exam Banner -->
+    <div class="m3-card m3-card-elevated project-banner-card exam-banner-accent margin-top-md">
+      <div class="project-banner-content">
+        <div class="project-badge-row">
+          <span class="m3-chip m3-chip-tonal-error">
+            <span class="material-symbols-rounded icon-sm">shield</span>
+            EVALUASI RESMI
+          </span>
+          <span class="m3-chip m3-chip-tonal-primary">
+            <span class="material-symbols-rounded icon-sm">timer</span>
+            30 SOAL (60 MENIT)
+          </span>
+          <span class="m3-chip m3-chip-tonal-secondary">
+            <span class="material-symbols-rounded icon-sm">lock_clock</span>
+            ANTI-CHEAT &amp; KUNCI 5 MENIT
+          </span>
+        </div>
+        <h2 class="project-banner-title m3-title-large margin-top-xs">Ujian Evaluasi Resmi: Basis Data Relasional &amp; SQL</h2>
+        <p class="project-banner-desc m3-body-medium">
+          Ujian sumatif resmi dengan pengawasan keamanan tinggi (wajib layar penuh, single attempt, dan kunci 5 menit saat pindah tab). Nilai langsung terekam ke buku nilai guru!
+        </p>
+      </div>
+      <div class="project-banner-action">
+        <a href="/belajar/sql/ujian" class="m3-btn m3-btn-filled m3-btn-error btn-sm">
+          <span class="material-symbols-rounded icon-sm">assignment_turned_in</span>
+          Masuk Ujian Resmi
+        </a>
+      </div>
+    </div>
+
     <!-- Special CBT Try Out Banner -->
     <div class="m3-card m3-card-elevated project-banner-card tryout-banner-accent margin-top-md">
       <div class="project-banner-content">
@@ -552,6 +582,11 @@ const pathGroups = LEARNING_PATHS.map((path) => {
     gap: 0.75rem;
     flex-wrap: wrap;
     flex-shrink: 0;
+  }
+
+  .exam-banner-accent {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(245, 158, 11, 0.06) 100%);
   }
 
   .tryout-banner-accent {
