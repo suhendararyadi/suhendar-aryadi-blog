@@ -193,6 +193,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
             <>
               {/* Teacher/Admin Test Mode Card */}
               {isTeacherOrAdmin && (
+                <>
                 <div class="m3-card m3-card-outlined margin-top-md" style="background: var(--m3-primary-container); border: 1.5px solid var(--m3-primary);">
                   <div class="m3-participant-header" style="border-bottom: none; padding-bottom: 0;">
                     <div class="m3-avatar" style="background: var(--m3-primary); color: var(--m3-on-primary);">
@@ -215,6 +216,10 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
                     <button type="button" id="btn-admin-direct-start" class="m3-btn m3-btn-filled">
                       Mulai Uji Coba Ujian (Bypass Token &amp; Anti-Cheat) &rarr;
                     </button>
+                    <a href="/admin/ujian/monitoring" class="m3-btn m3-btn-tonal" style="display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 600;">
+                      <span class="material-symbols-rounded" style="font-size: 1.15rem;">monitoring</span>
+                      Konsol Pengawas Layar Penuh &rarr;
+                    </a>
                     {pastSubmission && (
                       <button type="button" id="btn-admin-reset-past" class="m3-btn m3-btn-outlined" style="color: var(--m3-error); border-color: var(--m3-error);">
                         Reset Riwayat Uji Coba Saya
@@ -222,6 +227,101 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
                     )}
                   </div>
                 </div>
+
+                {/* Teacher/Admin Embedded Live Monitoring Panel */}
+                <div id="admin-embedded-monitoring-card" class="m3-card m3-card-elevated margin-top-md" style="border: 1.5px solid var(--m3-primary); background: #ffffff; padding: 1.25rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span class="m3-chip m3-chip-tonal-primary" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-size: 0.75rem; font-weight: 700;">
+                          <span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-right: 4px;"></span>
+                          LIVE TELEMETRY
+                        </span>
+                        <span class="m3-chip m3-chip-tonal-secondary" style="font-size: 0.75rem;">KONSOL PENGAWAS CBT</span>
+                      </div>
+                      <h3 class="m3-title-medium" style="margin: 0;">Live Monitoring Pengerjaan Siswa (Real-Time)</h3>
+                      <p class="m3-body-small text-secondary" style="margin: 0.2rem 0 0 0;">
+                        Pemantauan langsung progres butir soal, status penguncian layar 5 menit, dan tombol remote unlock.
+                      </p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                      <button type="button" id="btn-emb-refresh" class="m3-btn m3-btn-outlined" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <span class="material-symbols-rounded" style="font-size: 1rem;">sync</span>
+                        Refresh
+                      </button>
+                      <a href="/admin/ujian/monitoring" target="_blank" class="m3-btn m3-btn-filled" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;">
+                        <span class="material-symbols-rounded" style="font-size: 1rem;">open_in_new</span>
+                        Buka di Tab Terpisah
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Quick KPI Row -->
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.65rem; text-align: center;">
+                      <div style="font-size: 0.7rem; font-weight: 600; color: #64748b;">TOTAL SISWA</div>
+                      <div id="emb-kpi-total" style="font-size: 1.4rem; font-weight: 800; color: #0f172a;">-</div>
+                    </div>
+                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.65rem; text-align: center;">
+                      <div style="font-size: 0.7rem; font-weight: 700; color: #065f46;">SEDANG AKTIF</div>
+                      <div id="emb-kpi-active" style="font-size: 1.4rem; font-weight: 800; color: #16a34a;">-</div>
+                    </div>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 0.65rem; text-align: center;">
+                      <div style="font-size: 0.7rem; font-weight: 700; color: #991b1b;">TERKUNCI 5 MNT</div>
+                      <div id="emb-kpi-locked" style="font-size: 1.4rem; font-weight: 800; color: #dc2626;">-</div>
+                    </div>
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 0.65rem; text-align: center;">
+                      <div style="font-size: 0.7rem; font-weight: 700; color: #92400e;">PERINGATAN 1X</div>
+                      <div id="emb-kpi-violations" style="font-size: 1.4rem; font-weight: 800; color: #d97706;">-</div>
+                    </div>
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; padding: 0.65rem; text-align: center;">
+                      <div style="font-size: 0.7rem; font-weight: 700; color: #166534;">SELESAI (SUBMIT)</div>
+                      <div id="emb-kpi-submitted" style="font-size: 1.4rem; font-weight: 800; color: #0d9488;">-</div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Filter Row -->
+                  <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                    <select id="emb-filter-class" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; border-radius: 0.4rem; border: 1px solid #cbd5e1; background: #f8fafc;">
+                      <option value="">Semua Kelas</option>
+                    </select>
+                    <select id="emb-filter-status" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; border-radius: 0.4rem; border: 1px solid #cbd5e1; background: #f8fafc;">
+                      <option value="ALL">Semua Status</option>
+                      <option value="in_progress">Sedang Mengerjakan</option>
+                      <option value="locked">Terkunci 5 Menit</option>
+                      <option value="submitted">Selesai</option>
+                    </select>
+                    <input type="text" id="emb-search-student" placeholder="Cari nama siswa..." style="padding: 0.35rem 0.6rem; font-size: 0.8rem; border-radius: 0.4rem; border: 1px solid #cbd5e1; background: #f8fafc; flex: 1; min-width: 150px;" />
+                  </div>
+
+                  <!-- Mini Telemetry Table -->
+                  <div style="overflow-x: auto; max-height: 360px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                      <thead>
+                        <tr style="background: #f8fafc; position: sticky; top: 0; z-index: 1;">
+                          <th style="padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid #cbd5e1; white-space: nowrap;">Siswa</th>
+                          <th style="padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid #cbd5e1; white-space: nowrap;">Kelas</th>
+                          <th style="padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid #cbd5e1; white-space: nowrap;">Status</th>
+                          <th style="padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid #cbd5e1; min-width: 130px;">Progres Soal</th>
+                          <th style="padding: 0.5rem 0.6rem; text-align: center; border-bottom: 1px solid #cbd5e1; white-space: nowrap;">Nilai</th>
+                          <th style="padding: 0.5rem 0.6rem; text-align: right; border-bottom: 1px solid #cbd5e1; min-width: 130px;">Aksi Pengawas</th>
+                        </tr>
+                      </thead>
+                      <tbody id="emb-roster-tbody">
+                        <tr>
+                          <td colspan="6" style="padding: 2rem; text-align: center; color: #64748b;">
+                            Memuat data live monitoring...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; font-size: 0.725rem; color: #64748b;">
+                    <span>Auto-refresh setiap 10 detik.</span>
+                    <span id="emb-last-updated-text">Terakhir diperbarui: -</span>
+                  </div>
+                </div>
+                </>
               )}
 
               <div class="m3-card m3-card-outlined m3-participant-card margin-top-md">
@@ -712,6 +812,233 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
   };
 
   // =========================================================================
+  // HEARTBEAT TELEMETRY & REMOTE UNLOCK (FAIL-SAFE)
+  // =========================================================================
+  let heartbeatInterval: number | null = null;
+
+  const sendHeartbeat = async () => {
+    if (!isExamActive || isSubmitting || isAdminMode) return;
+    try {
+      const answeredCount = Object.keys(userAnswers).length;
+      const doubtCount = Object.values(userDoubt).filter(Boolean).length;
+      const durationSeconds = examStartTime ? Math.round((Date.now() - examStartTime) / 1000) : 0;
+
+      const res = await fetch('/api/sql/ujian/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: activeToken,
+          answersCount: answeredCount,
+          currentQuestionIndex: currentQIndex,
+          doubtCount: doubtCount,
+          durationSeconds: durationSeconds,
+          violationCount: violationCount,
+          isLocked: isLocked,
+          lockoutRemaining: lockoutRemaining
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.forceUnlocked && isLocked) {
+          unlockStudentFromRemote();
+        }
+      }
+    } catch (e) {
+      // Fail-silent: never disrupt student
+    }
+  };
+
+  const startHeartbeat = () => {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    sendHeartbeat();
+    heartbeatInterval = window.setInterval(sendHeartbeat, 10000);
+  };
+
+  const unlockStudentFromRemote = () => {
+    if (lockoutInterval) clearInterval(lockoutInterval);
+    isLocked = false;
+    lockoutRemaining = 0;
+    if (modalLockout) modalLockout.style.display = 'none';
+    updateSecurityPill();
+
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      }
+    } catch (e) {}
+
+    showStudentNotice('Kunci ujian telah dibuka oleh Pengawas Guru. Silakan lanjutkan pengerjaan.');
+  };
+
+  const showStudentNotice = (msg: string) => {
+    const existing = document.getElementById('exam-remote-notice');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'exam-remote-notice';
+    banner.style.cssText = 'position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); background: #15803d; color: #ffffff; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-size: 0.875rem; font-weight: 600; z-index: 10000; display: flex; align-items: center; gap: 0.5rem;';
+    banner.innerHTML = '<span class="material-symbols-rounded">check_circle</span> ' + escapeHtml(msg);
+    document.body.appendChild(banner);
+
+    setTimeout(() => {
+      banner.remove();
+    }, 5000);
+  };
+
+  // =========================================================================
+  // EMBEDDED TEACHER TELEMETRY ENGINE (PROCTOR HUB)
+  // =========================================================================
+  let embPollInterval: number | null = null;
+  let embRawStudents: any[] = [];
+
+  const embKpiTotal = document.getElementById('emb-kpi-total');
+  const embKpiActive = document.getElementById('emb-kpi-active');
+  const embKpiLocked = document.getElementById('emb-kpi-locked');
+  const embKpiViolations = document.getElementById('emb-kpi-violations');
+  const embKpiSubmitted = document.getElementById('emb-kpi-submitted');
+  const embFilterClass = document.getElementById('emb-filter-class') as HTMLSelectElement | null;
+  const embFilterStatus = document.getElementById('emb-filter-status') as HTMLSelectElement | null;
+  const embSearchStudent = document.getElementById('emb-search-student') as HTMLInputElement | null;
+  const embRosterTbody = document.getElementById('emb-roster-tbody');
+  const embLastUpdated = document.getElementById('emb-last-updated-text');
+  const btnEmbRefresh = document.getElementById('btn-emb-refresh');
+
+  const fetchEmbeddedTelemetry = async () => {
+    if (!(window as any).__IS_TEACHER_OR_ADMIN__) return;
+    try {
+      const res = await fetch('/api/sql/ujian/monitoring', {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.success) {
+        embRawStudents = data.students || [];
+
+        if (embKpiTotal) embKpiTotal.textContent = String(data.summary?.totalStudents || 0);
+        if (embKpiActive) embKpiActive.textContent = String(data.summary?.inProgressCount || 0);
+        if (embKpiLocked) embKpiLocked.textContent = String(data.summary?.lockedCount || 0);
+        if (embKpiViolations) embKpiViolations.textContent = String(data.summary?.violationAlertCount || 0);
+        if (embKpiSubmitted) embKpiSubmitted.textContent = String(data.summary?.submittedCount || 0);
+
+        if (embFilterClass) {
+          const cur = embFilterClass.value;
+          const currentOpts = Array.from(embFilterClass.options).map((o: any) => o.value);
+          (data.classes || []).forEach((c: string) => {
+            if (!currentOpts.includes(c)) {
+              const opt = document.createElement('option');
+              opt.value = c;
+              opt.textContent = c;
+              embFilterClass.appendChild(opt);
+            }
+          });
+          embFilterClass.value = cur;
+        }
+
+        renderEmbeddedTable();
+
+        if (embLastUpdated) {
+          const now = new Date();
+          embLastUpdated.textContent = 'Terakhir diperbarui: ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+      }
+    } catch (e) {
+      console.warn('Embedded telemetry fetch warning:', e);
+    }
+  };
+
+  const renderEmbeddedTable = () => {
+    if (!embRosterTbody) return;
+    const selectedClass = embFilterClass ? embFilterClass.value.trim().toLowerCase() : '';
+    const selectedStatus = embFilterStatus ? embFilterStatus.value : 'ALL';
+    const query = embSearchStudent ? embSearchStudent.value.trim().toLowerCase() : '';
+
+    const filtered = embRawStudents.filter((s: any) => {
+      if (selectedClass && (s.className || '').toLowerCase() !== selectedClass) return false;
+      if (selectedStatus !== 'ALL' && s.status !== selectedStatus) return false;
+      if (query) {
+        const text = `${s.name} ${s.email} ${s.className}`.toLowerCase();
+        if (!text.includes(query)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      embRosterTbody.innerHTML = '<tr><td colspan="6" style="padding: 1.5rem; text-align: center; color: #64748b;">Tidak ada data siswa yang cocok dengan filter.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    filtered.forEach((s: any) => {
+      const isLocked = s.status === 'locked';
+      const answered = s.progress?.answered || 0;
+      const total = s.progress?.total || 30;
+      const percent = s.progress?.percentage || 0;
+
+      let statusBadge = `<span class="m3-chip ${s.statusBadgeClass || ''}" style="font-size: 0.7rem; padding: 0.15rem 0.45rem;">${s.statusLabel}</span>`;
+      if (isLocked) {
+        statusBadge += ` <span style="font-size: 0.65rem; color: #dc2626; font-weight: 700;">(Terkunci)</span>`;
+      }
+
+      const scoreText = s.finalScore !== null && s.finalScore !== undefined ? `<strong>${s.finalScore}</strong>/100` : '-';
+
+      let actionHtml = '-';
+      if (isLocked) {
+        actionHtml = `<button type="button" class="m3-btn m3-btn-filled" style="padding: 0.2rem 0.5rem; font-size: 0.725rem; background: #dc2626;" onclick="window.embeddedProctorAction('unlock', ${s.userId}, '${encodeURIComponent(s.name)}')">Buka Kunci</button>`;
+      } else {
+        actionHtml = `<button type="button" class="m3-btn m3-btn-outlined" style="padding: 0.2rem 0.5rem; font-size: 0.725rem;" onclick="window.embeddedProctorAction('reset', ${s.userId}, '${encodeURIComponent(s.name)}')">Reset</button>`;
+      }
+
+      html += `
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 0.45rem 0.6rem;">
+            <strong>${escapeHtml(s.name)}</strong>
+            <div style="font-size: 0.7rem; color: #64748b;">${escapeHtml(s.email)}</div>
+          </td>
+          <td style="padding: 0.45rem 0.6rem; white-space: nowrap;">${escapeHtml(s.className || '-')}</td>
+          <td style="padding: 0.45rem 0.6rem; white-space: nowrap;">${statusBadge}</td>
+          <td style="padding: 0.45rem 0.6rem;">
+            <div style="font-size: 0.725rem; font-weight: 600;">${answered}/${total} (${percent}%)</div>
+            <div style="width: 100%; height: 5px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; margin-top: 2px;">
+              <div style="width: ${percent}%; height: 100%; background: ${percent === 100 ? '#10b981' : '#1976d2'};"></div>
+            </div>
+          </td>
+          <td style="padding: 0.45rem 0.6rem; text-align: center;">${scoreText}</td>
+          <td style="padding: 0.45rem 0.6rem; text-align: right; white-space: nowrap;">${actionHtml}</td>
+        </tr>
+      `;
+    });
+
+    embRosterTbody.innerHTML = html;
+  };
+
+  (window as any).embeddedProctorAction = async (action: string, userId: number, encodedName: string) => {
+    const sName = decodeURIComponent(encodedName);
+    if (action === 'unlock') {
+      if (!confirm(`Buka kunci layar untuk siswa ${sName}? Layar siswa akan langsung aktif kembali.`)) return;
+    } else if (action === 'reset') {
+      if (!confirm(`PERINGATAN: Reset sesi pengerjaan untuk ${sName}? Jawaban dan nilai tersimpan akan dihapus dari server sehingga siswa dapat mengulang dari awal.`)) return;
+    }
+
+    try {
+      const res = await fetch('/api/sql/ujian/monitoring-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, targetUserId: userId })
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        alert(data.message || 'Aksi berhasil dijalankan.');
+        fetchEmbeddedTelemetry();
+      } else {
+        alert(data?.error || 'Gagal menjalankan aksi pengawas.');
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan jaringan.');
+    }
+  };
+
+  // =========================================================================
   // 1. INITIALIZE EVENT LISTENERS
   // =========================================================================
   const init = () => {
@@ -774,6 +1101,16 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     });
 
     setupAntiCheatListeners();
+
+    // Initialize Embedded Teacher Telemetry if Admin
+    if ((window as any).__IS_TEACHER_OR_ADMIN__) {
+      fetchEmbeddedTelemetry();
+      embPollInterval = window.setInterval(fetchEmbeddedTelemetry, 10000);
+      btnEmbRefresh?.addEventListener('click', fetchEmbeddedTelemetry);
+      embFilterClass?.addEventListener('change', renderEmbeddedTable);
+      embFilterStatus?.addEventListener('change', renderEmbeddedTable);
+      embSearchStudent?.addEventListener('input', renderEmbeddedTable);
+    }
   };
 
   // =========================================================================
@@ -866,6 +1203,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
     buildPaletteGrid();
     renderActiveQuestion();
     startTimer();
+    startHeartbeat();
   };
 
   // =========================================================================
@@ -1255,6 +1593,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
     if (modalLockout) modalLockout.style.display = 'flex';
     updateLockoutDisplay();
+    sendHeartbeat();
 
     if (lockoutInterval) clearInterval(lockoutInterval);
 
@@ -1321,6 +1660,7 @@ const initialExamQuestions = sqlExamQuestions.map((q) => ({
 
     if (timerInterval) clearInterval(timerInterval);
     if (lockoutInterval) clearInterval(lockoutInterval);
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
 
     try {
       if (document.fullscreenElement && document.exitFullscreen) {

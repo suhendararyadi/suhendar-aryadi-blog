@@ -1,0 +1,1586 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getSessionUser } from '../../../lib/auth';
+
+const sessionId = Astro.cookies.get('session_id')?.value;
+const user = await getSessionUser(sessionId);
+
+if (!user) {
+  return Astro.redirect('/auth/login');
+}
+
+const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin' || (user.email && user.email.toLowerCase().includes('suhendar'));
+
+if (!isTeacherOrAdmin) {
+  return Astro.redirect('/belajar/sql/ujian');
+}
+---
+
+<MainLayout
+  title="Live Monitoring Pengawas Ujian SQL CBT | SMK RPL"
+  description="Konsol pemantauan langsung pengerjaan ujian CBT SQL dan Basis Data Relasional untuk Guru Pengampu dan Administrator."
+>
+  <div class="proctor-page-container">
+    <!-- Breadcrumb & Back Navigation -->
+    <nav class="proctor-breadcrumb">
+      <div class="breadcrumb-left">
+        <a href="/">Beranda</a>
+        <span class="sep">/</span>
+        <a href="/admin/dashboard">Dashboard Guru</a>
+        <span class="sep">/</span>
+        <a href="/belajar/sql/ujian">Ujian CBT SQL</a>
+        <span class="sep">/</span>
+        <span class="current">Live Monitoring Pengawas</span>
+      </div>
+      <div class="breadcrumb-right">
+        <a href="/belajar/sql/ujian" class="btn-link-action">
+          <span class="material-symbols-rounded">quiz</span>
+          Halaman Ujian Soal
+        </a>
+        <a href="/admin/dashboard" class="btn-link-action">
+          <span class="material-symbols-rounded">dashboard</span>
+          Dashboard Nilai LKPD
+        </a>
+      </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="proctor-header-card">
+      <div class="header-main">
+        <div class="header-titles">
+          <div class="header-badges">
+            <span class="live-pill">
+              <span class="live-dot"></span>
+              LIVE TELEMETRY
+            </span>
+            <span class="proctor-badge">KONSOL PENGAWAS CBT</span>
+            <span class="exam-title-badge">30 SOAL EVALUASI SQL</span>
+          </div>
+          <h1 class="header-title">Live Monitoring Ujian Evaluasi Resmi SQL</h1>
+          <p class="header-subtitle">
+            Pemantauan aktivitas siswa secara real-time, status layar penuh anti-cheat, progres butir soal, dan intervensi darurat kendali pengawas (Remote Unlock &amp; Reset).
+          </p>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="header-actions">
+          <div class="refresh-control-group">
+            <label for="refresh-interval-select" class="control-label">Interval Polling:</label>
+            <select id="refresh-interval-select" class="form-select-sm">
+              <option value="5000" selected>5 Detik (Real-Time)</option>
+              <option value="10000">10 Detik (Standar)</option>
+              <option value="30000">30 Detik (Santai)</option>
+              <option value="0">Jeda (Manual)</option>
+            </select>
+          </div>
+
+          <button type="button" id="btn-manual-refresh" class="proctor-btn proctor-btn-secondary" title="Muat Ulang Telemetry Sekarang">
+            <span class="material-symbols-rounded icon-spin-target">sync</span>
+            <span>Refresh</span>
+          </button>
+
+          <button type="button" id="btn-toggle-fullscreen" class="proctor-btn proctor-btn-outline" title="Mode Layar Penuh Proyektor">
+            <span class="material-symbols-rounded">fullscreen</span>
+            <span>Layar Penuh</span>
+          </button>
+
+          <button type="button" id="btn-export-csv" class="proctor-btn proctor-btn-outline" title="Ekspor Roster ke CSV">
+            <span class="material-symbols-rounded">download</span>
+            <span>Ekspor CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-footer-bar">
+        <div class="server-sync-info">
+          <span class="material-symbols-rounded text-success">sensors</span>
+          <span>Status Sistem: <strong>Terhubung ke Node Server CBT</strong></span>
+          <span class="sync-dot-sep">•</span>
+          <span>Pembaruan Terakhir: <strong id="last-updated-text">Memuat...</strong></span>
+        </div>
+        <div class="user-operator-info">
+          <span>Pengawas: <strong>{user.name}</strong> ({user.email})</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI Summary Grid -->
+    <section class="kpi-summary-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-blue">
+          <span class="material-symbols-rounded">groups</span>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-label">Total Peserta</span>
+          <strong class="kpi-value" id="kpi-total-students">0</strong>
+          <span class="kpi-subtext" id="kpi-total-subtext">Siswa Terdaftar</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card-active">
+        <div class="kpi-icon-wrap kpi-green">
+          <span class="material-symbols-rounded">play_circle</span>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-label">Sedang Mengerjakan</span>
+          <strong class="kpi-value text-success" id="kpi-in-progress">0</strong>
+          <span class="kpi-subtext text-success">Sesi Aktif Online</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-red">
+          <span class="material-symbols-rounded">lock_clock</span>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-label">Terkunci 5 Menit</span>
+          <strong class="kpi-value text-error" id="kpi-locked">0</strong>
+          <span class="kpi-subtext" id="kpi-locked-subtext">Perlu Remote Unlock</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-amber">
+          <span class="material-symbols-rounded">warning</span>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-label">Peringatan Layar</span>
+          <strong class="kpi-value text-warning" id="kpi-violations">0</strong>
+          <span class="kpi-subtext">Pelanggaran 1x Terdeteksi</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-teal">
+          <span class="material-symbols-rounded">task_alt</span>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-label">Selesai Dikirim</span>
+          <strong class="kpi-value text-teal" id="kpi-submitted">0</strong>
+          <span class="kpi-subtext" id="kpi-submitted-subtext">Hasil Masuk DB</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-purple">
+          <span class="material-symbols-rounded">analytics</span>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-label">Rata-Rata Nilai</span>
+          <strong class="kpi-value text-purple" id="kpi-average-score">0</strong>
+          <span class="kpi-subtext">KKM 75 / 100</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Toolbar -->
+    <section class="roster-toolbar-card">
+      <div class="toolbar-filter-left">
+        <div class="filter-item">
+          <label for="filter-class" class="filter-label">Rombel / Kelas:</label>
+          <select id="filter-class" class="form-select-md">
+            <option value="">Semua Rombel (Semua Siswa)</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filter-status" class="filter-label">Status Ujian:</label>
+          <select id="filter-status" class="form-select-md">
+            <option value="ALL">Semua Status</option>
+            <option value="in_progress">Sedang Mengerjakan</option>
+            <option value="locked">Terkunci 5 Menit</option>
+            <option value="submitted">Selesai (Sudah Submit)</option>
+            <option value="disconnected">Koneksi Terputus / Idle</option>
+            <option value="disqualified">Didiskualifikasi</option>
+            <option value="not_started">Belum Masuk</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="toolbar-filter-right">
+        <div class="search-input-wrap">
+          <span class="material-symbols-rounded search-icon">search</span>
+          <input
+            type="text"
+            id="search-student-input"
+            class="form-input-search"
+            placeholder="Cari nama atau email siswa..."
+            autocomplete="off"
+          />
+          <button type="button" id="btn-clear-search" class="btn-clear" style="display: none;">&times;</button>
+        </div>
+        <span class="student-count-badge" id="roster-count-text">0 siswa ditemukan</span>
+      </div>
+    </section>
+
+    <!-- Live Telemetry Roster Table -->
+    <section class="roster-table-card">
+      <div class="table-responsive">
+        <table class="proctor-table" id="proctor-roster-table">
+          <thead>
+            <tr>
+              <th style="width: 45px; text-align: center;">#</th>
+              <th style="min-width: 200px;">Data Peserta</th>
+              <th style="width: 120px;">Rombel</th>
+              <th style="min-width: 160px;">Status Pengerjaan</th>
+              <th style="min-width: 180px;">Progres Butir Soal</th>
+              <th style="width: 90px; text-align: center;">Soal Aktif</th>
+              <th style="width: 100px; text-align: center;">Durasi</th>
+              <th style="width: 100px; text-align: center;">Pelanggaran</th>
+              <th style="width: 90px; text-align: center;">Nilai</th>
+              <th style="min-width: 150px; text-align: right;">Aksi Pengawas</th>
+            </tr>
+          </thead>
+          <tbody id="roster-table-body">
+            <tr>
+              <td colspan="10" class="table-loading-cell">
+                <div class="table-loader-box">
+                  <span class="material-symbols-rounded spin">progress_activity</span>
+                  <span>Mengambil telemetry pengerjaan siswa...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal Konfirmasi Aksi Pengawas -->
+  <div id="modal-proctor-action" class="proctor-modal-backdrop" style="display: none;">
+    <div class="proctor-modal-dialog">
+      <div class="proctor-modal-header">
+        <span class="material-symbols-rounded modal-icon-warn" id="modal-action-icon">security</span>
+        <h3 class="proctor-modal-title" id="modal-action-title">Konfirmasi Aksi Pengawas</h3>
+      </div>
+      <div class="proctor-modal-body">
+        <p id="modal-action-message">Apakah Anda yakin ingin menjalankan tindakan ini terhadap siswa terkait?</p>
+        <div id="modal-action-details" class="modal-detail-box"></div>
+      </div>
+      <div class="proctor-modal-footer">
+        <button type="button" id="btn-cancel-modal" class="proctor-btn proctor-btn-secondary">Batal</button>
+        <button type="button" id="btn-confirm-modal" class="proctor-btn proctor-btn-primary">Konfirmasi Tindakan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Feedback -->
+  <div id="proctor-toast" class="proctor-toast" style="display: none;">
+    <span class="material-symbols-rounded toast-icon" id="toast-icon">check_circle</span>
+    <span class="toast-message" id="toast-message">Tindakan berhasil diproses.</span>
+  </div>
+</MainLayout>
+
+<style>
+  :root {
+    --proctor-primary: #1976d2;
+    --proctor-primary-bg: #e3f2fd;
+    --proctor-success: #2e7d32;
+    --proctor-success-bg: #e8f5e9;
+    --proctor-warning: #ed6c02;
+    --proctor-warning-bg: #fff4e5;
+    --proctor-error: #d32f2f;
+    --proctor-error-bg: #ffebee;
+    --proctor-surface: #ffffff;
+    --proctor-bg: #f8fafc;
+    --proctor-border: #e2e8f0;
+    --proctor-text: #0f172a;
+    --proctor-text-muted: #64748b;
+  }
+
+  .proctor-page-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem 1rem;
+    font-family: inherit;
+    color: var(--proctor-text);
+  }
+
+  /* Breadcrumb */
+  .proctor-breadcrumb {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .breadcrumb-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--proctor-text-muted);
+  }
+
+  .breadcrumb-left a {
+    color: var(--proctor-primary);
+    text-decoration: none;
+  }
+
+  .breadcrumb-left a:hover {
+    text-decoration: underline;
+  }
+
+  .breadcrumb-left .sep {
+    color: #cbd5e1;
+  }
+
+  .breadcrumb-left .current {
+    font-weight: 600;
+    color: var(--proctor-text);
+  }
+
+  .breadcrumb-right {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-link-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.825rem;
+    font-weight: 500;
+    color: var(--proctor-primary);
+    background: #ffffff;
+    border: 1px solid var(--proctor-border);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .btn-link-action:hover {
+    background: var(--proctor-primary-bg);
+    border-color: var(--proctor-primary);
+  }
+
+  .btn-link-action .material-symbols-rounded {
+    font-size: 1rem;
+  }
+
+  /* Header Card */
+  .proctor-header-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid var(--proctor-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-titles {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  .header-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse-dot 1.5s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  .proctor-badge {
+    background: var(--proctor-primary-bg);
+    color: var(--proctor-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+  }
+
+  .exam-title-badge {
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--proctor-text);
+    margin: 0 0 0.4rem 0;
+  }
+
+  .header-subtitle {
+    font-size: 0.875rem;
+    color: var(--proctor-text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .refresh-control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f8fafc;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--proctor-border);
+    border-radius: 0.5rem;
+  }
+
+  .control-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--proctor-text-muted);
+  }
+
+  .form-select-sm {
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--proctor-primary);
+    cursor: pointer;
+    outline: none;
+  }
+
+  .proctor-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .proctor-btn .material-symbols-rounded {
+    font-size: 1.1rem;
+  }
+
+  .proctor-btn-primary {
+    background: var(--proctor-primary);
+    color: #ffffff;
+  }
+
+  .proctor-btn-primary:hover {
+    background: #1565c0;
+  }
+
+  .proctor-btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+
+  .proctor-btn-secondary:hover {
+    background: #e2e8f0;
+  }
+
+  .proctor-btn-outline {
+    background: #ffffff;
+    color: #475569;
+    border-color: var(--proctor-border);
+  }
+
+  .proctor-btn-outline:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  .header-footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--proctor-border);
+    font-size: 0.825rem;
+    color: var(--proctor-text-muted);
+  }
+
+  .server-sync-info {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .server-sync-info .material-symbols-rounded {
+    font-size: 1.1rem;
+  }
+
+  .sync-dot-sep {
+    color: #cbd5e1;
+  }
+
+  /* KPI Summary Grid */
+  .kpi-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .kpi-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid var(--proctor-border);
+    padding: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .kpi-card-active {
+    border-color: #a7f3d0;
+    background: #fafffc;
+  }
+
+  .kpi-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .kpi-icon-wrap .material-symbols-rounded {
+    font-size: 1.5rem;
+  }
+
+  .kpi-blue { background: #e0f2fe; color: #0284c7; }
+  .kpi-green { background: #dcfce7; color: #16a34a; }
+  .kpi-red { background: #fee2e2; color: #dc2626; }
+  .kpi-amber { background: #fef3c7; color: #d97706; }
+  .kpi-teal { background: #ccfbf1; color: #0d9488; }
+  .kpi-purple { background: #f3e8ff; color: #9333ea; }
+
+  .kpi-data {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--proctor-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .kpi-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--proctor-text);
+  }
+
+  .kpi-subtext {
+    font-size: 0.725rem;
+    color: var(--proctor-text-muted);
+    margin-top: 0.15rem;
+  }
+
+  /* Toolbar */
+  .roster-toolbar-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid var(--proctor-border);
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .toolbar-filter-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--proctor-text-muted);
+  }
+
+  .form-select-md {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.825rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--proctor-border);
+    background: #f8fafc;
+    color: var(--proctor-text);
+    outline: none;
+    font-weight: 500;
+  }
+
+  .form-select-md:focus {
+    border-color: var(--proctor-primary);
+    background: #ffffff;
+  }
+
+  .toolbar-filter-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.6rem;
+    font-size: 1.1rem;
+    color: var(--proctor-text-muted);
+  }
+
+  .form-input-search {
+    padding: 0.4rem 1.8rem 0.4rem 2.1rem;
+    font-size: 0.825rem;
+    border: 1px solid var(--proctor-border);
+    border-radius: 0.5rem;
+    background: #f8fafc;
+    width: 240px;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+
+  .form-input-search:focus {
+    width: 280px;
+    border-color: var(--proctor-primary);
+    background: #ffffff;
+  }
+
+  .btn-clear {
+    position: absolute;
+    right: 0.5rem;
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    color: #94a3b8;
+    cursor: pointer;
+  }
+
+  .student-count-badge {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--proctor-text-muted);
+    background: #f1f5f9;
+    padding: 0.35rem 0.65rem;
+    border-radius: 9999px;
+  }
+
+  /* Table Card */
+  .roster-table-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid var(--proctor-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .proctor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.825rem;
+    text-align: left;
+  }
+
+  .proctor-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid var(--proctor-border);
+    white-space: nowrap;
+  }
+
+  .proctor-table td {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+
+  .proctor-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  /* Student Info Cell */
+  .student-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .student-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #334155;
+    font-weight: 700;
+    font-size: 0.825rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .student-avatar-active {
+    background: #dcfce7;
+    color: #166534;
+    border: 2px solid #86efac;
+  }
+
+  .student-avatar-locked {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 2px solid #fca5a5;
+  }
+
+  .student-meta {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .student-name {
+    font-weight: 600;
+    color: var(--proctor-text);
+  }
+
+  .student-email {
+    font-size: 0.725rem;
+    color: var(--proctor-text-muted);
+    font-family: monospace;
+  }
+
+  /* Badges */
+  .badge-class {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.725rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #334155;
+    border-radius: 0.35rem;
+    border: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.725rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .badge-active {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+
+  .badge-locked {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    animation: flash-locked 1.5s infinite;
+  }
+
+  @keyframes flash-locked {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+  }
+
+  .badge-success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+
+  .badge-warning {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+
+  .badge-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+
+  .badge-neutral {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Progress Bar */
+  .progress-cell-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 140px;
+  }
+
+  .progress-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.725rem;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 7px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--proctor-primary);
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-bar-fill-done {
+    background: #10b981;
+  }
+
+  /* Violation Badge */
+  .violation-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.725rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .violation-clean {
+    color: #166534;
+    background: #f0fdf4;
+  }
+
+  .violation-warning {
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+  }
+
+  .violation-danger {
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    font-weight: 700;
+  }
+
+  /* Score Badge */
+  .score-badge {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+  }
+
+  .score-pass {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .score-fail {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Action Buttons */
+  .action-buttons-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  .btn-table-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.725rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.35rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-unlock-action {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+  }
+
+  .btn-unlock-action:hover {
+    background: #dc2626;
+    color: #ffffff;
+  }
+
+  .btn-reset-action {
+    background: #f8fafc;
+    color: #64748b;
+    border-color: #cbd5e1;
+  }
+
+  .btn-reset-action:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  /* Modal Dialog */
+  .proctor-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .proctor-modal-dialog {
+    background: #ffffff;
+    border-radius: 1rem;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .proctor-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--proctor-border);
+  }
+
+  .modal-icon-warn {
+    color: var(--proctor-primary);
+    font-size: 1.5rem;
+  }
+
+  .proctor-modal-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--proctor-text);
+  }
+
+  .proctor-modal-body {
+    padding: 1.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #334155;
+  }
+
+  .modal-detail-box {
+    margin-top: 0.85rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid var(--proctor-border);
+    border-radius: 0.5rem;
+    font-size: 0.825rem;
+    color: #475569;
+  }
+
+  .proctor-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid var(--proctor-border);
+  }
+
+  /* Toast */
+  .proctor-toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #0f172a;
+    color: #ffffff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    font-size: 0.85rem;
+    font-weight: 500;
+    animation: toast-slide-up 0.3s ease;
+  }
+
+  @keyframes toast-slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .toast-icon {
+    color: #10b981;
+    font-size: 1.25rem;
+  }
+
+  /* Loading State */
+  .table-loading-cell {
+    text-align: center;
+    padding: 3rem 1rem !important;
+  }
+
+  .table-loader-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    color: var(--proctor-text-muted);
+  }
+
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .text-success { color: #16a34a; }
+  .text-warning { color: #d97706; }
+  .text-error { color: #dc2626; }
+  .text-teal { color: #0d9488; }
+  .text-purple { color: #9333ea; }
+
+  @media (max-width: 768px) {
+    .header-main {
+      flex-direction: column;
+    }
+    .header-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .roster-toolbar-card {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .toolbar-filter-left, .toolbar-filter-right {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .form-input-search {
+      width: 100% !important;
+    }
+  }
+</style>
+
+<script is:inline>
+  let rawStudents = [];
+  let pollIntervalId = null;
+  let pendingAction = null;
+
+  // DOM Elements
+  const kpiTotal = document.getElementById('kpi-total-students');
+  const kpiInProgress = document.getElementById('kpi-in-progress');
+  const kpiLocked = document.getElementById('kpi-locked');
+  const kpiViolations = document.getElementById('kpi-violations');
+  const kpiSubmitted = document.getElementById('kpi-submitted');
+  const kpiAverage = document.getElementById('kpi-average-score');
+  const lastUpdatedText = document.getElementById('last-updated-text');
+  const tableBody = document.getElementById('roster-table-body');
+  const filterClassSelect = document.getElementById('filter-class');
+  const filterStatusSelect = document.getElementById('filter-status');
+  const searchInput = document.getElementById('search-student-input');
+  const btnClearSearch = document.getElementById('btn-clear-search');
+  const rosterCountText = document.getElementById('roster-count-text');
+  const refreshSelect = document.getElementById('refresh-interval-select');
+  const btnManualRefresh = document.getElementById('btn-manual-refresh');
+  const btnToggleFullscreen = document.getElementById('btn-toggle-fullscreen');
+  const btnExportCsv = document.getElementById('btn-export-csv');
+
+  // Modal elements
+  const modalAction = document.getElementById('modal-proctor-action');
+  const modalTitle = document.getElementById('modal-action-title');
+  const modalMessage = document.getElementById('modal-action-message');
+  const modalDetails = document.getElementById('modal-action-details');
+  const btnCancelModal = document.getElementById('btn-cancel-modal');
+  const btnConfirmModal = document.getElementById('btn-confirm-modal');
+  const toastBox = document.getElementById('proctor-toast');
+  const toastMessage = document.getElementById('toast-message');
+
+  function showToast(msg, isSuccess = true) {
+    if (!toastBox || !toastMessage) return;
+    toastMessage.textContent = msg;
+    const toastIcon = document.getElementById('toast-icon');
+    if (toastIcon) {
+      toastIcon.textContent = isSuccess ? 'check_circle' : 'error';
+      toastIcon.style.color = isSuccess ? '#10b981' : '#ef4444';
+    }
+    toastBox.style.display = 'flex';
+    setTimeout(() => {
+      toastBox.style.display = 'none';
+    }, 4000);
+  }
+
+  function formatTime(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  async function fetchTelemetry(isManual = false) {
+    if (isManual && btnManualRefresh) {
+      const icon = btnManualRefresh.querySelector('.material-symbols-rounded');
+      if (icon) icon.classList.add('spin');
+    }
+
+    try {
+      const res = await fetch('/api/sql/ujian/monitoring', {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+
+      if (!res.ok) throw new Error('Network response not ok');
+      const data = await res.json();
+
+      if (data.success) {
+        updateClassesDropdown(data.classes || []);
+        updateSummaryKpis(data.summary || {});
+        rawStudents = data.students || [];
+        renderRosterTable();
+
+        if (lastUpdatedText) {
+          const now = new Date();
+          lastUpdatedText.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+      }
+    } catch (e) {
+      console.warn('Telemetry fetch error:', e);
+      if (isManual) {
+        showToast('Gagal memuat telemetry dari server.', false);
+      }
+    } finally {
+      if (isManual && btnManualRefresh) {
+        const icon = btnManualRefresh.querySelector('.material-symbols-rounded');
+        if (icon) icon.classList.remove('spin');
+      }
+    }
+  }
+
+  function updateClassesDropdown(classes) {
+    if (!filterClassSelect) return;
+    const currentVal = filterClassSelect.value;
+    const existingOptions = Array.from(filterClassSelect.options).map(o => o.value);
+
+    classes.forEach(cls => {
+      if (!existingOptions.includes(cls)) {
+        const opt = document.createElement('option');
+        opt.value = cls;
+        opt.textContent = cls;
+        filterClassSelect.appendChild(opt);
+      }
+    });
+
+    filterClassSelect.value = currentVal;
+  }
+
+  function updateSummaryKpis(summary) {
+    if (kpiTotal) kpiTotal.textContent = String(summary.totalStudents || 0);
+    if (kpiInProgress) kpiInProgress.textContent = String(summary.inProgressCount || 0);
+    if (kpiLocked) kpiLocked.textContent = String(summary.lockedCount || 0);
+    if (kpiViolations) kpiViolations.textContent = String(summary.violationAlertCount || 0);
+    if (kpiSubmitted) kpiSubmitted.textContent = String(summary.submittedCount || 0);
+    if (kpiAverage) kpiAverage.textContent = String(summary.averageScore || 0);
+  }
+
+  function getFilteredStudents() {
+    const selectedClass = filterClassSelect ? filterClassSelect.value.trim().toLowerCase() : '';
+    const selectedStatus = filterStatusSelect ? filterStatusSelect.value : 'ALL';
+    const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+    return rawStudents.filter(s => {
+      // Class filter
+      if (selectedClass && s.className.toLowerCase() !== selectedClass) {
+        return false;
+      }
+      // Status filter
+      if (selectedStatus !== 'ALL' && s.status !== selectedStatus) {
+        return false;
+      }
+      // Search filter
+      if (searchQuery) {
+        const combined = `${s.name} ${s.email} ${s.className}`.toLowerCase();
+        if (!combined.includes(searchQuery)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  function renderRosterTable() {
+    if (!tableBody) return;
+    const students = getFilteredStudents();
+
+    if (rosterCountText) {
+      rosterCountText.textContent = `${students.length} siswa ditampilkan`;
+    }
+
+    if (students.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 2.5rem 1rem; color: #64748b;">
+            <span class="material-symbols-rounded" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;">filter_list_off</span>
+            Tidak ada siswa yang sesuai dengan filter pengerjaan yang dipilih.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    students.forEach((s, idx) => {
+      const isDone = s.status === 'submitted' || s.status === 'disqualified';
+      const isLocked = s.status === 'locked';
+      const isActive = s.status === 'in_progress';
+
+      // Avatar class
+      let avatarClass = 'student-avatar';
+      if (isActive) avatarClass += ' student-avatar-active';
+      if (isLocked) avatarClass += ' student-avatar-locked';
+
+      // Status Badge
+      let statusBadge = `<span class="status-badge ${s.statusBadgeClass}">${s.statusLabel}</span>`;
+      if (isLocked && s.lockoutRemaining > 0) {
+        statusBadge += `<div style="font-size: 0.7rem; color: #dc2626; font-family: monospace; font-weight: 700; margin-top: 2px;">Tersisa: ${formatTime(s.lockoutRemaining)}</div>`;
+      }
+
+      // Progress Bar
+      const answered = s.progress ? s.progress.answered : 0;
+      const total = s.progress ? s.progress.total : 30;
+      const percent = s.progress ? s.progress.percentage : 0;
+      const currentQ = s.progress ? s.progress.currentQuestion : '-';
+
+      const progressBar = `
+        <div class="progress-cell-wrap">
+          <div class="progress-label-row">
+            <span><strong>${answered}</strong> / ${total} Soal</span>
+            <span>${percent}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill ${percent === 100 ? 'progress-bar-fill-done' : ''}" style="width: ${percent}%;"></div>
+          </div>
+        </div>
+      `;
+
+      // Violations
+      let violationPill = '<span class="violation-pill violation-clean"><span class="material-symbols-rounded" style="font-size: 13px;">verified</span> 0x</span>';
+      if (s.violations === 1) {
+        violationPill = '<span class="violation-pill violation-warning"><span class="material-symbols-rounded" style="font-size: 13px;">warning</span> 1x Layar</span>';
+      } else if (s.violations >= 2) {
+        violationPill = `<span class="violation-pill violation-danger"><span class="material-symbols-rounded" style="font-size: 13px;">lock</span> ${s.violations}x Kunci</span>`;
+      }
+
+      // Score
+      let scoreDisplay = '<span style="color: #94a3b8;">-</span>';
+      if (s.finalScore !== null && s.finalScore !== undefined) {
+        const isPass = s.finalScore >= 75;
+        scoreDisplay = `<span class="score-badge ${isPass ? 'score-pass' : 'score-fail'}">${s.finalScore}</span>`;
+      }
+
+      // Actions
+      let actionsHtml = `
+        <div class="action-buttons-wrap">
+          ${isLocked ? `
+            <button type="button" class="btn-table-action btn-unlock-action" onclick="window.triggerProctorAction('unlock', ${s.userId}, '${encodeURIComponent(s.name)}')">
+              <span class="material-symbols-rounded" style="font-size: 14px;">lock_open</span>
+              Buka Kunci
+            </button>
+          ` : ''}
+          <button type="button" class="btn-table-action btn-reset-action" onclick="window.triggerProctorAction('reset', ${s.userId}, '${encodeURIComponent(s.name)}')">
+            <span class="material-symbols-rounded" style="font-size: 14px;">restart_alt</span>
+            Reset
+          </button>
+        </div>
+      `;
+
+      html += `
+        <tr data-user-id="${s.userId}">
+          <td style="text-align: center; color: #94a3b8; font-weight: 600;">${idx + 1}</td>
+          <td>
+            <div class="student-cell">
+              <div class="${avatarClass}">${(s.name || 'S').charAt(0).toUpperCase()}</div>
+              <div class="student-meta">
+                <span class="student-name">${s.name}</span>
+                <span class="student-email">${s.email}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge-class">${s.className || 'Tanpa Kelas'}</span></td>
+          <td>${statusBadge}</td>
+          <td>${progressBar}</td>
+          <td style="text-align: center; font-weight: 700; color: var(--proctor-primary);">
+            ${isDone ? '<span class="material-symbols-rounded text-success" style="font-size: 1.1rem;">check_circle</span>' : `#${currentQ}`}
+          </td>
+          <td style="text-align: center; font-family: monospace; font-weight: 600; color: #475569;">
+            ${formatTime(s.durationSeconds || 0)}
+          </td>
+          <td style="text-align: center;">${violationPill}</td>
+          <td style="text-align: center;">${scoreDisplay}</td>
+          <td>${actionsHtml}</td>
+        </tr>
+      `;
+    });
+
+    tableBody.innerHTML = html;
+  }
+
+  // Action Triggers
+  window.triggerProctorAction = function(action, userId, encodedName) {
+    const studentName = decodeURIComponent(encodedName);
+    pendingAction = { action, userId, studentName };
+
+    if (action === 'unlock') {
+      modalTitle.textContent = 'Buka Kunci Layar Siswa (Remote Unlock)';
+      modalMessage.innerHTML = `Siswa <strong>${studentName}</strong> saat ini sedang terkena sanksi penguncian layar 5 menit karena terdeteksi keluar dari fullscreen atau tab.`;
+      modalDetails.innerHTML = `
+        <strong>Tindakan Pengawas:</strong> Perintah pembukaan kunci akan dikirimkan langsung ke browser siswa secara real-time. Layar pengerjaan siswa akan otomatis aktif kembali tanpa siswa perlu mereload halaman.
+      `;
+      btnConfirmModal.className = 'proctor-btn proctor-btn-primary';
+      btnConfirmModal.textContent = 'Buka Kunci Sekarang';
+    } else if (action === 'reset') {
+      modalTitle.textContent = 'Reset Sesi Ujian Siswa (Emergency Reset)';
+      modalMessage.innerHTML = `Apakah Anda yakin ingin <strong>mereset seluruh sesi ujian</strong> untuk <strong>${studentName}</strong>?`;
+      modalDetails.innerHTML = `
+        <span style="color: #dc2626; font-weight: 700;">PERINGATAN:</span> Riwayat nilai dan jawaban tersimpan siswa ini akan dihapus dari server sehingga siswa dapat login dan memulai ulang lembar ujian dari nomor 1. Gunakan hanya jika terjadi kendala teknis perangkat lab (mati lampu, PC hang total, dsb.).
+      `;
+      btnConfirmModal.className = 'proctor-btn proctor-btn-primary';
+      btnConfirmModal.style.background = '#dc2626';
+      btnConfirmModal.textContent = 'Konfirmasi Reset Sesi';
+    }
+
+    if (modalAction) modalAction.style.display = 'flex';
+  };
+
+  if (btnCancelModal) {
+    btnCancelModal.addEventListener('click', () => {
+      if (modalAction) modalAction.style.display = 'none';
+      pendingAction = null;
+    });
+  }
+
+  if (btnConfirmModal) {
+    btnConfirmModal.addEventListener('click', async () => {
+      if (!pendingAction) return;
+      const { action, userId } = pendingAction;
+      btnConfirmModal.disabled = true;
+      btnConfirmModal.textContent = 'Memproses...';
+
+      try {
+        const res = await fetch('/api/sql/ujian/monitoring-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, targetUserId: userId })
+        });
+
+        const data = await res.json();
+        if (modalAction) modalAction.style.display = 'none';
+
+        if (res.ok && data.success) {
+          showToast(data.message || 'Tindakan pengawas berhasil dijalankan.', true);
+          fetchTelemetry();
+        } else {
+          showToast(data.error || 'Gagal memproses tindakan pengawas.', false);
+        }
+      } catch (err) {
+        showToast('Terjadi gangguan jaringan saat menghubungi server.', false);
+      } finally {
+        btnConfirmModal.disabled = false;
+        pendingAction = null;
+      }
+    });
+  }
+
+  // Polling Scheduler
+  function setupPolling(interval) {
+    if (pollIntervalId) clearInterval(pollIntervalId);
+    currentPollInterval = interval;
+    if (interval > 0) {
+      pollIntervalId = setInterval(() => {
+        fetchTelemetry();
+      }, interval);
+    }
+  }
+
+  if (refreshSelect) {
+    refreshSelect.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value, 10);
+      setupPolling(val);
+      if (val > 0) fetchTelemetry();
+    });
+  }
+
+  if (btnManualRefresh) {
+    btnManualRefresh.addEventListener('click', () => {
+      fetchTelemetry(true);
+    });
+  }
+
+  // Search & Filter listeners
+  if (filterClassSelect) {
+    filterClassSelect.addEventListener('change', () => renderRosterTable());
+  }
+  if (filterStatusSelect) {
+    filterStatusSelect.addEventListener('change', () => renderRosterTable());
+  }
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      if (btnClearSearch) {
+        btnClearSearch.style.display = e.target.value ? 'block' : 'none';
+      }
+      renderRosterTable();
+    });
+  }
+  if (btnClearSearch) {
+    btnClearSearch.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      btnClearSearch.style.display = 'none';
+      renderRosterTable();
+    });
+  }
+
+  // Fullscreen toggle
+  if (btnToggleFullscreen) {
+    btnToggleFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+  }
+
+  // CSV Export
+  if (btnExportCsv) {
+    btnExportCsv.addEventListener('click', () => {
+      const students = getFilteredStudents();
+      if (students.length === 0) {
+        alert('Tidak ada data siswa untuk diekspor.');
+        return;
+      }
+
+      let csv = 'No,Nama Siswa,Email,Rombel,Status,Soal Dijawab,Total Soal,Persen Progres,Soal Aktif,Durasi Detik,Pelanggaran,Skor Akhir\n';
+      students.forEach((s, idx) => {
+        const answered = s.progress ? s.progress.answered : 0;
+        const total = s.progress ? s.progress.total : 30;
+        const percent = s.progress ? s.progress.percentage : 0;
+        const currentQ = s.progress ? s.progress.currentQuestion : '';
+        const score = s.finalScore !== null && s.finalScore !== undefined ? s.finalScore : '';
+        csv += `${idx + 1},"${s.name}","${s.email}","${s.className}","${s.statusLabel}",${answered},${total},${percent}%,"#${currentQ}",${s.durationSeconds || 0},${s.violations || 0},${score}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Live_Monitoring_Ujian_SQL_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // Initial Fetch & Start Polling
+  fetchTelemetry();
+  setupPolling(5000);
+</script>

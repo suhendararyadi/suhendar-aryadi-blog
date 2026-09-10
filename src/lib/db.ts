@@ -197,6 +197,29 @@ const CREATE_TABLES_PG = `
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS sql_exam_active_sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    token_used VARCHAR(50) NOT NULL,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_heartbeat_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    answers_count INT DEFAULT 0,
+    current_question_index INT DEFAULT 0,
+    doubt_count INT DEFAULT 0,
+    duration_seconds INT DEFAULT 0,
+    violation_count INT DEFAULT 0,
+    is_locked BOOLEAN DEFAULT FALSE,
+    lockout_remaining INT DEFAULT 0,
+    force_unlocked BOOLEAN DEFAULT FALSE,
+    status VARCHAR(30) DEFAULT 'in_progress',
+    user_agent TEXT DEFAULT '',
+    ip_address VARCHAR(100) DEFAULT '',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  ALTER TABLE sql_exam_active_sessions ADD COLUMN IF NOT EXISTS doubt_count INT DEFAULT 0;
+  ALTER TABLE sql_exam_active_sessions ADD COLUMN IF NOT EXISTS force_unlocked BOOLEAN DEFAULT FALSE;
+
   CREATE TABLE IF NOT EXISTS course_enrollments (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,

@@ -112,6 +112,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    // Record start of active session in sql_exam_active_sessions (fail-safe)
+    try {
+      await query(
+        `INSERT INTO sql_exam_active_sessions 
+          (user_id, token_used, started_at, last_heartbeat_at, answers_count, current_question_index, status, updated_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, 0, 'in_progress', CURRENT_TIMESTAMP)
+         ON CONFLICT (user_id) DO UPDATE SET
+          token_used = EXCLUDED.token_used,
+          started_at = CURRENT_TIMESTAMP,
+          last_heartbeat_at = CURRENT_TIMESTAMP,
+          status = 'in_progress',
+          is_locked = FALSE,
+          force_unlocked = FALSE,
+          updated_at = CURRENT_TIMESTAMP`,
+        [user.id, token]
+      );
+    } catch (sessionInitErr) {
+      console.warn('Could not initialize active session in db:', sessionInitErr);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

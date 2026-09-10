@@ -165,6 +165,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
          ON CONFLICT (user_id, course_id) DO NOTHING`,
         [user.id]
       );
+
+      // Update active session status to submitted/disqualified (fail-safe)
+      try {
+        await query(
+          `UPDATE sql_exam_active_sessions 
+           SET status = $1, answers_count = $2, duration_seconds = $3, violation_count = $4, is_locked = FALSE, updated_at = CURRENT_TIMESTAMP
+           WHERE user_id = $5`,
+          [
+            isDisqualified ? 'disqualified' : 'submitted',
+            totalQuestions,
+            Number(durationSeconds) || 0,
+            Number(violationCount) || 0,
+            user.id
+          ]
+        );
+      } catch (actErr) {
+        console.warn('Could not update active session status on submit:', actErr);
+      }
     } catch (dbErr) {
       console.error('Failed to save official exam submission to DB:', dbErr);
     }
