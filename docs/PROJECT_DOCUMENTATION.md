@@ -59,7 +59,66 @@ Dihitung secara otomatis di `src/pages/dashboard.astro` berdasarkan jumlah modul
 
 ---
 
-## 4. Alur Deployment & Build Configuration
+---
+
+## 4. Arsitektur Ujian Evaluasi Resmi SQL (CBT 30 Soal)
+
+Sistem Computer-Based Test (CBT) evaluasi resmi berlokasi di `/belajar/sql/ujian` dirancang untuk asesmen sumatif resmi SMK RPL dengan pengawasan keamanan tinggi:
+
+### 4.1 Spesifikasi Asesmen
+- **Jumlah Butir Soal**: 30 soal pilihan ganda 5 opsi (A, B, C, D, E) dari kumpulan soal bank `src/data/sqlExamQuestions.ts`.
+- **Durasi Pengerjaan**: 60 menit dengan penghitung waktu mundur (*countdown timer*) otomatis.
+- **Kriteria Ketuntasan Minimal (KKM)**: Skor 75 / 100 (minimal 23 jawaban benar).
+- **Kerahasiaan Kunci Jawaban**: Properti `correctAnswer` dan `explanation` dihapus di server sebelum data dikirim ke browser siswa, mencegah pembocoran via Inspect Element.
+- **Single Attempt Rule**: Siswa hanya diperbolehkan menyelesaikan ujian 1 kali resmi (diverifikasi di server via tabel `sql_exam_submissions`).
+
+### 4.2 Protokol Anti-Cheat 3 Tahap (High-Security Lockout)
+1. **Fullscreen Enforcement**: Ujian wajib dijalankan dalam mode layar penuh (`requestFullscreen`).
+2. **Deteksi Pelanggaran**:
+   - `visibilitychange`: Mendeteksi pergantian tab atau browser diminimalkan.
+   - `window.blur`: Mendeteksi aplikasi lain dibuka atau klik di luar browser.
+   - `fullscreenchange`: Mendeteksi siswa keluar dari fullscreen.
+   - Shortcut keyboard diblokir: F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+P, Ctrl+S.
+   - Clipboard & Context Menu diblokir: Klik kanan, copy, cut, paste.
+3. **Eskalasi Sanksi**:
+   - **Pelanggaran 1**: Dialog peringatan keras, paksa kembali ke layar penuh.
+   - **Pelanggaran 2**: Penguncian layar 5 menit (*5-minute lockout*). Lembar ujian terkunci total, timer countdown kunci berjalan.
+   - **Pelanggaran 3**: Diskualifikasi otomatis sistem dengan nilai 0, alasan pelanggaran dicatat, dan lembar soal disubmit otomatis.
+
+---
+
+## 5. Arsitektur Telemetry Heartbeat & Live Proctor Monitoring
+
+Sistem Live Monitoring memungkinkan Guru Pengampu memantau seluruh aktivitas ujian secara real-time melalui `/admin/ujian/monitoring` atau panel terintegrasi di `/belajar/sql/ujian`:
+
+### 5.1 Protokol Telemetry Heartbeat (`POST /api/sql/ujian/heartbeat`)
+- **Frekuensi Ping**: Client siswa mengirim snapshot telemetry setiap 10 detik.
+- **Data Telemetry yang Dikirim**:
+  ```json
+  {
+    "token": "UJIAN-SQL-2026",
+    "answersCount": 18,
+    "currentQuestionIndex": 12,
+    "doubtCount": 2,
+    "durationSeconds": 1420,
+    "violationCount": 1,
+    "isLocked": false,
+    "lockoutRemaining": 0
+  }
+  ```
+- **Prinsip Fail-Silent**:
+  Jika server melakukan rolling restart atau jaringan lab terputus sesaat, client menangkap exception secara senyap (`silent try...catch`). Tidak ada popup galat yang mengganggu siswa, jawaban di `sessionStorage` tetap aman, dan pengerjaan berlanjut normal.
+
+### 5.2 Mekanisme Remote Unlock
+Jika siswa terkena penguncian 5 menit akibat kendala teknis lab:
+1. Guru menekan tombol **"Buka Kunci"** pada baris siswa di konsol pengawas.
+2. Server memperbarui `sql_exam_active_sessions`: `is_locked = FALSE`, `lockout_remaining = 0`, `force_unlocked = TRUE`.
+3. Pada siklus heartbeat berikutnya (<10s), browser siswa menerima `{ forceUnlocked: true }`.
+4. Browser siswa secara otomatis menutup modal lockout, mematikan interval kunci, dan mengaktifkan kembali lembar soal tanpa siswa perlu mereload halaman.
+
+---
+
+## 6. Alur Deployment & Build Configuration
 
 - **Platform Target**: Vercel (Serverless Functions)
 - **Engine Runtime**: Node.js 22.x
@@ -72,10 +131,14 @@ Dihitung secara otomatis di `src/pages/dashboard.astro` berdasarkan jumlah modul
 
 ---
 
-## 5. Pemeliharaan & Pengembangan Lebih Lanjut
+## 7. Pemeliharaan & Pengembangan Lebih Lanjut
 
 1. **Menambah Modul SQL Baru**:
    - Tambahkan definisi modul baru pada array `seedLessons` di file `src/lib/seedLessons.ts`.
    - Jalankan `npx tsx scripts/migrate.js` untuk menyinkronkan modul baru ke database Neon Postgres produksi.
-2. **Menambah Artikel Blog / Materi RPL Baru**:
+2. **Mengelola Token Ujian CBT**:
+   - Token default resmi: `UJIAN-SQL-2026`.
+   - Token dinamis dapat diatur melalui tabel `system_settings` dengan kunci `sql_exam_token`.
+3. **Menambah Artikel Blog / Materi RPL Baru**:
    - Tambahkan file `.md` baru di folder `src/content/posts/` (artikel blog) atau `src/content/modules/` (materi RPL).
+

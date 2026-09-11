@@ -48,7 +48,35 @@ Portal edukasi resmi dan platform pembelajaran interaktif yang dikembangkan oleh
 - **LKPD 2 — TIK & Mail Merge**: Form kerja kelompok Mail Merge & Search Engine Operators.
 - **Portal Penilaian Guru (`/admin/lkpd`)**: Tab filter dual LKPD, drawer detail jawaban kelompok, modal grading nilai + feedback, serta fitur ekspor data nilai ke CSV.
 
-### 6. ⚓ Dock.cool Floating macOS Smart Dock Footer
+### 6. 🛡️ Ujian Evaluasi Resmi SQL (CBT 30 Soal) & Anti-Cheat Berlapis (`/belajar/sql/ujian`)
+- **Standar Ujian Evaluasi Sumatif SMK RPL**: 30 butir soal pilihan ganda 5 opsi (A, B, C, D, E), alokasi waktu 60 menit dengan hitung mundur otomatis, dan ambang batas KKM 75/100.
+- **High-Security Anti-Cheat & 3-Stage Lockout**:
+  - Wajib Layar Penuh (*Fullscreen Mode*) & blokir menu konteks (*Right Click*), shortcut inspeksi (F12, DevTools, Ctrl+Shift+I), dan clipboard (*Copy/Paste*).
+  - **Tahap 1**: Peringatan keras saat siswa meminimalkan window, berganti tab, atau keluar fullscreen.
+  - **Tahap 2**: Penguncian layar 5 menit (*5-Minute Lockout Countdown*). Lembar soal terkunci dan countdown berjalan.
+  - **Tahap 3**: Diskualifikasi otomatis sistem dengan nilai 0 dan pencatatan alasan pelanggaran.
+- **Mode Uji Coba & Kunci Jawaban Guru**: Akses khusus Guru/Admin untuk mencoba 30 butir soal bebas anti-cheat, membuka pembahasan resmi, dan reset riwayat pengujian.
+
+### 7. 📡 Live Exam Monitoring & Proctor Console Pengawas Guru (`/admin/ujian/monitoring`)
+- **Konsol Pengawas Standar CBT / Asesmen Nasional**:
+  - Halaman pengawas terdedikasi (`/admin/ujian/monitoring`) siap diproyeksikan ke layar pengawas atau proyektor ruang ujian.
+  - **Panel Live Telemetry Terintegrasi**: Tampil langsung di halaman `/belajar/sql/ujian` khusus peran Guru/Admin.
+- **Jaminan 100% Zero Disruption**:
+  - Sinyal telemetry *heartbeat* berkala (setiap 10 detik) dikirim di latar belakang (*fail-silent*). Gangguan koneksi lab tidak akan memutus atau mereset pengerjaan siswa.
+  - Skema database PostgreSQL aditif (`sql_exam_active_sessions`) menjaga keutuhan 100% riwayat nilai yang sedang masuk.
+- **Fitur Pengawasan Lengkap**:
+  - 6 Metrik KPI Real-Time: Total Peserta, Sedang Mengerjakan, Terkunci 5 Menit, Peringatan Layar, Selesai Dikirim, dan Rata-Rata Nilai.
+  - Filter Rombel/Kelas (`11 RPL 1-4`), Filter Status Pengerjaan, dan pencarian instan nama/email siswa.
+  - **Remote Unlock (Buka Kunci Layar)**: Guru dapat membuka kunci siswa yang terkena lockout 5 menit secara langsung tanpa siswa perlu me-refresh halaman.
+  - **Emergency Reset Sesi**: Reset data ujian siswa jika terjadi kendala teknis PC lab (mati lampu, crash).
+  - **Ekspor Data Pengawas (CSV)**: Unduh rekap status live peserta ke format spreadsheet.
+
+### 8. 📋 Dashboard Rekap Nilai Raport Guru & LKPD Softskill (`/admin/dashboard`)
+- **Integrasi Nilai Lengkap**: Modul SQL (40 Modul), LKPD 1 (BK 4 Pilar), LKPD 2 (TIK Mail Merge), dan LKPD Softskill (Etika Email Bisnis 3 Studi Kasus).
+- **Aturan Ketuntasan Softskill**: Nilai akhir LKPD Softskill hanya dihitung setelah siswa menuntaskan seluruh 3 studi kasus.
+- **Format Bersih Raport**: Tampilan nilai integer skala 100 (contoh: `90`) dan tombol unduh rekap nilai raport ke format CSV.
+
+### 9. ⚓ Dock.cool Floating macOS Smart Dock Footer
 - Navigation bar melayang ala macOS Dock di bagian bawah layar dengan ikon pintasan cepat, indikator status sistem online, dan grid informasi 4 kolom.
 
 ---
@@ -134,6 +162,61 @@ CREATE TABLE IF NOT EXISTS user_progress (
   submitted_code TEXT,
   completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, lesson_id)
+);
+
+-- Tabel LKPD Softskill (Etika Email Bisnis)
+CREATE TABLE IF NOT EXISTS lkpd_email_submissions (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  case_study_id VARCHAR(50) NOT NULL,
+  recipient_to VARCHAR(255) NOT NULL,
+  recipient_cc VARCHAR(255) DEFAULT '',
+  subject_text TEXT NOT NULL,
+  body_text TEXT NOT NULL,
+  attachment_name VARCHAR(255) DEFAULT '',
+  attachment_link TEXT DEFAULT '',
+  score INT DEFAULT NULL,
+  teacher_feedback TEXT DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Riwayat Nilai Ujian Evaluasi SQL (CBT 30 Soal)
+CREATE TABLE IF NOT EXISTS sql_exam_submissions (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  token_used VARCHAR(50) NOT NULL,
+  total_questions INT NOT NULL,
+  correct_answers INT NOT NULL,
+  score INT NOT NULL,
+  duration_seconds INT DEFAULT 0,
+  answers_json TEXT DEFAULT '{}',
+  violation_count INT DEFAULT 0,
+  is_disqualified BOOLEAN DEFAULT FALSE,
+  disqualification_reason TEXT DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Sesi Aktif Telemetry Live Monitoring Ujian CBT
+CREATE TABLE IF NOT EXISTS sql_exam_active_sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  token_used VARCHAR(50) NOT NULL,
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_heartbeat_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  answers_count INT DEFAULT 0,
+  current_question_index INT DEFAULT 0,
+  doubt_count INT DEFAULT 0,
+  duration_seconds INT DEFAULT 0,
+  violation_count INT DEFAULT 0,
+  is_locked BOOLEAN DEFAULT FALSE,
+  lockout_remaining INT DEFAULT 0,
+  force_unlocked BOOLEAN DEFAULT FALSE,
+  status VARCHAR(30) DEFAULT 'in_progress',
+  user_agent TEXT DEFAULT '',
+  ip_address VARCHAR(100) DEFAULT '',
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
