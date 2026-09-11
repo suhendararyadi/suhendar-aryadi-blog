@@ -1,4 +1,4 @@
-import { createPool } from '@vercel/postgres';
+import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,7 +19,7 @@ if (fs.existsSync(envLocalPath)) {
   });
 }
 
-const db = createPool({ connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL });
+const db = new Pool({ connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL });
 
 // Skor + umpan balik hasil penilaian objektif per RUBRIK_PENILAIAN_LKPD1.md
 // (Dekomposisi/Pola/Abstraksi/Algoritma masing-masing maks 25 poin)

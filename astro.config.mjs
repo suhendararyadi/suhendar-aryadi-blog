@@ -1,13 +1,11 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
-import vercel from '@astrojs/vercel/serverless';
+import node from '@astrojs/node';
 
 export default defineConfig({
   site: 'https://suhendararyadi.dev',
   output: 'server',
-  adapter: vercel({
-    includeFiles: ['./node_modules/sql.js/dist/sql-wasm.wasm']
-  }),
+  adapter: node({ mode: 'standalone' }),
   integrations: [mdx()],
   markdown: {
     shikiConfig: {

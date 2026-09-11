@@ -1,4 +1,4 @@
-import { createPool } from '@vercel/postgres';
+import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
 
@@ -20,7 +20,7 @@ if (fs.existsSync(envLocalPath)) {
   });
 }
 
-const db = createPool({
+const db = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
 });
 

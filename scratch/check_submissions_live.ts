@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { createPool } from '@vercel/postgres';
+import { Pool } from 'pg';
 
 function getEnvUrl() {
   const paths = ['.env.local', '.vercel/.env.production.local'];
@@ -26,7 +26,7 @@ async function main() {
     return;
   }
   console.log('Connected to DB');
-  const pool = createPool({ connectionString: connStr });
+  const pool = new Pool({ connectionString: connStr });
   const client = await pool.connect();
 
   try {

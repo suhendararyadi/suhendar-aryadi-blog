@@ -1,4 +1,4 @@
-import { createPool } from '@vercel/postgres';
+import { Pool } from 'pg';
 import { seedLessons } from './seedLessons';
 
 interface MemoryUser {
@@ -40,6 +40,18 @@ let nextUserId = 1;
 let nextProgressId = 1;
 let nextEnrollmentId = 1;
 let tablesInitializedPg = false;
+
+// One pool for the whole process. A pool per query would exhaust Postgres
+// connections, unlike the HTTP-based driver this replaced.
+let pool: Pool | null = null;
+
+function getPool(connectionString: string): Pool {
+  if (!pool) {
+    pool = new Pool({ connectionString, max: 10, idleTimeoutMillis: 30_000 });
+    pool.on('error', (err) => console.error('Postgres pool error:', err));
+  }
+  return pool;
+}
 
 const CREATE_TABLES_PG = `
   CREATE TABLE IF NOT EXISTS users (
@@ -297,10 +309,9 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
 
   if (hasPgUrl) {
     try {
-      const pool = createPool({
-        connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
-      });
-      const client = await pool.connect();
+      const client = await getPool(
+        (process.env.POSTGRES_URL || process.env.DATABASE_URL) as string
+      ).connect();
       try {
         if (!tablesInitializedPg) {
           await client.query(CREATE_TABLES_PG);
@@ -313,7 +324,7 @@ export async function query(text: string, params: any[] = []): Promise<{ rows: a
         client.release();
       }
     } catch (pgError) {
-      console.warn('Vercel Postgres query failed, falling back to pure JS memory store:', pgError);
+      console.warn('Postgres query failed, falling back to pure JS memory store:', pgError);
     }
   }
 
