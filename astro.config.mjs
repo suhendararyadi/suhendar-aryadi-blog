@@ -3,7 +3,7 @@ import mdx from '@astrojs/mdx';
 import node from '@astrojs/node';
 
 export default defineConfig({
-  site: 'https://suhendararyadi.dev',
+  site: 'https://www.suhendararyadi.com',
   output: 'server',
   adapter: node({ mode: 'standalone' }),
   integrations: [mdx()],
